@@ -14,13 +14,47 @@
 
 ```mermaid
 graph LR
-    A[Dữ liệu Thực tế: Thời tiết, Lịch trình, Sức khỏe] --> B(Bộ máy AI & ML On-Device)
-    C[Thông báo: Zalo, Banking, Telegram] --> B
-    B --> D{NowBrief Engine}
-    D --> E[Dashboard One UI 9 thích ứng theo giờ]
-    D --> F[Thanh Capsule Mini Player]
-    D --> G[Now Nudge Gợi ý 1-Chạm]
-    D --> H[Dynamic Island & Glance Widget]
+    %% Nguồn dữ liệu đầu vào
+    subgraph Input_Sources ["Nguồn Dữ Liệu Đầu Vào"]
+        A[Cảm biến & SDK: Thời tiết, Lịch trình, Sức khỏe]
+        C[Notification Listener: Zalo, Banking, OTT]
+        I[System Context: Màn hình khóa, PIN, Giờ hệ thống]
+    end
+
+    %% Tầng xử lý trung tâm
+    subgraph Core_Engine ["NowBrief Core Engine"]
+        B[Bộ máy AI & ML On-Device]
+        R[Rule Engine & 7 Khung Giờ Briefing]
+    end
+
+    %% Tầng hiển thị giao diện
+    subgraph UI_Outputs ["Giao diện Hiển thị One UI"]
+        E[Dashboard thích ứng theo giờ]
+        F[Dynamic Capsule / Mini Player]
+        G[Now Nudge Gợi ý 1-chạm]
+        H[Lockscreen Overlay & Glance Widget]
+    end
+
+    %% Luồng liên kết
+    A --> Core_Engine
+    C --> Core_Engine
+    I --> Core_Engine
+    
+    B <--> R
+    
+    Core_Engine --> E
+    Core_Engine --> F
+    Core_Engine --> G
+    Core_Engine --> H
+
+    %% Styling màu sắc cho nổi bật
+    classDef inputStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:1px,color:#0369a1;
+    classDef coreStyle fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6;
+    classDef uiStyle fill:#f0fdf4,stroke:#16a34a,stroke-width:1px,color:#15803d;
+
+    class A,C,I inputStyle;
+    class B,R coreStyle;
+    class E,F,G,H uiStyle;
 ```
 
 ---
