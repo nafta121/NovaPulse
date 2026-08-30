@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rising Sun Geometric Semicircle Dome -->
+    <path
+        android:pathData="M33,48 A21,21 0 0,1 75,48 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Horizon Base Bar -->
+    <path
+        android:pathData="M20,49 L88,49"
+        android:strokeWidth="6"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Middle Parallel Flat Horizontal Bar -->
+    <path
+        android:pathData="M30,62 L78,62"
+        android:strokeWidth="5.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Bottom Parallel Flat Horizontal Bar -->
+    <path
+        android:pathData="M40,74 L68,74"
+        android:strokeWidth="5.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round" />
+</vector>

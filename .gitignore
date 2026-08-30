@@ -1,0 +1,105 @@
+# ===================================================================
+# Built-in Android / Kotlin / Gradle ignores
+# ===================================================================
+*.iml
+.gradle
+.kotlin
+/build
+/*/build
+build/
+**/build/
+captures/
+.externalNativeBuild
+.cxx
+
+# ===================================================================
+# IDE & Editor Files (Android Studio, IntelliJ, VS Code)
+# ===================================================================
+.idea/
+*.ipr
+*.iws
+out/
+.vscode/
+
+# ===================================================================
+# Secrets, Environment & API Keys (CRITICAL - DO NOT PUSH)
+# ===================================================================
+.env
+.env.*
+!.env.example
+local.properties
+google-services.json
+
+# Signing Keystores & Credentials
+*.jks
+*.keystore
+*.p12
+*.key
+*.pem
+signing.properties
+
+# ===================================================================
+# Proprietary Logic & Algorithms (DO NOT PUSH)
+# ===================================================================
+engine/
+**/engine/
+ml/
+**/ml/
+
+# ===================================================================
+# Databases & Local Data (DO NOT PUSH - User Data & Schemas)
+# ===================================================================
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sql
+*.dump
+databases/
+**/databases/
+**/database/
+**/schemas/
+schemas/
+
+# ===================================================================
+# Machine Learning & AI Models (DO NOT PUSH - Heavy Weights)
+# ===================================================================
+*.tflite
+*.tflite.bin
+*.bin
+*.onnx
+*.gguf
+*.pt
+*.pth
+*.weights
+*.model
+*.pb
+*.h5
+*.safetensors
+*.task
+*.litert
+**/assets/models/
+**/assets/*.bin
+**/assets/*.tflite
+**/assets/*.onnx
+**/assets/*.gguf
+
+# ===================================================================
+# Binary & Package Outputs
+# ===================================================================
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# ===================================================================
+# System & Log Files
+# ===================================================================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
