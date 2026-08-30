@@ -130,8 +130,8 @@ graph LR
   - *Chiều*: Nhắc nhở uống nước, giãn cơ 2 phút, kích hoạt chế độ Deep Focus.
   - *Tối*: Thư giãn chánh niệm, tóm tắt chi tiêu trong ngày, hẹn giờ đi ngủ.
 
-### 🏝️ 5. Dynamic Island & Samsung Glance Widget
-- **Dynamic Island**: Thanh thông tin nổi thông minh trên đỉnh màn hình, hiển thị nhịp tim, số bước chân, thời tiết và phím tắt nhanh.
+### 🏝️ 5. NowPill & Samsung Glance Widget
+- **NowPill**: Thanh thông tin nổi thông minh trên đỉnh hay dưới hay màn hình tùy chọn hiển thị theme theo ngày giờ hoặc có thể các trạng thái khác trong cài đặt.
 - **Glance App Widget**: Widget màn hình chính chuẩn Jetpack Glance đồng bộ tự động 15 phút/lần theo chu kỳ WorkManager.
 
 ---
