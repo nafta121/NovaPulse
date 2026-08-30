@@ -25,6 +25,33 @@ graph LR
 
 ---
 
+
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/afce790b-eca3-43b7-8d02-4f6e87d4d579" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/b7a99a57-0e53-4d28-805f-8a367b3e6787" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/47e53456-788d-45db-ab8c-dfc081dd85d4" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/1d23aae3-6b31-48e7-abf8-86e221ffa1f6" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/04cc468a-1883-4fd2-9c97-a14a28f4f82f" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/c7a32a26-9c3d-43f8-942c-169b0a37c545" />
+
+
+<br>
+
+## Widget
+
+<img width="200" height="100" alt="image" src="https://github.com/user-attachments/assets/ed9706a0-f74d-46a6-afef-e46a6a4e0f64" />
+<img width="200" height="200" alt="image" src="https://github.com/user-attachments/assets/a04ee3ad-32db-4b61-ac61-26df41168b2f" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/9dd14b34-4eb3-44f0-90b5-320ef1bf308d" />
+
+<br>
+
+## Pill
+
+<img width="340" height="100" alt="image" src="https://github.com/user-attachments/assets/90854814-329c-4ee2-8caf-17ad0a28d7f8" />
+
+
+
+(** Hình ảnh chỉ mang tính minh họa có vài đặc điểm sẽ thay đổi để phù hợp hơn với một số thiết bị **)
+
 ## 📥 Hướng Dẫn Cài Đặt File APK (Installation Guide)
 
 ### 1. Tải về và cài đặt:
@@ -91,7 +118,7 @@ graph LR
 | `Lịch trình (Calendar)` | Hiển thị và quản lý lịch sự kiện cá nhân trên thẻ thông minh. |
 | `Vị trí (Location)` | Cập nhật thời tiết địa phương từ Open-Meteo API. |
 | `Cảm biến & Hoạt động (Sensors)` | Đếm số bước chân, theo dõi năng lượng hoạt động trong ngày. |
-| `Hiển thị trên ứng dụng khác (Overlay)` | Hiển thị giao diện Dynamic Island trên đỉnh màn hình (tùy chọn). |
+| `Hiển thị trên ứng dụng khác (Overlay)` | Hiển thị giao diện Dynamic Island(Pill Nowbrief) trên đỉnh màn hình hay phần dưới màn hình (tùy chọn). |
 
 ---
 
