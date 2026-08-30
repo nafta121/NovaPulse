@@ -89,7 +89,7 @@ graph LR
 ## 📥 Hướng Dẫn Cài Đặt File APK (Installation Guide)
 
 ### 1. Tải về và cài đặt:
-1. Tải file **`app-debug.apk`** về điện thoại Android của bạn.
+1. Tải file **`NowBrief-v1.1.2-release.apk`** về điện thoại Android của bạn.
 2. Mở file APK vừa tải và bấm **Cài đặt (Install)**.
 3. Nếu máy xuất hiện thông báo bảo mật:
    - **"Cài đặt từ nguồn không xác định"**: Chọn **Cho phép từ nguồn này (Allow from this source)**.
