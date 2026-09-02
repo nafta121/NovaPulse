@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -12,15 +11,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,18 +32,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Launch
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SmartDisplay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ripple
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,11 +65,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.music.ActiveMediaPlayback
 import com.example.core.music.MusicRecommendationHelper
+import com.example.core.music.RecentMediaTracker
 import com.example.core.music.YouTubeCategoryType
 import com.example.core.music.YouTubeRecommendationHelper
 import com.example.core.music.YouTubeVideoRecommendation
@@ -86,7 +83,11 @@ enum class MediaPlatform {
 
 /**
  * Thẻ Đề xuất Đa phương tiện Thông minh (YouTube & Spotify)
- * Được kết nối trực tiếp với YouTube Channel Feeds, Thanh Capsule Mini Player & Mô hình Máy học On-Device.
+ * Hỗ trợ:
+ * 1. Bắt bài hát thực tế người dùng vừa nghe trên máy (YouTube / Spotify / Zing MP3)
+ * 2. Đa dạng thể loại: V-Pop & Nghệ sĩ, Pop/Ballad/Rap, Podcast, Lofi/Acoustic
+ * 3. Tìm kiếm và chọn nhanh nghệ sĩ yêu thích (Sơn Tùng, Đen Vâu, Vũ, HIEUTHUHAI...)
+ * 4. Nút 1 chạm mở thẳng ứng dụng cá nhân
  */
 @Composable
 fun SmartMusicCard(
@@ -97,6 +98,7 @@ fun SmartMusicCard(
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
+
     var selectedPlatform by rememberSaveable {
         mutableStateOf(
             if (com.example.core.ml.InternalMlEngine.getInstance(context).mediaLearner.getPreferredPlatform() == "SPOTIFY") {
@@ -115,8 +117,11 @@ fun SmartMusicCard(
     var activeTrackSubtitle by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        RecentMediaTracker.init(context)
         YouTubeRecommendationHelper.fetchLiveYouTubeVideos(context)
     }
+
+    val recentPlayback by RecentMediaTracker.currentPlaybackState.collectAsStateWithLifecycle()
 
     val spotifyRec = remember(currentHour) {
         MusicRecommendationHelper.getRecommendationForSession(currentHour)
@@ -132,9 +137,11 @@ fun SmartMusicCard(
         }
     }
 
-    val currentDisplayTitle = remember(selectedPlatform, spotifyRec, filteredVideos, activeTrackTitle) {
+    val currentDisplayTitle = remember(selectedPlatform, spotifyRec, filteredVideos, activeTrackTitle, recentPlayback) {
         if (activeTrackTitle.isNotBlank()) {
             activeTrackTitle
+        } else if (recentPlayback != null && recentPlayback!!.title.isNotBlank()) {
+            recentPlayback!!.title
         } else if (selectedPlatform == MediaPlatform.SPOTIFY) {
             spotifyRec.title
         } else {
@@ -142,9 +149,11 @@ fun SmartMusicCard(
         }
     }
 
-    val currentDisplaySubtitle = remember(selectedPlatform, spotifyRec, filteredVideos, activeTrackSubtitle) {
+    val currentDisplaySubtitle = remember(selectedPlatform, spotifyRec, filteredVideos, activeTrackSubtitle, recentPlayback) {
         if (activeTrackSubtitle.isNotBlank()) {
             activeTrackSubtitle
+        } else if (recentPlayback != null && recentPlayback!!.title.isNotBlank()) {
+            recentPlayback!!.displaySubtitle
         } else if (selectedPlatform == MediaPlatform.SPOTIFY) {
             spotifyRec.genreTag
         } else {
@@ -154,7 +163,6 @@ fun SmartMusicCard(
 
     val youtubeRed = Color(0xFFFF0000)
     val spotifyGreen = Color(0xFF1DB954)
-
     val activeAccentColor = if (selectedPlatform == MediaPlatform.YOUTUBE) youtubeRed else spotifyGreen
 
     val containerBg = if (isDark) {
@@ -170,7 +178,6 @@ fun SmartMusicCard(
     }
 
     val titleColor = if (isDark) Color.White else Color(0xFF1E1E1E)
-    val appNameColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF5F6368)
     val timeTextColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF757575)
 
     Card(
@@ -179,15 +186,15 @@ fun SmartMusicCard(
             .clip(RoundedCornerShape(28.dp)),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = containerBg),
-        border = androidx.compose.foundation.BorderStroke(1.dp, strokeColor)
+        border = BorderStroke(1.dp, strokeColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(18.dp)
         ) {
             // -------------------------------------------------------------
-            // [TOP SEGMENTED SWITCHER]: YouTube vs Spotify Toggle + Refresh
+            // [TOP ROW]: Platform Switcher + Open App Button
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -228,7 +235,7 @@ fun SmartMusicCard(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = "YouTube Live",
+                                text = "YouTube",
                                 fontSize = 11.5.sp,
                                 fontWeight = if (selectedPlatform == MediaPlatform.YOUTUBE) FontWeight.Bold else FontWeight.Medium,
                                 color = if (selectedPlatform == MediaPlatform.YOUTUBE) Color.White else (if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B))
@@ -271,59 +278,105 @@ fun SmartMusicCard(
                     }
                 }
 
-                // AI Engine Tag & Refresh
+                // Nút Mở Ứng Dụng Chính Thức
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable {
+                            if (selectedPlatform == MediaPlatform.YOUTUBE) {
+                                YouTubeRecommendationHelper.openYouTubeApp(context)
+                            } else {
+                                MusicRecommendationHelper.openSpotifyApp(context)
+                            }
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    if (selectedPlatform == MediaPlatform.YOUTUBE) {
-                        IconButton(
-                            onClick = {
-                                if (!isYtRefreshing) {
-                                    isYtRefreshing = true
-                                    coroutineScope.launch {
-                                        YouTubeRecommendationHelper.fetchLiveYouTubeVideos()
-                                        isYtRefreshing = false
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Làm mới YouTube",
-                                tint = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
-                                modifier = Modifier.size(16.dp)
+                    Text(
+                        text = if (selectedPlatform == MediaPlatform.YOUTUBE) "Mở YouTube" else "Mở Spotify",
+                        color = activeAccentColor,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Launch,
+                        contentDescription = "Open App",
+                        tint = activeAccentColor,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
+
+            // -------------------------------------------------------------
+            // [DEVICE RECENT PLAYBACK BANNER]: Bài hát thực tế vừa nghe trên máy
+            // -------------------------------------------------------------
+            if (recentPlayback != null && recentPlayback!!.title.isNotBlank()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color(0xFFF1F5F9))
+                        .border(
+                            0.8.dp,
+                            if (isDark) Color.White.copy(alpha = 0.10f) else Color(0xFFE2E8F0),
+                            RoundedCornerShape(14.dp)
+                        )
+                        .clickable {
+                            if (recentPlayback!!.packageName.contains("spotify")) {
+                                MusicRecommendationHelper.openMusicApp(context, "${recentPlayback!!.title} ${recentPlayback!!.artist}")
+                            } else {
+                                YouTubeRecommendationHelper.openSearchQuery(context, "${recentPlayback!!.title} ${recentPlayback!!.artist}")
+                            }
+                        }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GraphicEq,
+                            contentDescription = null,
+                            tint = activeAccentColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text(
+                                text = "Vừa phát: ${recentPlayback!!.title}",
+                                color = titleColor,
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = recentPlayback!!.displaySubtitle,
+                                color = timeTextColor,
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = null,
-                            tint = activeAccentColor,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "Live Feed",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = activeAccentColor
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Phát lại",
+                        tint = activeAccentColor,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // -------------------------------------------------------------
-            // [CAPSULE MINI PLAYER]: Thanh Mini Player 1 chạm + Sóng nhạc động
+            // [CAPSULE MINI PLAYER]: Thanh Mini Player 1 chạm
             // -------------------------------------------------------------
             MediaCapsuleMiniPlayer(
                 title = currentDisplayTitle,
@@ -363,7 +416,59 @@ fun SmartMusicCard(
                 }
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // -------------------------------------------------------------
+            // [QUICK ARTIST CHIPS]: Nghệ sĩ thịnh hành & Tìm kiếm theo sở thích
+            // -------------------------------------------------------------
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                val artistList = if (selectedPlatform == MediaPlatform.YOUTUBE) {
+                    YouTubeRecommendationHelper.POPULAR_ARTISTS
+                } else {
+                    MusicRecommendationHelper.POPULAR_SPOTIFY_CHIPS
+                }
+
+                artistList.forEach { artist ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color(0xFFF1F5F9))
+                            .clickable {
+                                if (selectedPlatform == MediaPlatform.YOUTUBE) {
+                                    YouTubeRecommendationHelper.openSearchQuery(context, "$artist Official")
+                                } else {
+                                    MusicRecommendationHelper.openMusicApp(context, artist)
+                                }
+                            }
+                            .padding(horizontal = 9.dp, vertical = 5.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = activeAccentColor,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Text(
+                                text = artist,
+                                color = if (isDark) Color(0xFFE2E8F0) else Color(0xFF334155),
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // -------------------------------------------------------------
             // [MAIN CONTENT]: YouTube List vs Spotify View
@@ -381,7 +486,7 @@ fun SmartMusicCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 YouTubeCategoryType.values().forEach { cat ->
                                     val isSelected = selectedCategory == cat
@@ -401,11 +506,11 @@ fun SmartMusicCard(
                                                 CircleShape
                                             )
                                             .clickable { selectedCategory = cat }
-                                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                                            .padding(horizontal = 9.dp, vertical = 4.dp)
                                     ) {
                                         Text(
                                             text = cat.label,
-                                            fontSize = 11.5.sp,
+                                            fontSize = 11.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                             color = if (isSelected) youtubeRed else (if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B))
                                         )
@@ -413,10 +518,10 @@ fun SmartMusicCard(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(2.dp))
 
                             // List of Curated YouTube Videos
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 filteredVideos.take(4).forEachIndexed { index, video ->
                                     Row(
                                         modifier = Modifier
@@ -432,10 +537,9 @@ fun SmartMusicCard(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Left Squircle Icon with Duration
                                         Box(
                                             modifier = Modifier
-                                                .size(44.dp)
+                                                .size(42.dp)
                                                 .clip(RoundedCornerShape(12.dp))
                                                 .background(if (isDark) Color(0xFF330000) else Color(0xFFFEE2E2)),
                                             contentAlignment = Alignment.Center
@@ -444,11 +548,10 @@ fun SmartMusicCard(
                                                 imageVector = Icons.Default.PlayArrow,
                                                 contentDescription = null,
                                                 tint = youtubeRed,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(22.dp)
                                             )
                                         }
 
-                                        // Center Video Details
                                         Column(
                                             modifier = Modifier.weight(1f),
                                             verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -474,38 +577,26 @@ fun SmartMusicCard(
                                             Text(
                                                 text = video.title,
                                                 color = titleColor,
-                                                fontSize = 14.5.sp,
+                                                fontSize = 13.5.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
 
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                            ) {
-                                                Text(
-                                                    text = video.channelTitle,
-                                                    color = timeTextColor,
-                                                    fontSize = 12.sp,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Icon(
-                                                    imageVector = Icons.Default.CheckCircle,
-                                                    contentDescription = null,
-                                                    tint = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
-                                                    modifier = Modifier.size(11.dp)
-                                                )
-                                            }
+                                            Text(
+                                                text = video.channelTitle,
+                                                color = timeTextColor,
+                                                fontSize = 11.5.sp,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
                                         }
 
-                                        // Right Direct Play Icon
                                         Icon(
                                             imageVector = Icons.Default.NorthEast,
                                             contentDescription = "Mở video",
                                             tint = timeTextColor,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(15.dp)
                                         )
                                     }
 
@@ -541,7 +632,7 @@ fun SmartMusicCard(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(46.dp)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(if (isDark) Color(0xFF0A2614) else Color(0xFFE8F8EE)),
                                 contentAlignment = Alignment.Center
@@ -550,7 +641,7 @@ fun SmartMusicCard(
                                     imageVector = Icons.Default.MusicNote,
                                     contentDescription = "Spotify Icon",
                                     tint = spotifyGreen,
-                                    modifier = Modifier.size(26.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
 
@@ -572,7 +663,7 @@ fun SmartMusicCard(
                                 Text(
                                     text = spotifyRec.title,
                                     color = titleColor,
-                                    fontSize = 14.5.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -583,7 +674,7 @@ fun SmartMusicCard(
                                 Text(
                                     text = spotifyRec.subtitle,
                                     color = timeTextColor,
-                                    fontSize = 12.sp,
+                                    fontSize = 11.5.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -593,7 +684,7 @@ fun SmartMusicCard(
 
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(38.dp)
                                     .clip(CircleShape)
                                     .background(if (isDark) spotifyGreen else Color(0xFFE8F8EE)),
                                 contentAlignment = Alignment.Center
@@ -602,7 +693,7 @@ fun SmartMusicCard(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = "Nghe nhạc Spotify",
                                     tint = if (isDark) Color.White else spotifyGreen,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
@@ -614,8 +705,7 @@ fun SmartMusicCard(
 }
 
 /**
- * Thanh Mini Player dạng Capsule chuẩn One UI với thanh sóng nhạc động (Audio Waveform)
- * và nút bấm Play/Pause 1 chạm tương tác trực tiếp.
+ * Thanh Mini Player dạng Capsule chuẩn One UI với sóng nhạc động
  */
 @Composable
 fun MediaCapsuleMiniPlayer(
@@ -633,7 +723,6 @@ fun MediaCapsuleMiniPlayer(
     val spotifyGreen = Color(0xFF1DB954)
     val accentColor = if (platform == MediaPlatform.YOUTUBE) youtubeRed else spotifyGreen
 
-    // Dynamic wave animation for audio waveform only when playing
     val (wave1, wave2, wave3, wave4, vinylRotation) = if (isPlaying) {
         val infiniteTransition = rememberInfiniteTransition(label = "capsule_wave_anim")
         val w1 by infiniteTransition.animateFloat(
@@ -649,65 +738,46 @@ fun MediaCapsuleMiniPlayer(
             label = "w2"
         )
         val w3 by infiniteTransition.animateFloat(
-            initialValue = 8f,
+            initialValue = 6f,
             targetValue = 20f,
             animationSpec = infiniteRepeatable(tween(480, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = "w3"
         )
         val w4 by infiniteTransition.animateFloat(
             initialValue = 14f,
-            targetValue = 6f,
+            targetValue = 4f,
             animationSpec = infiniteRepeatable(tween(620, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = "w4"
         )
         val rot by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
-            animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart),
-            label = "vinyl_rot"
+            animationSpec = infiniteRepeatable(tween(8000, easing = LinearEasing)),
+            label = "rot"
         )
-        arrayOf(w1, w2, w3, w4, rot)
+        listOf(w1, w2, w3, w4, rot)
     } else {
-        arrayOf(4f, 4f, 4f, 4f, 0f)
+        listOf(6f, 10f, 8f, 5f, 0f)
     }
 
-    val playBtnInteractionSource = remember { MutableInteractionSource() }
-    val isPlayBtnPressed by playBtnInteractionSource.collectIsPressedAsState()
-    val playBtnScale by animateFloatAsState(
-        targetValue = if (isPlayBtnPressed) 0.90f else 1.0f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-        label = "play_btn_scale"
-    )
-
-    // Capsule Glass Container
     val capsuleBg = if (isDark) {
-        Brush.horizontalGradient(
-            listOf(
-                accentColor.copy(alpha = if (isPlaying) 0.22f else 0.12f),
-                Color(0xFF1E293B).copy(alpha = 0.50f)
-            )
-        )
+        Color.White.copy(alpha = 0.08f)
     } else {
-        Brush.horizontalGradient(
-            listOf(
-                accentColor.copy(alpha = if (isPlaying) 0.14f else 0.07f),
-                Color.White.copy(alpha = 0.85f)
-            )
-        )
+        Color.White.copy(alpha = 0.70f)
     }
 
-    val capsuleBorder = if (isPlaying) {
-        accentColor.copy(alpha = if (isDark) 0.45f else 0.35f)
+    val capsuleBorder = if (isDark) {
+        Color.White.copy(alpha = 0.15f)
     } else {
-        if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE2E8F0)
+        Color(0xFFE2E8F0)
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(capsuleBg)
-            .border(1.dp, capsuleBorder, RoundedCornerShape(22.dp))
+            .border(BorderStroke(1.dp, capsuleBorder), RoundedCornerShape(20.dp))
             .clickable { onOpenAppClick() }
             .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
@@ -716,109 +786,111 @@ fun MediaCapsuleMiniPlayer(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // [LEFT]: Rotating Vinyl / Squircle App Icon
             Row(
-                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .graphicsLayer {
-                            if (isPlaying) rotationZ = vinylRotation
-                        }
+                        .size(34.dp)
                         .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF0F172A) else Color(0xFFF1F5F9))
-                        .border(1.dp, accentColor.copy(alpha = if (isPlaying) 0.8f else 0.3f), CircleShape),
+                        .background(
+                            Brush.linearGradient(
+                                listOf(accentColor, accentColor.copy(alpha = 0.7f))
+                            )
+                        )
+                        .graphicsLayer { rotationZ = vinylRotation },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (platform == MediaPlatform.YOUTUBE) Icons.Default.SmartDisplay else Icons.Default.MusicNote,
-                        contentDescription = "Platform Icon",
-                        tint = accentColor,
-                        modifier = Modifier.size(20.dp)
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
-                // [CENTER]: Track Title + Dynamic Waveform Bar
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     Text(
-                        text = title.ifBlank { if (platform == MediaPlatform.YOUTUBE) "YouTube Live Media" else "Spotify Daily Mix" },
+                        text = title,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = if (isDark) Color.White else Color(0xFF0F172A),
-                        fontSize = 13.5.sp,
-                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = subtitle.ifBlank { if (platform == MediaPlatform.YOUTUBE) "Đang phát • YouTube" else "Đang phát • Spotify" },
-                            color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-
-                        // 4-Bar Animated Equalizer / Soundwave
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.5.dp),
-                            modifier = Modifier.height(18.dp)
-                        ) {
-                            val h1 = if (isPlaying) wave1.dp else 4.dp
-                            val h2 = if (isPlaying) wave2.dp else 4.dp
-                            val h3 = if (isPlaying) wave3.dp else 4.dp
-                            val h4 = if (isPlaying) wave4.dp else 4.dp
-
-                            Box(modifier = Modifier.width(3.dp).height(h1).clip(CircleShape).background(accentColor))
-                            Box(modifier = Modifier.width(3.dp).height(h2).clip(CircleShape).background(accentColor))
-                            Box(modifier = Modifier.width(3.dp).height(h3).clip(CircleShape).background(accentColor))
-                            Box(modifier = Modifier.width(3.dp).height(h4).clip(CircleShape).background(accentColor))
-                        }
-                    }
+                    Text(
+                        text = subtitle,
+                        fontSize = 11.sp,
+                        color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // [RIGHT]: Quick Play/Pause Action Button (1-Tap Operation)
-            Box(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = playBtnScale
-                        scaleY = playBtnScale
-                    }
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isPlaying) accentColor else accentColor.copy(alpha = if (isDark) 0.22f else 0.12f)
-                    )
-                    .clickable(
-                        interactionSource = playBtnInteractionSource,
-                        indication = ripple(bounded = true)
-                    ) {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onPlayPauseClick()
-                    },
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Tạm dừng" else "Phát nhanh",
-                    tint = if (isPlaying) Color.White else accentColor,
-                    modifier = Modifier.size(18.dp)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.height(20.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(2.5.dp)
+                            .height(wave1.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(2.5.dp)
+                            .height(wave2.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(2.5.dp)
+                            .height(wave3.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(2.5.dp)
+                            .height(wave4.dp)
+                            .clip(CircleShape)
+                            .background(accentColor)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(accentColor)
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onPlayPauseClick()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (isPlaying) "Tạm dừng" else "Phát",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
 }
-

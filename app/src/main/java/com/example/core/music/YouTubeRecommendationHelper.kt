@@ -26,7 +26,7 @@ data class YouTubeVideoRecommendation(
     val durationText: String,
     val aiReason: String,
     val categoryTag: String,
-    val categoryType: YouTubeCategoryType = YouTubeCategoryType.MUSIC_HIT,
+    val categoryType: YouTubeCategoryType = YouTubeCategoryType.VPOP_ARTISTS,
     val searchFallbackQuery: String
 ) {
     val thumbnailUrl: String
@@ -37,9 +37,10 @@ data class YouTubeVideoRecommendation(
 
 enum class YouTubeCategoryType(val label: String) {
     ALL("Tất cả"),
-    MUSIC_HIT("🎵 MV & Nhạc Mới"),
-    LOFI_CHILL("☕ Lofi & Chill"),
-    PODCAST_KNOWLEDGE("🎙️ Podcast & Học tập")
+    VPOP_ARTISTS("🌟 V-Pop & Nghệ sĩ"),
+    GENRE_MIX("🎸 Pop • Ballad • Rap"),
+    PODCAST_KNOWLEDGE("🎙️ Podcast & Kỹ năng"),
+    LOFI_CHILL("☕ Acoustic & Lofi")
 }
 
 data class YouTubeFeedSource(
@@ -55,29 +56,51 @@ object YouTubeRecommendationHelper {
     private const val TAG = "YouTubeRecHelper"
 
     private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(8, TimeUnit.SECONDS)
-        .readTimeout(8, TimeUnit.SECONDS)
+        .connectTimeout(6, TimeUnit.SECONDS)
+        .readTimeout(6, TimeUnit.SECONDS)
         .build()
 
-    // Danh sách nguồn YouTube RSS trực tiếp (Playlist thịnh hành + Kênh âm nhạc / podcast hàng đầu)
+    // Danh sách các nghệ sĩ thịnh hành & gợi ý tìm kiếm nhanh
+    val POPULAR_ARTISTS = listOf(
+        "Sơn Tùng M-TP",
+        "Đen Vâu",
+        "Vũ.",
+        "HIEUTHUHAI",
+        "Soobin Hoàng Sơn",
+        "Vũ Cát Tường",
+        "GREY D",
+        "Trung Quân Idol",
+        "Taylor Swift",
+        "Rap Việt Tuyển Chọn"
+    )
+
+    // Nguồn YouTube RSS đa dạng: V-Pop, Nghệ sĩ hàng đầu, Podcast & Acoustic
     private val LIVE_SOURCES = listOf(
-        // 1. Kênh Nhạc Lofi Live
+        // 1. Kênh Sơn Tùng M-TP Official
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSJ4gkVC6NrvII8umztf0Ow",
-            defaultChannelName = "Lofi Girl",
-            categoryType = YouTubeCategoryType.LOFI_CHILL,
-            categoryTag = "Lofi Tập trung",
-            aiReason = "Nhạc Lofi không lời hỗ trợ duy trì trạng thái tập trung sâu."
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCKaTC4hX2dE5g_pU5N7K08Q",
+            defaultChannelName = "Sơn Tùng M-TP Official",
+            categoryType = YouTubeCategoryType.VPOP_ARTISTS,
+            categoryTag = "V-Pop Thịnh hành",
+            aiReason = "Âm nhạc sôi động từ nghệ sĩ hàng đầu Việt Nam."
         ),
-        // 2. Kênh Podcast Đời sống & Phỏng vấn
+        // 2. Kênh Đen Vâu Official
+        YouTubeFeedSource(
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCa4g2qQc7b1qF5_e2W5Qxkg",
+            defaultChannelName = "Đen Vâu Official",
+            categoryType = YouTubeCategoryType.VPOP_ARTISTS,
+            categoryTag = "Rap Triết lý",
+            aiReason = "Lời ca mộc mạc và suy ngẫm giúp thư giãn tâm trí."
+        ),
+        // 3. Kênh Vietcetera Podcast
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCEm_b62Y4IisWj6S0gq4dvw",
             defaultChannelName = "Vietcetera",
             categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
             categoryTag = "Podcast trò chuyện",
-            aiReason = "Podcast bàn về cuộc sống & công việc giúp thả lỏng tâm trí."
+            aiReason = "Podcast sâu sắc về cuộc sống, sự nghiệp và phong cách sống."
         ),
-        // 3. Kênh Kỹ năng sống & Làm việc
+        // 4. Kênh Web5Ngay
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC20h6p4f0UjU8Xo1jA8Jc2w",
             defaultChannelName = "Web5Ngay",
@@ -85,22 +108,27 @@ object YouTubeRecommendationHelper {
             categoryTag = "Kỹ năng sống",
             aiReason = "Bài học quản lý năng lượng và tư duy làm việc hiệu quả."
         ),
-        // 4. Kênh Cafe BGM Nhạc Chill
+        // 5. Kênh Cafe Music BGM
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCH4g5C_yYv_7F_c1kQeA1aA",
             defaultChannelName = "Cafe Music BGM",
             categoryType = YouTubeCategoryType.LOFI_CHILL,
             categoryTag = "Acoustic Cafe",
             aiReason = "Âm nhạc nhẹ nhàng hỗ trợ nghỉ ngơi và nạp lại năng lượng."
+        ),
+        // 6. Kênh Lofi Girl
+        YouTubeFeedSource(
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSJ4gkVC6NrvII8umztf0Ow",
+            defaultChannelName = "Lofi Girl",
+            categoryType = YouTubeCategoryType.LOFI_CHILL,
+            categoryTag = "Lofi Tập trung",
+            aiReason = "Giai điệu không lời êm dịu hỗ trợ tập trung."
         )
     )
 
     private val _liveVideosState = MutableStateFlow(getFallbackVideos())
     val liveVideosState: StateFlow<List<YouTubeVideoRecommendation>> = _liveVideosState.asStateFlow()
 
-    /**
-     * Tải và phân tích cú pháp 100% trực tiếp từ YouTube RSS feeds qua mạng
-     */
     suspend fun fetchLiveYouTubeVideos(context: Context? = null): List<YouTubeVideoRecommendation> = withContext(Dispatchers.IO) {
         val liveResults = mutableListOf<YouTubeVideoRecommendation>()
 
@@ -116,7 +144,6 @@ object YouTubeRecommendationHelper {
                     val xmlString = response.body?.string()
                     if (!xmlString.isNullOrBlank()) {
                         val parsed = parseYouTubeAtomXml(xmlString, source)
-                        // Lấy 2 video mới nhất từ mỗi nguồn
                         liveResults.addAll(parsed.take(2))
                     }
                 }
@@ -125,20 +152,23 @@ object YouTubeRecommendationHelper {
             }
         }
 
-        // Sắp xếp video theo điểm ưu tiên học được từ mô hình máy học (ML UCB1)
+        val finalResults = if (liveResults.isNotEmpty()) {
+            liveResults + getFallbackVideos()
+        } else {
+            getFallbackVideos()
+        }
+
+        // Sắp xếp video theo điểm ưu tiên học được từ mô hình máy học
         val sortedResults = if (context != null) {
             val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
-            liveResults.sortedByDescending {
+            finalResults.distinctBy { it.videoId.ifBlank { it.title } }.sortedByDescending {
                 mlEngine.mediaLearner.calculateCategoryScore(it.categoryType.name)
             }
         } else {
-            liveResults
+            finalResults.distinctBy { it.videoId.ifBlank { it.title } }
         }
 
-        // Cập nhật StateFlow với dữ liệu live lấy từ mạng
-        if (sortedResults.isNotEmpty()) {
-            _liveVideosState.value = sortedResults
-        }
+        _liveVideosState.value = sortedResults
         return@withContext _liveVideosState.value
     }
 
@@ -188,23 +218,23 @@ object YouTubeRecommendationHelper {
                         }
                     }
                     XmlPullParser.END_TAG -> {
-                        if (tagName.equals("entry", ignoreCase = true)) {
+                        if (tagName.equals("entry", ignoreCase = true) && inEntry) {
                             inEntry = false
                             if (curVideoId.isNotBlank() && curTitle.isNotBlank()) {
                                 val channel = if (curAuthorName.isNotBlank()) curAuthorName else source.defaultChannelName
-                                val timeText = formatIsoPublished(curPublished)
+                                val formattedDate = formatRelativeTime(curPublished)
 
                                 list.add(
                                     YouTubeVideoRecommendation(
-                                        id = "yt_live_${curVideoId}",
+                                        id = "yt_live_$curVideoId",
                                         videoId = curVideoId,
                                         title = curTitle,
                                         channelTitle = channel,
-                                        durationText = timeText,
+                                        durationText = formattedDate,
                                         aiReason = source.aiReason,
                                         categoryTag = source.categoryTag,
                                         categoryType = source.categoryType,
-                                        searchFallbackQuery = curTitle
+                                        searchFallbackQuery = "$curTitle $channel"
                                     )
                                 )
                             }
@@ -214,33 +244,68 @@ object YouTubeRecommendationHelper {
                 eventType = parser.next()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing YouTube XML: ${e.message}")
+            Log.e(TAG, "Error parsing XML: ${e.message}")
         }
         return list
     }
 
-    private fun formatIsoPublished(isoDate: String): String {
+    private fun formatRelativeTime(isoDate: String): String {
         return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-            val date = sdf.parse(isoDate) ?: return "Mới tải lên"
-            val diffMinutes = (System.currentTimeMillis() - date.time) / (1000 * 60)
+            if (isoDate.isBlank()) return "Mới phát hành"
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            val date = parser.parse(isoDate.substring(0, minOf(19, isoDate.length))) ?: return "Mới"
+            val diffMs = System.currentTimeMillis() - date.time
+            val diffDays = (diffMs / (24 * 3600 * 1000L)).toInt()
             when {
-                diffMinutes < 60 -> "$diffMinutes phút trước"
-                diffMinutes < 1440 -> "${diffMinutes / 60} giờ trước"
-                diffMinutes < 10080 -> "${diffMinutes / 1440} ngày trước"
-                else -> "Gần đây"
+                diffDays <= 0 -> "Hôm nay"
+                diffDays == 1 -> "Hôm qua"
+                diffDays < 7 -> "$diffDays ngày trước"
+                else -> "${diffDays / 7} tuần trước"
             }
         } catch (e: Exception) {
-            "Mới tải lên"
+            "Mới cập nhật"
         }
     }
 
-    private fun getFallbackVideos(): List<YouTubeVideoRecommendation> {
+    fun getFallbackVideos(): List<YouTubeVideoRecommendation> {
         return listOf(
+            YouTubeVideoRecommendation(
+                id = "yt_vpop_1",
+                videoId = "abPmZCZZrFA",
+                title = "Đừng Làm Trái Tim Anh Đau - Sơn Tùng M-TP | Official Music Video",
+                channelTitle = "Sơn Tùng M-TP Official",
+                durationText = "05:18",
+                aiReason = "Bản hit V-Pop năng lượng cho ngày mới tươi vui.",
+                categoryTag = "V-Pop Thịnh hành",
+                categoryType = YouTubeCategoryType.VPOP_ARTISTS,
+                searchFallbackQuery = "Đừng Làm Trái Tim Anh Đau Sơn Tùng M-TP"
+            ),
+            YouTubeVideoRecommendation(
+                id = "yt_vpop_2",
+                videoId = "Z3q1j3rM3cE",
+                title = "Nấu Ăn Cho Em - Đen ft. PiaLinh | Official Music Video",
+                channelTitle = "Đen Vâu Official",
+                durationText = "04:45",
+                aiReason = "Âm nhạc truyền cảm hứng tích cực và yêu thương.",
+                categoryTag = "Rap Triết lý",
+                categoryType = YouTubeCategoryType.VPOP_ARTISTS,
+                searchFallbackQuery = "Nấu Ăn Cho Em Đen Vâu"
+            ),
+            YouTubeVideoRecommendation(
+                id = "yt_genre_1",
+                videoId = "K1B_442_gP4",
+                title = "Những Bản Ballad & Indie Hay Nhất Việt Nam 2026",
+                channelTitle = "V-Pop Ballad Station",
+                durationText = "01:15:30",
+                aiReason = "Tổng hợp các bản Ballad cảm xúc sâu lắng.",
+                categoryTag = "Ballad Tuyển chọn",
+                categoryType = YouTubeCategoryType.GENRE_MIX,
+                searchFallbackQuery = "Nhạc Ballad Việt Nam hay nhất"
+            ),
             YouTubeVideoRecommendation(
                 id = "yt_fallback_1",
                 videoId = "jfKfPfyJRdk",
-                title = "Lofi Hip Hop Radio - Beats to Relax/Study/Deep Work to",
+                title = "Lofi Hip Hop Radio - Beats to Relax/Study/Deep Work",
                 channelTitle = "Lofi Girl",
                 durationText = "TRỰC TIẾP",
                 aiReason = "Khung giờ vàng tập trung (Deep Work) theo nhịp sinh học.",
@@ -263,10 +328,52 @@ object YouTubeRecommendationHelper {
     }
 
     /**
+     * Tìm kiếm nghệ sĩ / ca khúc trực tiếp trên YouTube
+     */
+    fun openSearchQuery(context: Context, query: String) {
+        try {
+            val searchIntent = Intent(Intent.ACTION_SEARCH).apply {
+                setPackage("com.google.android.youtube")
+                putExtra("query", query)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(searchIntent)
+        } catch (e: Exception) {
+            try {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=${Uri.encode(query)}")).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(webIntent)
+            } catch (e2: Exception) {
+                Log.e(TAG, "Failed searching YouTube: ${e2.message}")
+            }
+        }
+    }
+
+    /**
+     * Mở ứng dụng YouTube chính thức
+     */
+    fun openYouTubeApp(context: Context) {
+        try {
+            val launchIntent = context.packageManager.getLaunchIntentForPackage("com.google.android.youtube")
+            if (launchIntent != null) {
+                launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                context.startActivity(launchIntent)
+            } else {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com")).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(webIntent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot launch YouTube: ${e.message}")
+        }
+    }
+
+    /**
      * Mở trực tiếp video trong YouTube App hoặc Deep Link
      */
     fun openYouTubeVideo(context: Context, rec: YouTubeVideoRecommendation) {
-        // Ghi nhận tương tác vào mô hình máy học (ML UCB1)
         try {
             val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
             mlEngine.recordMediaClick(rec.categoryType.name, "YOUTUBE")
@@ -293,16 +400,7 @@ object YouTubeRecommendationHelper {
             }
             context.startActivity(webIntent)
         } catch (e2: Exception) {
-            try {
-                val searchIntent = Intent(Intent.ACTION_SEARCH).apply {
-                    setPackage("com.google.android.youtube")
-                    putExtra("query", rec.searchFallbackQuery)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(searchIntent)
-            } catch (e3: Exception) {
-                Log.e(TAG, "Failed launching YouTube: ${e3.message}")
-            }
+            openSearchQuery(context, rec.searchFallbackQuery)
         }
     }
 }

@@ -1,7 +1,11 @@
 package com.example.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
@@ -21,6 +25,8 @@ import androidx.compose.ui.unit.dp
  * - Vòng 1 (Ngoài cùng - Xanh lá #A3E635): Số bước chân
  * - Vòng 2 (Ở giữa - Xanh ngọc #22D3EE): Thời gian hoạt động (phút)
  * - Vòng 3 (Trong cùng - Tím #C084FC): Calo tiêu hao (kcal)
+ *
+ * Hỗ trợ hiệu ứng Breathing Aura / Phát sáng nhẹ khi hoàn thành 100% cả 3 vòng (Goal Achieved).
  */
 @Composable
 fun ActivityRingsCanvas(
@@ -30,6 +36,8 @@ fun ActivityRingsCanvas(
     modifier: Modifier = Modifier,
     sizeDp: Dp = 96.dp
 ) {
+    val isAllCompleted = stepsProgress >= 1f && activeMinutesProgress >= 1f && caloriesProgress >= 1f
+
     val animatedSteps by animateFloatAsState(
         targetValue = stepsProgress.coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
@@ -46,6 +54,18 @@ fun ActivityRingsCanvas(
         label = "cal_ring_anim"
     )
 
+    // Hiệu ứng phát sáng nhịp thở nhẹ nhàng khi hoàn thành 100% mục tiêu
+    val infiniteTransition = rememberInfiniteTransition(label = "ring_glow_transition")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = if (isAllCompleted) 0.15f else 0f,
+        targetValue = if (isAllCompleted) 0.45f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "goal_glow_alpha"
+    )
+
     val greenColor = Color(0xFFA3E635) // Outer Green Steps
     val cyanColor = Color(0xFF22D3EE)  // Middle Cyan Active Mins
     val purpleColor = Color(0xFFC084FC) // Inner Purple Calories
@@ -58,6 +78,20 @@ fun ActivityRingsCanvas(
         val outerRadius = (minDim - strokeWidth) / 2f
         val middleRadius = outerRadius - spacing
         val innerRadius = middleRadius - spacing
+
+        // 0. Khi hoàn thành cả 3 mục tiêu: Vẽ vầng hào quang phát sáng nhẹ nhàng
+        if (isAllCompleted && glowAlpha > 0f) {
+            drawCircle(
+                color = Color(0xFF10B981).copy(alpha = glowAlpha * 0.35f),
+                radius = outerRadius + strokeWidth * 0.6f,
+                center = center
+            )
+            drawCircle(
+                color = Color(0xFF38BDF8).copy(alpha = glowAlpha * 0.20f),
+                radius = middleRadius + strokeWidth * 0.4f,
+                center = center
+            )
+        }
 
         // Helper function to draw track & progress arc
         fun drawRing(radius: Float, progress: Float, color: Color) {
@@ -88,6 +122,19 @@ fun ActivityRingsCanvas(
                     size = ringSize,
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
+
+                // Nếu đạt 100% vòng này: Thêm viền sáng bóng nhẹ ở đầu nút
+                if (progress >= 1f && isAllCompleted) {
+                    drawArc(
+                        color = Color.White.copy(alpha = 0.35f),
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = ringSize,
+                        style = Stroke(width = strokeWidth * 0.4f, cap = StrokeCap.Round)
+                    )
+                }
             }
         }
 

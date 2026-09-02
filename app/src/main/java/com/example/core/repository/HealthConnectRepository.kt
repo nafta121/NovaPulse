@@ -177,6 +177,7 @@ class HealthConnectRepository(private val context: Context) {
             val mondayDate = todayLocalDate.with(DayOfWeek.MONDAY)
             val weeklyHistory = mutableListOf<DailyHeartRingData>()
             val dayLabels = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+            val dayFullNames = listOf("Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật")
 
             for (i in 0..6) {
                 val dayDate = mondayDate.plusDays(i.toLong())
@@ -190,7 +191,26 @@ class HealthConnectRepository(private val context: Context) {
                             isSunday = i == 6,
                             stepsProgress = 0f,
                             activeProgress = 0f,
-                            calProgress = 0f
+                            calProgress = 0f,
+                            stepsCount = 0,
+                            activeMinutes = 0,
+                            caloriesBurned = 0,
+                            fullDayName = dayFullNames[i]
+                        )
+                    )
+                } else if (dayDate == todayLocalDate) {
+                    // Hôm nay: Sử dụng dữ liệu real-time mới nhất
+                    weeklyHistory.add(
+                        DailyHeartRingData(
+                            dayLabel = dayLabels[i],
+                            isSunday = i == 6,
+                            stepsProgress = (realTodaySteps.toFloat() / 6000f).coerceIn(0f, 1f),
+                            activeProgress = (realTodayActiveMins.toFloat() / 60f).coerceIn(0f, 1f),
+                            calProgress = (realTodayCalories.toFloat() / 500f).coerceIn(0f, 1f),
+                            stepsCount = realTodaySteps,
+                            activeMinutes = realTodayActiveMins,
+                            caloriesBurned = realTodayCalories,
+                            fullDayName = "Hôm nay (${dayFullNames[i]})"
                         )
                     )
                 } else {
@@ -202,7 +222,11 @@ class HealthConnectRepository(private val context: Context) {
                             isSunday = i == 6,
                             stepsProgress = (dSteps.toFloat() / 6000f).coerceIn(0f, 1f),
                             activeProgress = (dActive.toFloat() / 60f).coerceIn(0f, 1f),
-                            calProgress = (dCal.toFloat() / 500f).coerceIn(0f, 1f)
+                            calProgress = (dCal.toFloat() / 500f).coerceIn(0f, 1f),
+                            stepsCount = dSteps,
+                            activeMinutes = dActive,
+                            caloriesBurned = dCal,
+                            fullDayName = dayFullNames[i]
                         )
                     )
                 }
@@ -263,12 +287,8 @@ class HealthConnectRepository(private val context: Context) {
             )
 
             var steps = if (hasSteps) response[StepsRecord.COUNT_TOTAL]?.toInt() ?: 0 else 0
-            val activeEnergy = if (hasActiveCal) response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories?.toInt() else null
-            val totalEnergy = if (hasTotalCal) response[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toInt() else null
-            var calories = activeEnergy ?: (totalEnergy ?: 0)
-            val durationMins = if (hasExercise) response[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()?.toInt() ?: 0 else 0
 
-            // Fallback 1: Nếu Aggregation bước chân trả về 0, đọc trực tiếp raw records
+            // Fallback: Nếu Aggregation bước chân trả về 0, đọc trực tiếp raw records
             if (steps == 0 && hasSteps) {
                 val rawStepsReq = ReadRecordsRequest(
                     recordType = StepsRecord::class,
@@ -277,6 +297,20 @@ class HealthConnectRepository(private val context: Context) {
                 val rawStepsResp = client.readRecords(rawStepsReq)
                 steps = rawStepsResp.records.sumOf { it.count }.toInt()
             }
+
+            val activeEnergy = if (hasActiveCal) response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories?.toInt() else null
+
+            // Calo vận động (Active Calories):
+            // - Nếu Health Connect có bản ghi ActiveCaloriesBurnedRecord thực tế (>0), ưu tiên dùng nó
+            // - Nếu không có ActiveCalories (null / 0), tính chuẩn theo số bước chân vận động thực tế (0.04 kcal/bước)
+            // - Tuyệt đối không lấy TotalCaloriesBurnedRecord (chứa BMR trao đổi chất cơ bản ~775-2000 kcal) gán vào mục tiêu 500 kcal vận động
+            val calories = if (activeEnergy != null && activeEnergy > 0) {
+                activeEnergy
+            } else {
+                (steps * 0.04f).toInt()
+            }
+
+            val durationMins = if (hasExercise) response[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()?.toInt() ?: 0 else (steps / 100).coerceAtLeast(0)
 
             Triple(steps, calories, durationMins)
         } catch (e: Exception) {

@@ -46,9 +46,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
@@ -229,7 +232,7 @@ fun DashboardScreen(
         contract = PermissionController.createRequestPermissionResultContract()
     ) { grantedPermissions ->
         viewModel.checkAndRefreshPermissions()
-        if (grantedPermissions.containsAll(HealthConnectRepository.REQUIRED_PERMISSIONS)) {
+        if (grantedPermissions.isNotEmpty()) {
             viewModel.fetchRealHealthData()
         }
     }
@@ -423,10 +426,13 @@ fun DashboardScreen(
         val urgentContextCard = remember(contextCards) {
             contextCards.firstOrNull {
                 it.id.startsWith("weather_sched_") ||
-                it.id.startsWith("weather_heat_") ||
-                it.id.startsWith("batt_meeting_") ||
-                it.id.startsWith("meet_shortcut_") ||
-                it.id.startsWith("alarm_check_")
+                        it.id.startsWith("weather_heat_") ||
+                        it.id.startsWith("batt_meeting_") ||
+                        it.id.startsWith("meet_shortcut_") ||
+                        it.id.startsWith("alarm_check_") ||
+                        it.id.startsWith("travel_buffer_") ||
+                        it.id.startsWith("energy_task_") ||
+                        it.id.startsWith("procrastinate_micro_")
             }
         }
 
@@ -674,18 +680,29 @@ fun DashboardScreen(
                             onActionClick = {
                                 when (nudgeItem.actionType) {
                                     NowNudgeActionType.OPEN_SPOTIFY -> {
-                                        val rec = com.example.core.music.MusicRecommendationHelper.getRecommendationForSession(currentHour)
-                                        com.example.core.music.MusicRecommendationHelper.openMusicApp(context, rec.query, rec.spotifyUri)
+                                        val rec =
+                                            com.example.core.music.MusicRecommendationHelper.getRecommendationForSession(
+                                                currentHour
+                                            )
+                                        com.example.core.music.MusicRecommendationHelper.openMusicApp(
+                                            context,
+                                            rec.query,
+                                            rec.spotifyUri
+                                        )
                                     }
+
                                     NowNudgeActionType.START_FOCUS -> {
                                         onNavigateToTasks()
                                     }
+
                                     NowNudgeActionType.DRINK_WATER -> {
                                         activeMindfulnessSheet = "breath"
                                     }
+
                                     NowNudgeActionType.START_BREATHING -> {
                                         activeMindfulnessSheet = "breath"
                                     }
+
                                     NowNudgeActionType.VIEW_SCHEDULE -> {
                                         com.example.core.repository.CalendarRepository.openCalendarApp(context)
                                     }
@@ -762,7 +779,8 @@ fun DashboardScreen(
                         val list = mutableListOf<Pair<Long, com.example.ui.components.OneUICalendarEventItem>>()
                         for (e in displayEvents) {
                             if (e.endTimeMillis > now || e.startTimeMillis >= now - 5 * 60 * 1000L) {
-                                val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(e.startTimeMillis))
+                                val timeStr =
+                                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(e.startTimeMillis))
                                 list.add(
                                     e.startTimeMillis to com.example.ui.components.OneUICalendarEventItem(
                                         title = e.title,
@@ -826,17 +844,26 @@ fun DashboardScreen(
             // CARD BÁO CÁO THÓI QUEN & ĐIỂM NĂNG LƯỢNG TUẦN (CHUẨN ONE UI GLASSMORPHISM)
             if ("habit_insights" in enabledContentCards) {
                 item {
-                    val habitAnalyticsEngine = remember(context) { com.example.core.engine.HabitAnalyticsEngine(context) }
+                    val habitAnalyticsEngine =
+                        remember(context) { com.example.core.engine.HabitAnalyticsEngine(context) }
                     val firstUpcomingItem = remember(allTasks, calendarEvents) {
-                        val nextTask = allTasks.firstOrNull { !it.isCompleted }
+                        val now = System.currentTimeMillis()
+                        // 1. Task chưa hoàn thành và diễn ra từ bây giờ trở đi (hoặc hôm nay)
+                        val nextTask = allTasks.firstOrNull { !it.isCompleted && it.datetime >= now - 30 * 60 * 1000L }
                         if (nextTask != null) {
                             val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(nextTask.datetime))
                             nextTask.title to timeStr
                         } else {
-                            val nextEvent = calendarEvents.firstOrNull()
+                            // 2. Sự kiện lịch tương lai (không phải sự kiện cả ngày All-Day như lễ tết)
+                            val nextEvent = calendarEvents.firstOrNull { event ->
+                                !event.isAllDay && event.startTimeMillis >= now - 15 * 60 * 1000L
+                            }
                             if (nextEvent != null) {
                                 val timeStr =
-                                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(nextEvent.startTimeMillis))
+                                    SimpleDateFormat(
+                                        "HH:mm",
+                                        Locale.getDefault()
+                                    ).format(Date(nextEvent.startTimeMillis))
                                 nextEvent.title to timeStr
                             } else {
                                 "" to ""
@@ -865,6 +892,32 @@ fun DashboardScreen(
                         )
                     }
                 }
+
+                // CARD HỒ SƠ PHONG CÁCH SỐNG AI (ON-DEVICE PERSONA CLUSTERING K-MEANS)
+                item {
+                    val mlEngine = remember(context) { com.example.core.ml.InternalMlEngine.getInstance(context) }
+                    var personaProfile by remember {
+                        mutableStateOf(
+                            mlEngine.getCachedPersonaProfile()
+                                ?: com.example.core.ml.UserPersonaProfile()
+                        )
+                    }
+
+                    LaunchedEffect(realHealthData, allTasks.size) {
+                        personaProfile = mlEngine.classifyUserPersona(
+                            healthData = realHealthData,
+                            taskCount = allTasks.size,
+                            completedTaskCount = allTasks.count { it.isCompleted }
+                        )
+                    }
+
+                    StaggeredAnimatedItem(index = 4, hasPlayedAnimation = hasPlayedEntranceAnimation) {
+                        com.example.ui.components.UserPersonaBadgeCard(
+                            profile = personaProfile,
+                            isDark = isDark
+                        )
+                    }
+                }
             }
 
             // INDEX 3: CARD TRẠNG THÁI GIẤC NGỦ & PHỤC HỒI
@@ -876,6 +929,19 @@ fun DashboardScreen(
                             isDark = isDark
                         )
                     }
+                }
+            }
+
+            // DỰ ĐOÁN NHỊP SINH HOẠT & HÀNH VI (MARKOV CHAIN) NGAY DƯỚI GIẤC NGỦ & PHỤC HỒI
+            item {
+                StaggeredAnimatedItem(
+                    index = 3,
+                    hasPlayedAnimation = hasPlayedEntranceAnimation
+                ) {
+                    BehaviorPredictionInsightCard(
+                        isDark = isDark,
+                        realHealthData = realHealthData
+                    )
                 }
             }
 
@@ -1324,7 +1390,9 @@ private fun WeatherNowBriefCard(
 
                 // Nóng / Oi bức (cảm giác >= 34°C hoặc nhiệt độ >= 31°C)
                 feelsC >= 34.0 || tempC >= 31.0 ->
-                    "Trời nóng oi bức, cảm giác ${Math.round(feelsC).toInt()}°C. Hãy che nắng và bổ sung nước thường xuyên."
+                    "Trời nóng oi bức, cảm giác ${
+                        Math.round(feelsC).toInt()
+                    }°C. Hãy che nắng và bổ sung nước thường xuyên."
 
                 // Nắng ấm quang đãng
                 tempC >= 28.0 && wCode in listOf(0, 1) ->
@@ -1539,7 +1607,10 @@ private fun ScheduleNowBriefCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f, fill = false)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f, fill = false)
+                        ) {
                             Text("✨ ", fontSize = 13.sp)
                             Text(
                                 text = summaryText,
@@ -1739,7 +1810,11 @@ private fun ScheduleNowBriefCard(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(if (isNight) Color.White.copy(alpha = 0.08f) else Color(0xFF2563EB).copy(alpha = 0.08f))
+                                            .background(
+                                                if (isNight) Color.White.copy(alpha = 0.08f) else Color(
+                                                    0xFF2563EB
+                                                ).copy(alpha = 0.08f)
+                                            )
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
@@ -1794,7 +1869,11 @@ private fun ScheduleNowBriefCard(
                                         .fillMaxWidth()
                                         .padding(top = 3.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isNight) Color.White.copy(alpha = 0.04f) else Color(0xFF0F172A).copy(alpha = 0.03f))
+                                        .background(
+                                            if (isNight) Color.White.copy(alpha = 0.04f) else Color(0xFF0F172A).copy(
+                                                alpha = 0.03f
+                                            )
+                                        )
                                         .padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -3003,14 +3082,15 @@ fun ClaymorphismSuggestionVisual(
 }
 
 // -------------------------------------------------------------
-// GIAO DIỆN CAROUSEL GỢI Ý CUỘN NGANG (Horizontal Suggestion Carousel)
+// GIAO DIỆN GỢI Ý PHONG CÁCH SỐNG DẠNG THẺ DỌC ONE UI (Vertical Smart Lifestyle Cards)
 // -------------------------------------------------------------
 @Composable
-private fun HorizontalSuggestionCarousel(
+private fun VerticalLifestyleSuggestionStack(
     lifestyleTips: List<com.example.core.ai.LifestyleTip>,
     suggestions: List<LocalAiSuggestion>,
     isAiInferring: Boolean,
     isDark: Boolean,
+    onRefreshTips: () -> Unit,
     onToggleDone: (String) -> Unit,
     onSuggestionPositive: (String) -> Unit = {},
     onSuggestionDismiss: (String) -> Unit = {},
@@ -3018,18 +3098,74 @@ private fun HorizontalSuggestionCarousel(
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
-    LazyRow(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(start = 0.dp, end = 28.dp, top = 2.dp, bottom = 6.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        if (isAiInferring) {
-            // Shimmer loading trên Card trong lúc chờ mô hình On-Device AI xử lý inference
-            items(2) {
-                ShimmerLifestyleTipCard(isDark = isDark)
+        // Header Row: Tiêu đề + Nút Đổi Gợi Ý (Shuffle)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = if (isDark) Color(0xFF60A5FA) else Color(0xFF2563EB),
+                    modifier = Modifier.size(17.dp)
+                )
+                Text(
+                    text = "Gợi ý phong cách sống",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) Color.White else Color(0xFF0F172A),
+                        fontSize = 14.sp
+                    )
+                )
             }
+
+            // Nút Đổi Gợi Ý (Shuffle)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFF0F172A).copy(alpha = 0.05f)
+                    )
+                    .clickable {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onRefreshTips()
+                    }
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Đổi gợi ý",
+                    tint = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                    modifier = Modifier.size(13.dp)
+                )
+                Text(
+                    text = "Đổi gợi ý",
+                    color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        if (isAiInferring) {
+            // Shimmer loading trên Card dọc
+            ShimmerLifestyleTipCard(isDark = isDark)
+            ShimmerLifestyleTipCard(isDark = isDark)
         } else if (lifestyleTips.isNotEmpty()) {
-            items(lifestyleTips, key = { it.id }) { tip ->
+            lifestyleTips.take(3).forEach { tip ->
                 LifestyleTipCard(
                     tip = tip,
                     isDark = isDark,
@@ -3039,11 +3175,8 @@ private fun HorizontalSuggestionCarousel(
                     }
                 )
             }
-            item {
-                Spacer(modifier = Modifier.width(4.dp))
-            }
         } else {
-            items(suggestions, key = { it.id }) { suggestion ->
+            suggestions.take(3).forEach { suggestion ->
                 SuggestionCarouselCard(
                     suggestion = suggestion,
                     isDark = isDark,
@@ -3055,9 +3188,6 @@ private fun HorizontalSuggestionCarousel(
                         onSuggestionDismiss(suggestion.id)
                     }
                 )
-            }
-            item {
-                Spacer(modifier = Modifier.width(4.dp))
             }
         }
     }
@@ -3098,8 +3228,8 @@ private fun ShimmerLifestyleTipCard(isDark: Boolean) {
 
     Card(
         modifier = Modifier
-            .width(260.dp)
-            .height(145.dp),
+            .fillMaxWidth()
+            .height(100.dp),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.28f)
@@ -3120,20 +3250,20 @@ private fun ShimmerLifestyleTipCard(isDark: Boolean) {
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
                         modifier = Modifier
                             .width(65.dp)
-                            .height(18.dp)
+                            .height(16.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(brush)
                     )
                     Box(
                         modifier = Modifier
                             .width(55.dp)
-                            .height(18.dp)
+                            .height(16.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(brush)
                     )
@@ -3141,7 +3271,7 @@ private fun ShimmerLifestyleTipCard(isDark: Boolean) {
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                        .fillMaxWidth(0.85f)
                         .height(16.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(brush)
@@ -3149,8 +3279,8 @@ private fun ShimmerLifestyleTipCard(isDark: Boolean) {
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.75f)
-                        .height(14.dp)
+                        .fillMaxWidth(0.6f)
+                        .height(13.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(brush)
                 )
@@ -3159,7 +3289,7 @@ private fun ShimmerLifestyleTipCard(isDark: Boolean) {
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .clip(CircleShape)
                     .background(brush)
             )
         }
@@ -3174,39 +3304,45 @@ private fun LifestyleTipCard(
 ) {
     val badgeBg = when (tip.category) {
         "Ẩm thực" -> Color(0xFFFEF3C7)
+        "Thức uống" -> Color(0xFFE0E7FF)
         "Thể thao", "Vận động" -> Color(0xFFDCFCE7)
         "Du lịch" -> Color(0xFFDBEAFE)
         "Thư giãn" -> Color(0xFFF3E8FF)
+        "Sức khỏe" -> Color(0xFFCCFBF1)
+        "Năng suất" -> Color(0xFFFEE2E2)
         else -> Color(0xFFE0F2FE)
     }
     val badgeTxt = when (tip.category) {
         "Ẩm thực" -> Color(0xFFD97706)
+        "Thức uống" -> Color(0xFF4F46E5)
         "Thể thao", "Vận động" -> Color(0xFF16A34A)
         "Du lịch" -> Color(0xFF2563EB)
         "Thư giãn" -> Color(0xFF9333EA)
+        "Sức khỏe" -> Color(0xFF0F766E)
+        "Năng suất" -> Color(0xFFDC2626)
         else -> Color(0xFF0284C7)
     }
 
     OneUIGlassCard(
         modifier = Modifier
-            .width(280.dp)
+            .fillMaxWidth()
             .clickable { onToggleDone() }
             .testTag("lifestyle_card_${tip.id}"),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(22.dp),
         isDark = isDark
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(end = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -3214,9 +3350,9 @@ private fun LifestyleTipCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(7.dp))
                             .background(badgeBg.copy(alpha = if (isDark) 0.35f else 0.85f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                            .padding(horizontal = 7.dp, vertical = 2.5.dp)
                     ) {
                         Text(
                             text = tip.category,
@@ -3228,9 +3364,9 @@ private fun LifestyleTipCard(
 
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(7.dp))
                             .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFF0F172A).copy(alpha = 0.05f))
-                            .padding(horizontal = 7.dp, vertical = 3.dp)
+                            .padding(horizontal = 7.dp, vertical = 2.5.dp)
                     ) {
                         Text(
                             text = tip.tag,
@@ -3247,7 +3383,7 @@ private fun LifestyleTipCard(
                     fontSize = 14.5.sp,
                     lineHeight = 19.sp,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textDecoration = if (tip.isDone) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
                 )
@@ -3267,7 +3403,7 @@ private fun LifestyleTipCard(
             // Quả cầu kính mờ 3D chứa Icon/Emoji
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(46.dp)
                     .clip(CircleShape)
                     .background(
                         Brush.radialGradient(
@@ -3285,10 +3421,10 @@ private fun LifestyleTipCard(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Đã làm",
                         tint = Color(0xFF10B981),
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 } else {
-                    Text(text = tip.emoji, fontSize = 24.sp)
+                    Text(text = tip.emoji, fontSize = 22.sp)
                 }
             }
         }
@@ -3357,7 +3493,11 @@ private fun SuggestionCarouselCard(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFF0F172A).copy(alpha = 0.05f))
+                                .background(
+                                    if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFF0F172A).copy(
+                                        alpha = 0.05f
+                                    )
+                                )
                                 .padding(horizontal = 7.dp, vertical = 3.dp)
                         ) {
                             Text(
@@ -3437,29 +3577,63 @@ private fun SmartSuggestionWidgetsSection(
     var selectedMindfulnessType by remember { mutableStateOf<String?>(null) }
     var dismissedSuggestionIds by remember { mutableStateOf(setOf<String>()) }
     var leadTextRefreshKey by remember { mutableStateOf(0) }
+    var shuffleOffset by remember { mutableStateOf(0) }
 
     val tempInt = weatherData?.currentTempC?.toInt() ?: 29
     val weatherDesc = weatherData?.conditionDescription ?: "mát mẻ"
+    val isRainy = weatherData?.conditionDescription?.let {
+        it.contains("mưa", ignoreCase = true) || it.contains("rain", ignoreCase = true)
+    } ?: false
 
-    val aiLeadText = remember(currentHour, tempInt, weatherDesc, leadTextRefreshKey) {
-        mlEngine.lifestyleLearner.generateSessionLeadText(currentHour, tempInt, weatherDesc)
+    // Xây dựng LifestyleContext đa chiều cho LinUCB Contextual Bandit kết hợp Persona
+    val cachedPersona = remember {
+        mlEngine.getCachedPersonaProfile()?.personaType ?: com.example.core.ml.UserPersonaType.BALANCED_DEFAULT
+    }
+    val lifestyleContext = remember(currentHour, tempInt, isRainy, leadTextRefreshKey, cachedPersona) {
+        com.example.core.ml.LifestyleContext.fromCurrentState(
+            hourOfDay = currentHour,
+            temperatureC = tempInt,
+            isRainy = isRainy,
+            streakDays = mlEngine.streakTracker.getStreakCount(),
+            personaType = cachedPersona
+        )
     }
 
-    val rankedLifestyleTips = remember(lifestyleTips, currentHour, leadTextRefreshKey) {
-        mlEngine.lifestyleLearner.rankLifestyleTips(lifestyleTips, currentHour)
+    // Lead text sinh bởi Contextual Bandit (context-aware: weekend, mưa, streak, nhiệt độ)
+    val aiLeadText = remember(lifestyleContext, weatherDesc, leadTextRefreshKey) {
+        mlEngine.generateContextualLeadText(lifestyleContext, weatherDesc)
     }
 
-    val localAiSuggestions = remember(currentHour, weatherData, dismissedSuggestionIds) {
+    // Xếp hạng tips bằng LinUCB (context vector 8 chiều)
+    val rankedLifestyleTips = remember(lifestyleTips, lifestyleContext, leadTextRefreshKey, shuffleOffset) {
+        val ranked = mlEngine.rankLifestyleTipsContextual(lifestyleTips, lifestyleContext)
+        val offset = shuffleOffset
+        if (ranked.size > 3 && offset > 0) {
+            val shift = offset % ranked.size
+            ranked.drop(shift) + ranked.take(shift)
+        } else {
+            ranked
+        }
+    }
+
+    val localAiSuggestions = remember(currentHour, weatherData, dismissedSuggestionIds, shuffleOffset) {
         val base = generateLocalAiSuggestions(currentHour, weatherData)
-        base.filter { it.id !in dismissedSuggestionIds }
+        val filtered = base.filter { it.id !in dismissedSuggestionIds }
             .sortedByDescending { feedbackTracker.getSuggestionWeight(it.category) }
+        val offset = shuffleOffset
+        if (filtered.size > 3 && offset > 0) {
+            val shift = offset % filtered.size
+            filtered.drop(shift) + filtered.take(shift)
+        } else {
+            filtered
+        }
     }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Editorial Lead Text sinh tự động từ Mô hình Máy học (Clean Typography, strictly no emoji)
+        // Editorial Lead Text sinh tự động từ LinUCB Contextual Bandit (Clean Typography, strictly no emoji)
         Text(
             text = aiLeadText,
             color = if (isDark) Color(0xFFE2E8F0) else Color(0xFF1E293B),
@@ -3469,23 +3643,30 @@ private fun SmartSuggestionWidgetsSection(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
         )
 
-        // Horizontal Suggestion Carousel: Danh sách thẻ cuộn ngang Thể thao, Ẩm thực, Du lịch
-        HorizontalSuggestionCarousel(
+        // Vertical Lifestyle Suggestion Stack: Danh sách thẻ dọc hiển thị trực tiếp chuẩn One UI
+        VerticalLifestyleSuggestionStack(
             modifier = Modifier.fillMaxWidth(),
             lifestyleTips = rankedLifestyleTips,
             suggestions = localAiSuggestions,
             isAiInferring = isAiInferring,
+            onRefreshTips = {
+                shuffleOffset += 2
+                leadTextRefreshKey++
+            },
             onToggleDone = { tipId ->
                 val clickedTip = rankedLifestyleTips.firstOrNull { it.id == tipId }
                 if (clickedTip != null) {
-                    mlEngine.recordLifestyleClick(clickedTip.title, clickedTip.category, currentHour)
+                    // Ghi nhận tương tác qua LinUCB Contextual Bandit (dual-write legacy + LinUCB)
+                    mlEngine.recordLifestyleClickContextual(
+                        clickedTip.title, clickedTip.category, lifestyleContext
+                    )
                     leadTextRefreshKey++
                 }
                 onToggleTipDone(tipId)
             },
             onSuggestionPositive = { category ->
                 feedbackTracker.recordSuggestionPositive(category)
-                mlEngine.recordLifestyleClick(category, category, currentHour)
+                mlEngine.recordLifestyleClickContextual(category, category, lifestyleContext)
                 leadTextRefreshKey++
             },
             onSuggestionDismiss = { id ->
@@ -4117,5 +4298,362 @@ private data class Tuple4<A, B, C, D>(
     val fourth: D
 )
 
+// -------------------------------------------------------------
+// THẺ DỰ ĐOÁN HÀNH VI NGÀY MAI — CHUẨN ONE UI (TƯƠNG TỰ ONE UI CALENDAR CARD)
+// -------------------------------------------------------------
+@Composable
+private fun BehaviorPredictionInsightCard(
+    isDark: Boolean,
+    realHealthData: com.example.core.repository.RealHealthData? = null
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val mlEngine = remember { com.example.core.ml.InternalMlEngine.getInstance(context) }
 
+    // Tính toán tỷ lệ vận động hôm nay
+    val todayActivityRate = if (realHealthData != null && realHealthData.stepGoal > 0) {
+        ((realHealthData.currentSteps.toFloat() / realHealthData.stepGoal) * 0.5f +
+                (realHealthData.currentActiveMinutes.toFloat() / realHealthData.activeGoalMinutes.coerceAtLeast(1)) * 0.3f +
+                (realHealthData.currentCalories.toFloat() / realHealthData.calorieGoal.coerceAtLeast(1)) * 0.2f).coerceIn(
+            0f,
+            2f
+        )
+    } else 0f
+    val todaySteps = realHealthData?.currentSteps ?: 0
 
+    // Đọc cache trước (synchronous), rồi launch coroutine refresh
+    var prediction by remember {
+        mutableStateOf(
+            mlEngine.getCachedBehaviorPrediction()
+                ?: com.example.core.ml.BehaviorPrediction()
+        )
+    }
+
+    LaunchedEffect(realHealthData?.currentSteps, realHealthData?.currentCalories) {
+        prediction = mlEngine.predictTomorrowBehavior(todayActivityRate, todaySteps)
+    }
+
+    // Chỉ hiển thị khi đã có >= 3 ngày dữ liệu
+    if (prediction.totalDaysSampled < 3) return
+
+    val containerBg = if (isDark) {
+        Color(0xFF1E293B).copy(alpha = 0.25f)
+    } else {
+        Color.White.copy(alpha = 0.28f)
+    }
+
+    val strokeColor = if (isDark) {
+        Color.White.copy(alpha = 0.12f)
+    } else {
+        Color(0xFFE2E8F0)
+    }
+
+    val titleColor = if (isDark) Color.White else Color(0xFF1E1E1E)
+    val appNameColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF5F6368)
+    val timeTextColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF757575)
+
+    val iconBgColor = if (isDark) Color(0xFF312E81) else Color(0xFFE8F0FE)
+    val iconTintColor = if (isDark) Color(0xFF818CF8) else Color(0xFF1A73E8)
+
+    val sleepAccentColor = Color(0xFF818CF8) // Indigo Purple
+    val wakeAccentColor = Color(0xFF38BDF8)  // Cyan Blue
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = Color.Black.copy(alpha = 0.04f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
+            .clip(RoundedCornerShape(28.dp)),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = containerBg),
+        border = BorderStroke(1.dp, strokeColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            // -------------------------------------------------------------
+            // [HEADER]: Squircle Icon + App/Source Title + Badge Trend
+            // -------------------------------------------------------------
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // App Icon trong Squircle Container (36dp, RoundedCornerShape 12dp)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(iconBgColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Bedtime,
+                            contentDescription = "Routine Predictor Icon",
+                            tint = iconTintColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Dự đoán nhịp sinh hoạt",
+                            color = appNameColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                // Trend Badge (Pill Container đồng bộ OneUICalendarCard, sạch sẽ không emoji)
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(
+                            when (prediction.trendDirection) {
+                                com.example.core.ml.TrendDirection.IMPROVING -> Color(0xFF10B981).copy(alpha = if (isDark) 0.22f else 0.12f)
+                                com.example.core.ml.TrendDirection.DECLINING -> Color(0xFFEF4444).copy(alpha = if (isDark) 0.22f else 0.12f)
+                                com.example.core.ml.TrendDirection.STABLE -> if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
+                                    alpha = 0.05f
+                                )
+                            }
+                        )
+                        .padding(horizontal = 9.dp, vertical = 3.5.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        val badgeColor = when (prediction.trendDirection) {
+                            com.example.core.ml.TrendDirection.IMPROVING -> Color(0xFF10B981)
+                            com.example.core.ml.TrendDirection.DECLINING -> Color(0xFFEF4444)
+                            com.example.core.ml.TrendDirection.STABLE -> if (isDark) Color(0xFFCBD5E1) else Color(
+                                0xFF475569
+                            )
+                        }
+
+                        Icon(
+                            imageVector = when (prediction.trendDirection) {
+                                com.example.core.ml.TrendDirection.IMPROVING -> Icons.Default.ArrowDropUp
+                                com.example.core.ml.TrendDirection.DECLINING -> Icons.Default.ArrowDropDown
+                                com.example.core.ml.TrendDirection.STABLE -> Icons.Default.AccessTime
+                            },
+                            contentDescription = null,
+                            tint = badgeColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+
+                        Text(
+                            text = prediction.trendDirection.label,
+                            color = badgeColor,
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // -------------------------------------------------------------
+            // [CONTENT SECTION]: 2 Item Dự Đoán (Tối nay + Sáng mai)
+            // -------------------------------------------------------------
+            Column(
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Item 1: Giấc ngủ tối nay
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Thanh dọc Accent màu sắc
+                    Box(
+                        modifier = Modifier
+                            .width(3.5.dp)
+                            .height(34.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(sleepAccentColor)
+                    )
+
+                    // Chi tiết dự đoán ngủ
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "Tối nay: ${prediction.predictedSleepState.label}",
+                            color = titleColor,
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NightsStay,
+                                contentDescription = null,
+                                tint = timeTextColor,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "${(prediction.sleepProbability * 100).toInt()}% xác suất theo Markov Chain",
+                                color = timeTextColor,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+
+                // Divider mỏng giữa 2 item
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFFF1F5F9))
+                )
+
+                // Item 2: Thức dậy sáng mai
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Thanh dọc Accent màu sắc
+                    Box(
+                        modifier = Modifier
+                            .width(3.5.dp)
+                            .height(34.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(wakeAccentColor)
+                    )
+
+                    // Chi tiết dự đoán thức dậy
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "Sáng mai: ${prediction.predictedWakeState.label}",
+                            color = titleColor,
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WbSunny,
+                                contentDescription = null,
+                                tint = timeTextColor,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "${(prediction.wakeProbability * 100).toInt()}% xác suất theo chuỗi thói quen",
+                                color = timeTextColor,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+
+                // -------------------------------------------------------------
+                // [ACTIVITY IMPACT BANNER]: Tác động vận động đến giấc ngủ & Phục hồi
+                // -------------------------------------------------------------
+                if (prediction.activityImpactNote != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isDark) Color(0xFF10B981).copy(alpha = 0.12f) else Color(0xFFECFDF5))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "${prediction.activityImpactNote} (Dự kiến phục hồi: ${prediction.estimatedRecoveryPercent}%)",
+                            color = if (isDark) Color(0xFF34D399) else Color(0xFF047857),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                // -------------------------------------------------------------
+                // [BOTTOM BANNER]: Gợi ý hành động hoặc Insight
+                // -------------------------------------------------------------
+                val bottomText = prediction.recommendation.ifBlank { prediction.insight }
+                if (bottomText.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = null,
+                                tint = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = bottomText,
+                                color = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(
+                            imageVector = Icons.Default.NorthEast,
+                            contentDescription = null,
+                            tint = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

@@ -77,6 +77,30 @@ class SmartNotificationListenerService : NotificationListenerService() {
         }
 
         val notification = sbn.notification ?: return
+        val extras = notification.extras
+
+        // Bắt thông tin bài hát / ca sĩ thực tế đang phát từ YouTube / Spotify / Zing MP3
+        val isMediaApp = packageName.contains("youtube") ||
+                packageName.contains("spotify") ||
+                packageName.contains("zing") ||
+                packageName.contains("soundcloud") ||
+                notification.category == Notification.CATEGORY_TRANSPORT
+
+        if (isMediaApp && extras != null) {
+            val mediaTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
+            val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+                ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
+                ?: ""
+            if (mediaTitle.isNotBlank()) {
+                com.example.core.music.RecentMediaTracker.updatePlayback(
+                    context = applicationContext,
+                    title = mediaTitle,
+                    artist = mediaArtist,
+                    packageName = packageName,
+                    isPlaying = sbn.isOngoing
+                )
+            }
+        }
 
         // Bỏ qua các thông báo đang diễn ra (Ongoing / Foreground service như sạc pin, nghe nhạc nền, định vị)
         if (sbn.isOngoing ||
@@ -97,7 +121,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
             return
         }
 
-        val extras = notification.extras ?: return
+        if (extras == null) return
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()

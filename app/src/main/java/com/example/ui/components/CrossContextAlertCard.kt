@@ -145,17 +145,11 @@ fun CrossContextAlertCard(
                             text = card.subtitle.ifBlank { "Ngữ cảnh thông minh" },
                             color = mutedTagText,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-
-                    // Score tối giản dạng Text mờ (ví dụ: ★ 8.5)
-                    Text(
-                        text = scoreText,
-                        color = subtitleColor,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
                 }
 
                 // Cụm Feedback Nút Tròn Nhỏ gọn (Circular Surface)
