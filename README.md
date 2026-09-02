@@ -1,5 +1,5 @@
 # 🌟 NowBrief (NovaPulse)
-> **Trợ lý tóm tắt ngữ cảnh cá nhân hóa & AI On-Device chuẩn phong cách Samsung One UI 9 Liquid Glassmorphism**
+> **Trợ lý tóm tắt ngữ cảnh cá nhân hóa & AI On-Device chuẩn phong cách Samsung One UI**
 
 [![Android](https://img.shields.io/badge/Android-8.0%20to%2016+-3DDC84.svg?logo=android)](https://android.com)
 [![One UI 9](https://img.shields.io/badge/Design-Samsung%20One%20UI%209-6750A4.svg)](https://samsung.com)
@@ -10,25 +10,86 @@
 
 ## 📖 Giới thiệu (Overview)
 
-**NowBrief** là ứng dụng tóm tắt ngữ cảnh thông minh và quản lý nhịp sống thế hệ mới dành cho Android. Ứng dụng kết hợp giữa **Học máy cục bộ (On-Device Machine Learning - 100% bảo mật riêng tư)** và ngôn ngữ thiết kế **Samsung One UI 9 Liquid Glassmorphism** để mang đến trải nghiệm cá nhân hóa toàn diện, đồng hành cùng bạn suốt 24 giờ trong ngày.
+**NowBrief** là ứng dụng tóm tắt ngữ cảnh thông minh và quản lý nhịp sống thế hệ mới dành cho Android. Ứng dụng kết hợp giữa **Học máy cục bộ (On-Device Machine Learning - 100% bảo mật riêng tư)** và ngôn ngữ thiết kế **Samsung One UI** để mang đến trải nghiệm cá nhân hóa toàn diện, đồng hành cùng bạn suốt 24 giờ trong ngày.
 
 ```mermaid
 graph LR
-    A[Dữ liệu Thực tế: Thời tiết, Lịch trình, Sức khỏe] --> B(Bộ máy AI & ML On-Device)
-    C[Thông báo: Zalo, Banking, Telegram] --> B
-    B --> D{NowBrief Engine}
-    D --> E[Dashboard One UI 9 thích ứng theo giờ]
-    D --> F[Thanh Capsule Mini Player]
-    D --> G[Now Nudge Gợi ý 1-Chạm]
-    D --> H[Dynamic Island & Glance Widget]
+    %% Nguồn dữ liệu đầu vào
+    subgraph Input_Sources ["Nguồn Dữ Liệu Đầu Vào"]
+        A[Cảm biến & SDK: Thời tiết, Lịch trình, Sức khỏe]
+        C[Notification Listener: Zalo, Banking, OTT]
+        I[System Context: Màn hình khóa, PIN, Giờ hệ thống]
+    end
+
+    %% Tầng xử lý trung tâm
+    subgraph Core_Engine ["NowBrief Core Engine"]
+        B[Bộ máy AI & ML On-Device]
+        R[Rule Engine & 7 Khung Giờ Briefing]
+    end
+
+    %% Tầng hiển thị giao diện
+    subgraph UI_Outputs ["Giao diện Hiển thị One UI"]
+        E[Dashboard thích ứng theo giờ]
+        F[Dynamic Capsule / Mini Player]
+        G[Now Nudge Gợi ý 1-chạm]
+        H[Lockscreen Overlay & Glance Widget]
+    end
+
+    %% Luồng liên kết
+    A --> Core_Engine
+    C --> Core_Engine
+    I --> Core_Engine
+    
+    B <--> R
+    
+    Core_Engine --> E
+    Core_Engine --> F
+    Core_Engine --> G
+    Core_Engine --> H
+
+    %% Styling màu sắc cho nổi bật
+    classDef inputStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:1px,color:#0369a1;
+    classDef coreStyle fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6;
+    classDef uiStyle fill:#f0fdf4,stroke:#16a34a,stroke-width:1px,color:#15803d;
+
+    class A,C,I inputStyle;
+    class B,R coreStyle;
+    class E,F,G,H uiStyle;
 ```
 
 ---
 
+
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/afce790b-eca3-43b7-8d02-4f6e87d4d579" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/b7a99a57-0e53-4d28-805f-8a367b3e6787" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/47e53456-788d-45db-ab8c-dfc081dd85d4" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/1d23aae3-6b31-48e7-abf8-86e221ffa1f6" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/04cc468a-1883-4fd2-9c97-a14a28f4f82f" />
+<img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/c7a32a26-9c3d-43f8-942c-169b0a37c545" />
+
+
+<br>
+
+## Widget
+
+<img width="200" height="100" alt="image" src="https://github.com/user-attachments/assets/ed9706a0-f74d-46a6-afef-e46a6a4e0f64" />
+<img width="200" height="200" alt="image" src="https://github.com/user-attachments/assets/a04ee3ad-32db-4b61-ac61-26df41168b2f" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/9dd14b34-4eb3-44f0-90b5-320ef1bf308d" />
+
+<br>
+
+## Pill
+
+<img width="340" height="100" alt="image" src="https://github.com/user-attachments/assets/90854814-329c-4ee2-8caf-17ad0a28d7f8" />
+
+
+
+(** Hình ảnh chỉ mang tính minh họa có vài đặc điểm sẽ thay đổi để phù hợp hơn với một số thiết bị **)
+
 ## 📥 Hướng Dẫn Cài Đặt File APK (Installation Guide)
 
 ### 1. Tải về và cài đặt:
-1. Tải file **`app-debug.apk`** về điện thoại Android của bạn.
+1. Tải file **`NowBrief-v1.1.2-release.apk`** về điện thoại Android của bạn.
 2. Mở file APK vừa tải và bấm **Cài đặt (Install)**.
 3. Nếu máy xuất hiện thông báo bảo mật:
    - **"Cài đặt từ nguồn không xác định"**: Chọn **Cho phép từ nguồn này (Allow from this source)**.
@@ -69,8 +130,8 @@ graph LR
   - *Chiều*: Nhắc nhở uống nước, giãn cơ 2 phút, kích hoạt chế độ Deep Focus.
   - *Tối*: Thư giãn chánh niệm, tóm tắt chi tiêu trong ngày, hẹn giờ đi ngủ.
 
-### 🏝️ 5. Dynamic Island & Samsung Glance Widget
-- **Dynamic Island**: Thanh thông tin nổi thông minh trên đỉnh màn hình, hiển thị nhịp tim, số bước chân, thời tiết và phím tắt nhanh.
+### 🏝️ 5. NowPill & Samsung Glance Widget
+- **NowPill**: Thanh thông tin nổi thông minh trên đỉnh hay dưới hay màn hình tùy chọn hiển thị theme theo ngày giờ hoặc có thể các trạng thái khác trong cài đặt.
 - **Glance App Widget**: Widget màn hình chính chuẩn Jetpack Glance đồng bộ tự động 15 phút/lần theo chu kỳ WorkManager.
 
 ---
@@ -91,7 +152,7 @@ graph LR
 | `Lịch trình (Calendar)` | Hiển thị và quản lý lịch sự kiện cá nhân trên thẻ thông minh. |
 | `Vị trí (Location)` | Cập nhật thời tiết địa phương từ Open-Meteo API. |
 | `Cảm biến & Hoạt động (Sensors)` | Đếm số bước chân, theo dõi năng lượng hoạt động trong ngày. |
-| `Hiển thị trên ứng dụng khác (Overlay)` | Hiển thị giao diện Dynamic Island trên đỉnh màn hình (tùy chọn). |
+| `Hiển thị trên ứng dụng khác (Overlay)` | Hiển thị giao diện Dynamic Island(Pill Nowbrief) trên đỉnh màn hình hay phần dưới màn hình (tùy chọn). |
 
 ---
 
