@@ -8,32 +8,47 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.os.Build
+import android.graphics.Rect
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import android.widget.FrameLayout
+import androidx.core.content.ContextCompat
 import com.example.MainActivity
 import com.example.NovaPulseApp
+import com.example.core.database.AppDatabase
 import com.example.core.overlay.ServiceLifecycleOwner
 import com.example.core.preferences.PreferencesManager
+import com.example.core.repository.CalendarRepository
+import com.example.core.repository.HealthConnectRepository
+import com.example.core.repository.PredictedSleepWindow
+import com.example.core.repository.RealCalendarEvent
+import com.example.core.repository.RealHealthData
+import com.example.core.repository.RealScreenTimeData
+import com.example.core.repository.RealWeatherData
+import com.example.core.repository.RoutineRepository
+import com.example.core.repository.ScreenTimeRepository
+import com.example.core.repository.WeatherCacheManager
+import com.example.core.repository.WeatherRepository
+import com.example.core.sensor.StepCounterManager
 import com.example.feature.widget.WidgetUpdateWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,9 +57,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import android.view.MotionEvent
-import android.view.View
-import android.widget.FrameLayout
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 class PassthroughFrameLayout(context: Context) : FrameLayout(context) {
     var isExpanded: Boolean = false
@@ -53,15 +67,22 @@ class PassthroughFrameLayout(context: Context) : FrameLayout(context) {
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (ev == null) return false
-        if (isExpanded) {
-            if (ev.action == MotionEvent.ACTION_OUTSIDE) {
-                onCollapseRequested?.invoke()
-                return false
-            }
+        if (ev.action == MotionEvent.ACTION_OUTSIDE && isExpanded) {
+            onCollapseRequested?.invoke()
+            return false
         }
         return super.dispatchTouchEvent(ev)
     }
 }
+
+private data class IslandRealDeviceSnapshot(
+    val weather: RealWeatherData? = null,
+    val calendarLabel: String = "Today's Schedule",
+    val calendarEvents: List<RealCalendarEvent> = emptyList(),
+    val screenTime: RealScreenTimeData? = null,
+    val healthData: RealHealthData? = null,
+    val sleepWindow: PredictedSleepWindow = PredictedSleepWindow()
+)
 
 class DynamicIslandAccessibilityService : AccessibilityService() {
 
@@ -105,31 +126,36 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
     private var windowManager: WindowManager? = null
     private var keyguardManager: KeyguardManager? = null
     private lateinit var prefsManager: PreferencesManager
+    private var stepCounterManager: StepCounterManager? = null
 
     private var overlayView: View? = null
+    private var composeChildView: ComposeView? = null
     private var lifecycleOwner: ServiceLifecycleOwner? = null
 
     private var isEnabled = false
-    private var currentYOffset = 36
+    private var currentYOffset = 10
     private var isLockscreenAllowed = true
     private var isLockscreenOnly = true
     private var overlayParams: WindowManager.LayoutParams? = null
     private var isIslandExpanded = false
+    private val externalRefreshTick = kotlinx.coroutines.flow.MutableStateFlow(0)
 
-    // BroadcastReceiver for screen on/off and user unlock (USER_PRESENT)
     private val lockscreenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 Intent.ACTION_SCREEN_ON -> {
                     Log.d(TAG, "Screen ON received.")
                     lifecycleOwner?.onResume()
+                    stepCounterManager?.startListening()
+                    externalRefreshTick.value++
                     if (overlayView == null && isEnabled && isLockscreenAllowed) {
                         showOrUpdateIsland(
                             yOffsetDp = currentYOffset,
                             showOnLockscreen = true,
                             position = currentPosition
                         )
-                    } else if (isEnabled) {
+                    }
+                    if (isEnabled) {
                         evaluateIslandVisibility()
                     }
                 }
@@ -137,7 +163,7 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                 Intent.ACTION_USER_PRESENT -> {
                     Log.d(TAG, "User unlocked device (USER_PRESENT).")
                     if (isLockscreenOnly) {
-                        overlayView?.visibility = android.view.View.GONE
+                        setOverlayVisible(false)
                     } else {
                         evaluateIslandVisibility()
                     }
@@ -145,7 +171,8 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
 
                 Intent.ACTION_SCREEN_OFF -> {
                     Log.d(TAG, "Screen OFF received.")
-                    overlayView?.visibility = android.view.View.GONE
+                    setOverlayVisible(false)
+                    stepCounterManager?.stopListening()
                     lifecycleOwner?.onPause()
                 }
             }
@@ -170,17 +197,18 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
         prefsManager = (application as? NovaPulseApp)?.preferencesManager ?: PreferencesManager(this)
+        stepCounterManager = StepCounterManager(this).also { it.startListening() }
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
         }
-        androidx.core.content.ContextCompat.registerReceiver(
+        ContextCompat.registerReceiver(
             this,
             lockscreenReceiver,
             filter,
-            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
         startObservingPreferences()
@@ -235,9 +263,33 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
         }
     }
 
+    private fun setOverlayVisible(visible: Boolean) {
+        val view = overlayView ?: return
+        if (visible) {
+            // Ensure Compose WindowRecomposer frame clock is always active when visible on Lock Screen
+            lifecycleOwner?.onResume()
+            stepCounterManager?.startListening()
+            if (view.visibility != View.VISIBLE) {
+                view.visibility = View.VISIBLE
+            }
+        } else {
+            if (isIslandExpanded) {
+                isIslandExpanded = false
+                (view as? PassthroughFrameLayout)?.let {
+                    it.isExpanded = false
+                    it.onCollapseRequested?.invoke()
+                }
+                updateOverlayWindowDimensions(false)
+            }
+            if (view.visibility != View.GONE) {
+                view.visibility = View.GONE
+            }
+        }
+    }
+
     private fun evaluateIslandVisibility() {
         if (!isEnabled) {
-            overlayView?.visibility = android.view.View.GONE
+            setOverlayVisible(false)
             return
         }
 
@@ -249,11 +301,13 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
             !isSystemUiOccluded(null) || !isLocked
         }
 
-        if (isEnabled) {
-            showOrUpdateIsland(yOffsetDp = currentYOffset, showOnLockscreen = true, position = currentPosition)
-        }
+        showOrUpdateIsland(
+            yOffsetDp = currentYOffset,
+            showOnLockscreen = true,
+            position = currentPosition
+        )
 
-        overlayView?.visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
+        setOverlayVisible(shouldShow)
     }
 
     private fun showOrUpdateIsland(yOffsetDp: Int, showOnLockscreen: Boolean, position: String = "BOTTOM") {
@@ -261,12 +315,12 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
         val density = resources.displayMetrics.density
         val yOffsetPx = (yOffsetDp * density).toInt()
 
+        // Use FLAG_LAYOUT_IN_SCREEN instead of FLAG_LAYOUT_NO_LIMITS so One UI Lock Screen hit-testing stays accurate
         var flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
-                WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
 
         if (showOnLockscreen) {
             @Suppress("DEPRECATION")
@@ -309,41 +363,119 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
             val rootLayout = PassthroughFrameLayout(this)
             owner.attachToView(rootLayout)
 
+            val app = application as? NovaPulseApp
+            val database = app?.database ?: AppDatabase.getInstance(this)
+            val weatherRepository = app?.weatherRepository ?: WeatherRepository(this)
+            val calendarRepository = app?.calendarRepository ?: CalendarRepository(this)
+            val screenTimeRepository = app?.screenTimeRepository ?: ScreenTimeRepository(this)
+            val healthConnectRepository = app?.healthConnectRepository ?: HealthConnectRepository(this)
+            val routineRepository = app?.routineRepository ?: RoutineRepository(this)
+
             val composeView = ComposeView(this).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 owner.attachToView(this)
 
                 setContent {
                     var collapseTrigger by remember { mutableIntStateOf(0) }
-                    rootLayout.onCollapseRequested = {
-                        collapseTrigger++
-                    }
+                    var manualRefreshTrigger by remember { mutableIntStateOf(0) }
+                    val screenOnTick by externalRefreshTick.collectAsState()
 
-                    val energyScore by prefsManager.widgetAiEnergyScore.collectAsState(initial = 92)
+                    val energyScore by prefsManager.widgetAiEnergyScore.collectAsState(initial = 88)
                     val aiBriefing by prefsManager.widgetAiBriefing.collectAsState(initial = "")
-                    val customWidthDp by prefsManager.dynamicIslandWidth.collectAsState(initial = 230)
-                    rootLayout.activePillWidthDp = customWidthDp
+                    val customWidthDp by prefsManager.dynamicIslandWidth.collectAsState(initial = 320)
                     val customHeightDp by prefsManager.dynamicIslandHeight.collectAsState(initial = 42)
-                    val opacity by prefsManager.dynamicIslandOpacity.collectAsState(initial = 0.65f)
+                    val opacity by prefsManager.dynamicIslandOpacity.collectAsState(initial = 0.85f)
                     val colorPreset by prefsManager.dynamicIslandColorPreset.collectAsState(initial = "DYNAMIC")
                     val isFrostedGlass by prefsManager.dynamicIslandFrostedGlass.collectAsState(initial = true)
                     val lastUpdated by prefsManager.widgetLastUpdated.collectAsState(initial = 0L)
 
-                    val database =
-                        com.example.core.database.AppDatabase.getInstance(this@DynamicIslandAccessibilityService)
-                    val upcomingTasks by database.taskDao().getUpcomingTasks(3).collectAsState(initial = emptyList())
-
-                    val cachedWeather by androidx.compose.runtime.produceState<com.example.core.repository.RealWeatherData?>(
-                        initialValue = null,
-                        key1 = lastUpdated
-                    ) {
-                        value = kotlinx.coroutines.withContext(Dispatchers.IO) {
-                            com.example.core.repository.WeatherCacheManager.load(this@DynamicIslandAccessibilityService)
+                    SideEffect {
+                        rootLayout.activePillWidthDp = customWidthDp
+                        rootLayout.onCollapseRequested = {
+                            collapseTrigger++
                         }
                     }
-                    val tempInt = cachedWeather?.currentTempC?.let { Math.round(it).toInt() } ?: 29
-                    val weatherCode = cachedWeather?.weatherCode ?: 0
-                    val weatherTempStr = "${tempInt}°C"
+
+                    val upcomingTasks by database.taskDao().getUpcomingTasks(5).collectAsState(initial = emptyList())
+
+                    val startOfTodayMs = remember(screenOnTick) {
+                        Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+                    }
+                    val todayExpenseTotal by database.expenseDao().getSpentSince(startOfTodayMs).collectAsState(initial = 0.0)
+                    val recentExpenses by database.expenseDao().getRecentExpenses(1).collectAsState(initial = emptyList())
+
+                    val stepSensorData by (stepCounterManager?.stepDataState
+                        ?: kotlinx.coroutines.flow.MutableStateFlow(com.example.core.sensor.StepCounterData())).collectAsState()
+
+                    val realSnapshot by produceState(
+                        initialValue = IslandRealDeviceSnapshot(),
+                        key1 = lastUpdated,
+                        key2 = manualRefreshTrigger,
+                        key3 = screenOnTick
+                    ) {
+                        value = withContext(Dispatchers.IO) {
+                            var weather = WeatherCacheManager.load(this@DynamicIslandAccessibilityService)
+                            val now = System.currentTimeMillis()
+                            if (weather == null || (now - weather.cacheTimestampMs) > 30 * 60_000L) {
+                                val fresh = try { weatherRepository.fetchWeather() } catch (_: Exception) { null }
+                                if (fresh != null) weather = fresh
+                            }
+
+                            val (calLabel, calEvents) = try {
+                                calendarRepository.getUpcomingEvents()
+                            } catch (_: Exception) {
+                                "Today's Schedule" to emptyList()
+                            }
+
+                            val screenTime = try {
+                                screenTimeRepository.getScreenTimeStats()
+                            } catch (_: Exception) {
+                                null
+                            }
+
+                            val health = try {
+                                healthConnectRepository.fetchHealthData()
+                            } catch (_: Exception) {
+                                null
+                            }
+
+                            val sleepWindow = try {
+                                routineRepository.predictSleepWindow()
+                            } catch (_: Exception) {
+                                PredictedSleepWindow()
+                            }
+
+                            IslandRealDeviceSnapshot(
+                                weather = weather,
+                                calendarLabel = calLabel,
+                                calendarEvents = calEvents,
+                                screenTime = screenTime,
+                                healthData = health,
+                                sleepWindow = sleepWindow
+                            )
+                        }
+                    }
+
+                    val weather = realSnapshot.weather
+                    val tempInt = weather?.currentTempC?.let { Math.round(it).toInt() }
+                    val weatherTempStr = if (tempInt != null) "${tempInt}°C" else "--°C"
+                    val weatherCode = weather?.weatherCode ?: 0
+                    val weatherLocation = weather?.locationName?.takeIf { it.isNotBlank() } ?: "Lokasi Anda"
+                    val weatherCondition = weather?.conditionDescription?.takeIf { it.isNotBlank() } ?: "Memuat cuaca..."
+                    val weatherHighC = weather?.dailyForecast?.firstOrNull()?.tempMaxC?.let { Math.round(it).toInt() }
+                    val weatherLowC = weather?.dailyForecast?.firstOrNull()?.tempMinC?.let { Math.round(it).toInt() }
+
+                    val realSteps = maxOf(stepSensorData.steps, realSnapshot.healthData?.currentSteps ?: 0)
+                    val realStepGoal = realSnapshot.healthData?.stepGoal ?: 6000
+                    val realCalories = maxOf(stepSensorData.calories, realSnapshot.healthData?.currentCalories ?: 0)
+                    val realCalorieGoal = realSnapshot.healthData?.calorieGoal ?: 500
+                    val realActiveMinutes = maxOf(stepSensorData.activeMinutes, realSnapshot.healthData?.currentActiveMinutes ?: 0)
+                    val realActiveGoalMinutes = realSnapshot.healthData?.activeGoalMinutes ?: 60
 
                     val positionPref by prefsManager.dynamicIslandPosition.collectAsState(initial = currentPosition)
                     val isBottom = positionPref.equals("BOTTOM", ignoreCase = true)
@@ -356,9 +488,27 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                             energyScore = energyScore,
                             weatherTemp = weatherTempStr,
                             weatherCode = weatherCode,
+                            weatherLocation = weatherLocation,
+                            weatherCondition = weatherCondition,
+                            weatherHighC = weatherHighC,
+                            weatherLowC = weatherLowC,
                             isBottom = isBottom,
                             aiBriefingText = aiBriefing,
                             upcomingTasks = upcomingTasks,
+                            calendarLabel = realSnapshot.calendarLabel,
+                            calendarEvents = realSnapshot.calendarEvents,
+                            currentSteps = realSteps,
+                            stepGoal = realStepGoal,
+                            currentCalories = realCalories,
+                            calorieGoal = realCalorieGoal,
+                            currentActiveMinutes = realActiveMinutes,
+                            activeGoalMinutes = realActiveGoalMinutes,
+                            screenTimeData = realSnapshot.screenTime,
+                            healthSleepDurationFormatted = realSnapshot.healthData?.sleepDurationFormatted.orEmpty(),
+                            healthSleepSummary = realSnapshot.healthData?.sleepStageSummary.orEmpty(),
+                            predictedSleepWindow = realSnapshot.sleepWindow,
+                            todayExpenseTotal = todayExpenseTotal ?: 0.0,
+                            latestExpense = recentExpenses.firstOrNull(),
                             customWidthDp = customWidthDp,
                             customHeightDp = customHeightDp,
                             opacity = opacity,
@@ -370,21 +520,31 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                                 rootLayout.isExpanded = expanded
                                 updateOverlayWindowDimensions(expanded)
                             },
-                            onOpenApp = {
-                                val intent =
-                                    Intent(this@DynamicIslandAccessibilityService, MainActivity::class.java).apply {
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                        putExtra("EXTRA_OPEN_NOW_BRIEF", true)
+                            onCompleteTask = { taskId ->
+                                serviceScope.launch(Dispatchers.IO) {
+                                    try {
+                                        database.taskDao().setCompleted(taskId, true)
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error completing task from lockscreen: ${e.message}")
                                     }
+                                }
+                            },
+                            onOpenApp = {
+                                val intent = Intent(this@DynamicIslandAccessibilityService, MainActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                    putExtra("EXTRA_OPEN_NOW_BRIEF", true)
+                                }
                                 startActivity(intent)
                             },
                             onRefresh = {
+                                manualRefreshTrigger++
                                 WidgetUpdateWorker.enqueueImmediateUpdate(applicationContext)
                             }
                         )
                     }
                 }
             }
+            composeChildView = composeView
 
             rootLayout.addView(
                 composeView,
@@ -406,6 +566,12 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                 Log.e(TAG, "Error adding Dynamic Island overlay", e)
             }
         } else {
+            (composeChildView?.layoutParams as? FrameLayout.LayoutParams)?.let { lp ->
+                if (lp.gravity != gravityVal) {
+                    lp.gravity = gravityVal
+                    composeChildView?.layoutParams = lp
+                }
+            }
             try {
                 wm.updateViewLayout(overlayView, params)
             } catch (e: Exception) {
@@ -443,6 +609,7 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                 lifecycleOwner?.onPause()
                 lifecycleOwner?.onDestroy()
                 lifecycleOwner = null
+                composeChildView = null
                 overlayView = null
                 Log.d(TAG, "Dynamic Island removed from WindowManager.")
             } catch (e: Exception) {
@@ -454,214 +621,135 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null || !isEnabled) return
 
+        val eventPkg = event.packageName?.toString().orEmpty()
+        val myPkg = packageName
+
+        // Ignore events triggered by our own Dynamic Island overlay window so interactions never get interrupted
+        if (eventPkg.equals(myPkg, ignoreCase = true)) {
+            return
+        }
+
         val isLocked = keyguardManager?.isKeyguardLocked ?: false
         if (!isLocked) {
-            if (isLockscreenOnly && overlayView?.visibility != android.view.View.GONE) {
-                overlayView?.visibility = android.view.View.GONE
+            if (isLockscreenOnly) {
+                setOverlayVisible(false)
             }
             return
         }
 
-        val eventPkg = event.packageName?.toString().orEmpty()
-        val myPkg = packageName
-
-        // ULTRA-FAST 0ms PATH: When Camera, Phone, Alarm or any other app opens, hide immediately in 0ms!
+        // Keep the expanded Live Notification open while the user is actively interacting with it
+        // unless another full-screen app (Camera, Phone, Alarm) or PIN bouncer explicitly opens.
         if (eventPkg.isNotBlank() &&
             !eventPkg.equals("com.android.systemui", ignoreCase = true) &&
+            !eventPkg.contains("aodservice", ignoreCase = true) &&
+            !eventPkg.contains("inputmethod", ignoreCase = true) &&
+            !eventPkg.contains("honeyboard", ignoreCase = true) &&
             !eventPkg.equals(myPkg, ignoreCase = true)
         ) {
-            if (overlayView?.visibility != android.view.View.GONE) {
-                overlayView?.visibility = android.view.View.GONE
-            }
+            setOverlayVisible(false)
             return
         }
 
         val isOccluded = isSystemUiOccluded(event)
         if (isOccluded) {
-            if (overlayView?.visibility != android.view.View.GONE) {
-                overlayView?.visibility = android.view.View.GONE
-            }
-        } else {
-            if (isLockscreenAllowed && overlayView?.visibility != android.view.View.VISIBLE) {
-                overlayView?.visibility = android.view.View.VISIBLE
-            }
+            setOverlayVisible(false)
+        } else if (isLockscreenAllowed) {
+            setOverlayVisible(true)
         }
     }
 
     private fun isSystemUiOccluded(event: AccessibilityEvent?): Boolean {
-        // 1. Password / PIN input flag
         if (event?.isPassword == true) return true
         try {
             if (event?.source?.isPassword == true) return true
-        } catch (e: Exception) {
-            // ignore
+        } catch (_: Exception) {
         }
 
         val myPkg = packageName
         val eventPkg = event?.packageName?.toString().orEmpty()
 
-        // 2. Check if another app is opened over the lockscreen (Camera, Call, Clock/Alarm, Calculator, etc.)
         if (eventPkg.isNotBlank() &&
             !eventPkg.equals("com.android.systemui", ignoreCase = true) &&
+            !eventPkg.contains("aodservice", ignoreCase = true) &&
+            !eventPkg.contains("inputmethod", ignoreCase = true) &&
+            !eventPkg.contains("honeyboard", ignoreCase = true) &&
             !eventPkg.equals(myPkg, ignoreCase = true)
         ) {
             return true
         }
 
-        // 3. View Resource ID check
-        try {
-            val viewId = event?.source?.viewIdResourceName.orEmpty()
-            if (viewId.contains("pin", ignoreCase = true) ||
-                viewId.contains("password", ignoreCase = true) ||
-                viewId.contains("pattern", ignoreCase = true) ||
-                viewId.contains("bouncer", ignoreCase = true) ||
-                viewId.contains("sec_qs", ignoreCase = true) ||
-                viewId.contains("quick_settings", ignoreCase = true) ||
-                viewId.contains("expanded_qs", ignoreCase = true) ||
-                viewId.contains("now_bar", ignoreCase = true) ||
-                viewId.contains("sec_now_bar", ignoreCase = true) ||
-                viewId.contains("live_activity", ignoreCase = true) ||
-                viewId.contains("ongoing_activity", ignoreCase = true) ||
-                viewId.contains("live_notification", ignoreCase = true) ||
-                viewId.contains("facewidget_now_bar", ignoreCase = true)
-            ) {
-                return true
-            }
-        } catch (e: Exception) {
-            // ignore
-        }
-
-        // 4. Check all active system windows in AccessibilityService
-        try {
-            val winList = windows
-            if (!winList.isNullOrEmpty()) {
-                for (w in winList) {
-                    val title = w.title?.toString().orEmpty()
-                    if (title.contains("QuickSettings", ignoreCase = true) ||
-                        title.contains("SecQuick", ignoreCase = true) ||
-                        title.contains("Bouncer", ignoreCase = true) ||
-                        title.contains("KeyguardSecurity", ignoreCase = true) ||
-                        title.contains("NowBar", ignoreCase = true)
-                    ) {
-                        if (w.isFocused || w.isActive) {
-                            return true
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            // ignore
-        }
-
-        // 5. Class name and content description checks for active PIN, Quick Settings, or Samsung Now Bar
-        if (event != null) {
+        if (event != null && eventPkg.contains("systemui", ignoreCase = true)) {
             val className = event.className?.toString().orEmpty()
-            val desc = event.contentDescription?.toString().orEmpty()
             val textStr = event.text.joinToString(" ")
 
-            if (eventPkg.contains("systemui", ignoreCase = true)) {
-                // Specific Bouncer Keypad classes
-                if (className.contains("PinPad", ignoreCase = true) ||
-                    className.contains("SecPin", ignoreCase = true) ||
-                    className.contains("SecPassword", ignoreCase = true) ||
-                    className.contains("SecPattern", ignoreCase = true) ||
-                    className.contains("KeyguardSecurity", ignoreCase = true) ||
-                    className.contains("KeyguardBouncer", ignoreCase = true) ||
-                    className.contains("Bouncer", ignoreCase = true)
-                ) {
-                    return true
-                }
-
-                // Quick Settings panel pull-down
-                if (className.contains("QSPanel", ignoreCase = true) ||
-                    className.contains("SecQS", ignoreCase = true) ||
-                    className.contains("QuickSettings", ignoreCase = true) ||
-                    className.contains("SecQuick", ignoreCase = true) ||
-                    className.contains("QSContainer", ignoreCase = true) ||
-                    className.contains("NotificationStackScroll", ignoreCase = true) ||
-                    className.contains("NotificationPanel", ignoreCase = true)
-                ) {
-                    return true
-                }
-
-                // Samsung Now Bar / Live Activity
-                if (className.contains("NowBar", ignoreCase = true) ||
-                    className.contains("SecNowBar", ignoreCase = true) ||
-                    className.contains("LiveActivity", ignoreCase = true)
-                ) {
-                    return true
-                }
-            }
-
-            if (desc.contains("Quick settings", ignoreCase = true) ||
-                desc.contains("Quick Settings", ignoreCase = true) ||
-                desc.contains("Notification panel", ignoreCase = true) ||
-                desc.contains("Notification shade", ignoreCase = true) ||
-                desc.contains("Now bar", ignoreCase = true) ||
-                desc.contains("Now Bar", ignoreCase = true)
+            if (className.contains("PinPad", ignoreCase = true) ||
+                className.contains("SecPin", ignoreCase = true) ||
+                className.contains("SecPassword", ignoreCase = true) ||
+                className.contains("SecPattern", ignoreCase = true) ||
+                className.contains("KeyguardBouncer", ignoreCase = true)
             ) {
                 return true
             }
 
             if (textStr.contains("PIN code", ignoreCase = true) ||
                 textStr.contains("Passcode", ignoreCase = true) ||
-                textStr.contains("Password", ignoreCase = true) ||
-                textStr.contains("Pattern", ignoreCase = true) ||
                 textStr.contains("Enter PIN", ignoreCase = true) ||
-                textStr.contains("Draw pattern", ignoreCase = true)
+                textStr.contains("Masukkan PIN", ignoreCase = true) ||
+                textStr.contains("Draw pattern", ignoreCase = true) ||
+                textStr.contains("Gambar pola", ignoreCase = true)
             ) {
                 return true
             }
         }
 
-        // 6. Check root in active window for PIN bouncer, Quick Settings, Samsung Now Bar, or opened apps
+        // Verify visible PIN/Password bouncer or expanded Quick Settings in active window
         try {
             val root = rootInActiveWindow
             if (root != null) {
                 val rootPkg = root.packageName?.toString().orEmpty()
                 if (rootPkg.isNotBlank() &&
                     !rootPkg.equals("com.android.systemui", ignoreCase = true) &&
+                    !rootPkg.contains("aodservice", ignoreCase = true) &&
+                    !rootPkg.contains("inputmethod", ignoreCase = true) &&
+                    !rootPkg.contains("honeyboard", ignoreCase = true) &&
                     !rootPkg.equals(myPkg, ignoreCase = true)
                 ) {
-                    return true // An app (Camera, Phone, etc.) is currently covering the lockscreen
+                    return true
                 }
 
-                val occludedViewIds = listOf(
-                    // PIN / Bouncer
+                val bouncerViewIds = listOf(
                     "com.android.systemui:id/keyguard_pin_view",
                     "com.android.systemui:id/sec_keyguard_pin_view",
                     "com.android.systemui:id/pin_pad",
                     "com.android.systemui:id/keyguard_password_view",
                     "com.android.systemui:id/keyguard_pattern_view",
-                    "com.android.systemui:id/lockPatternView",
-                    "com.android.systemui:id/keyguard_security_container",
-                    // Quick Settings
-                    "com.android.systemui:id/sec_quick_settings_page",
-                    "com.android.systemui:id/sec_qs_panel",
-                    "com.android.systemui:id/quick_settings_panel",
-                    "com.android.systemui:id/header_settings_container",
-                    // Samsung Now Bar & Live Activity (One UI 7/8.5/9)
-                    "com.android.systemui:id/sec_now_bar",
-                    "com.android.systemui:id/now_bar",
-                    "com.android.systemui:id/sec_now_bar_container",
-                    "com.android.systemui:id/sec_live_notification_container",
-                    "com.android.systemui:id/sec_ongoing_activity_container",
-                    "com.android.systemui:id/sec_live_activity_view",
-                    "com.android.systemui:id/now_bar_view",
-                    "com.android.systemui:id/facewidget_now_bar",
-                    "com.android.systemui:id/sec_media_container",
-                    "com.android.systemui:id/face_widget_media_page",
-                    "com.android.systemui:id/keyguard_media_controller"
+                    "com.android.systemui:id/lockPatternView"
                 )
-                for (id in occludedViewIds) {
+                val rect = Rect()
+                for (id in bouncerViewIds) {
                     val nodes = root.findAccessibilityNodeInfosByViewId(id)
-                    if (nodes.isNotEmpty()) {
-                        return true
+                    val hasVisibleBouncer = nodes.any { node ->
+                        node.getBoundsInScreen(rect)
+                        node.isVisibleToUser && rect.width() > 100 && rect.height() > 100
                     }
+                    if (hasVisibleBouncer) return true
+                }
+
+                val qsViewIds = listOf(
+                    "com.android.systemui:id/sec_quick_settings_page",
+                    "com.android.systemui:id/qs_frame"
+                )
+                val minQsHeight = resources.displayMetrics.heightPixels / 3
+                for (id in qsViewIds) {
+                    val nodes = root.findAccessibilityNodeInfosByViewId(id)
+                    val hasExpandedQs = nodes.any { node ->
+                        node.getBoundsInScreen(rect)
+                        node.isVisibleToUser && rect.height() > minQsHeight
+                    }
+                    if (hasExpandedQs) return true
                 }
             }
-        } catch (e: Exception) {
-            // ignore
+        } catch (_: Exception) {
         }
 
         return false
@@ -679,6 +767,7 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
         } catch (e: Exception) {
             Log.e(TAG, "Error unregistering receiver", e)
         }
+        stepCounterManager?.stopListening()
         prefsJob?.cancel()
         serviceScope.cancel()
         removeIsland()

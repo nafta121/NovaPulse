@@ -124,7 +124,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val widgetShowSubtext: StateFlow<Boolean> = preferencesManager.widgetShowSubtext
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    // Dynamic Island Flows
+    // Dynamic Island & Samsung Now Bar Flows
+    val nowBarLiveEnabled: StateFlow<Boolean> = preferencesManager.nowBarLiveEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val dynamicIslandEnabled: StateFlow<Boolean> = preferencesManager.dynamicIslandEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -176,6 +179,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun resetContentCardsToDefault() {
         viewModelScope.launch {
             preferencesManager.resetContentCardsToDefault()
+        }
+    }
+
+    fun setNowBarLiveEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setNowBarLiveEnabled(enabled)
+            if (enabled) {
+                com.example.feature.island.NowBarLiveService.startOrRefresh(app)
+            } else {
+                com.example.feature.island.NowBarLiveService.stop(app)
+            }
         }
     }
 

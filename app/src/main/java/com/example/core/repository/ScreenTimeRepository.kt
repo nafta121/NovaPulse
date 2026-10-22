@@ -72,6 +72,7 @@ class ScreenTimeRepository(private val context: Context) {
         }
         val startOfWeek = weekStartCal.timeInMillis
         val dailyTotals = LongArray(7)
+        val todayAppTotals = mutableMapOf<String, Long>()
 
         try {
             val stats = usageStatsManager.queryUsageStats(
@@ -91,12 +92,32 @@ class ScreenTimeRepository(private val context: Context) {
                     val dayIdx = if (dow == Calendar.SUNDAY) 6 else dow - 2
                     if (dayIdx in 0..6) {
                         dailyTotals[dayIdx] += fgTime
+                        if (dayIdx == todayIdx) {
+                            val pkg = u.packageName.orEmpty()
+                            if (pkg.isNotBlank() &&
+                                !pkg.contains("launcher", ignoreCase = true) &&
+                                !pkg.equals("com.android.systemui", ignoreCase = true)
+                            ) {
+                                todayAppTotals[pkg] = (todayAppTotals[pkg] ?: 0L) + fgTime
+                            }
+                        }
                     }
                 }
             }
         } catch (e: Exception) {
             // Guard against system service errors
         }
+
+        val topPkg = todayAppTotals.maxByOrNull { it.value }?.key.orEmpty()
+        val topAppLabel = if (topPkg.isNotBlank()) {
+            try {
+                val pm = context.packageManager
+                val appInfo = pm.getApplicationInfo(topPkg, 0)
+                pm.getApplicationLabel(appInfo).toString()
+            } catch (e: Exception) {
+                topPkg.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+            }
+        } else ""
 
         val todayScreenTimeMillis = dailyTotals[todayIdx]
         val hours = (todayScreenTimeMillis / (1000 * 60 * 60)).toInt()
@@ -119,6 +140,7 @@ class ScreenTimeRepository(private val context: Context) {
             totalScreenTimeTodayMillis = todayScreenTimeMillis,
             formattedDuration = formatted,
             weeklyHistory = history,
+            topAppName = topAppLabel,
             hasPermission = true
         )
     }

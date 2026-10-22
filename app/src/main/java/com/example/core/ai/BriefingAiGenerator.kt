@@ -156,8 +156,34 @@ class BriefingAiGenerator(
     }
 
     private fun generateGenZBriefing(ctx: BriefingContext): String {
-        val tempInt = Math.round(ctx.weatherTempC ?: 28.0).toInt()
-        val weatherDesc = ctx.weatherCondition ?: "cool and pleasant"
-        return BriefingContentProvider.getHeaderSummary(ctx.session, tempInt, weatherDesc)
+        val parts = mutableListOf<String>()
+        val tempInt = ctx.weatherTempC?.let { Math.round(it).toInt() }
+        val weatherDesc = ctx.weatherCondition?.takeIf { it.isNotBlank() }
+        if (tempInt != null) {
+            parts.add(if (weatherDesc != null) "${tempInt}°C ($weatherDesc)" else "${tempInt}°C")
+        }
+        when {
+            !ctx.upcomingEventsSummary.isNullOrBlank() -> parts.add("Jadwal: ${ctx.upcomingEventsSummary}")
+            !ctx.topTaskTitle.isNullOrBlank() -> parts.add("Tugas: ${ctx.topTaskTitle}")
+            ctx.remainingCalendarEventsCount > 0 -> parts.add("${ctx.remainingCalendarEventsCount} agenda hari ini")
+        }
+        if ((ctx.stepsToday ?: 0) > 0) {
+            parts.add("${ctx.stepsToday} langkah")
+        }
+        val screenMins = ctx.screenTimeMinutesToday ?: 0
+        if (screenMins > 0) {
+            val h = screenMins / 60
+            val m = screenMins % 60
+            parts.add(if (h > 0) "Layar ${h}j ${m}m" else "Layar ${m}m")
+        }
+        val batteryPct = getRealSystemBatteryPercentage(context)
+        if (batteryPct in 1..100) {
+            parts.add("Baterai $batteryPct%")
+        }
+        return if (parts.isNotEmpty()) {
+            parts.joinToString(" • ")
+        } else {
+            BriefingContentProvider.getHeaderSummary(ctx.session, tempInt ?: 28, weatherDesc ?: "cerah")
+        }
     }
 }

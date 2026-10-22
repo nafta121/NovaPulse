@@ -31,7 +31,8 @@ class PreferencesManager(private val context: Context) {
         val KEY_WIDGET_AI_ENERGY_SCORE = androidx.datastore.preferences.core.intPreferencesKey("widget_ai_energy_score")
         val KEY_WIDGET_LAST_UPDATED = androidx.datastore.preferences.core.longPreferencesKey("widget_last_updated")
 
-        // Dynamic Island Keys
+        // Dynamic Island & Samsung Now Bar Keys
+        val KEY_NOW_BAR_LIVE_ENABLED = booleanPreferencesKey("now_bar_live_enabled")
         val KEY_DYNAMIC_ISLAND_ENABLED = booleanPreferencesKey("dynamic_island_enabled")
         val KEY_DYNAMIC_ISLAND_Y_OFFSET = androidx.datastore.preferences.core.intPreferencesKey("dynamic_island_y_offset")
         val KEY_DYNAMIC_ISLAND_LOCKSCREEN = booleanPreferencesKey("dynamic_island_lockscreen")
@@ -65,6 +66,10 @@ class PreferencesManager(private val context: Context) {
 
     val dynamicIslandColorPreset: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[KEY_DYNAMIC_ISLAND_COLOR_PRESET] ?: "DYNAMIC"
+    }
+
+    val nowBarLiveEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_NOW_BAR_LIVE_ENABLED] ?: true
     }
 
     val dynamicIslandEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
@@ -214,6 +219,12 @@ class PreferencesManager(private val context: Context) {
             prefs[KEY_WIDGET_AI_BRIEFING] = briefing
             prefs[KEY_WIDGET_AI_ENERGY_SCORE] = energyScore
             prefs[KEY_WIDGET_LAST_UPDATED] = timestamp
+        }
+    }
+
+    suspend fun setNowBarLiveEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_NOW_BAR_LIVE_ENABLED] = enabled
         }
     }
 

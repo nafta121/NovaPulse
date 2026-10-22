@@ -134,12 +134,33 @@ class WidgetUpdateWorker(
             }
 
             val topTaskTitle = upcomingTasks.firstOrNull()?.title
+            val startOfTodayMs = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            val todayExpenses = try {
+                database.expenseDao().getSpentSinceSync(startOfTodayMs) ?: 0.0
+            } catch (_: Exception) {
+                0.0
+            }
+            val screenTimeStats = try {
+                com.example.core.repository.ScreenTimeRepository(context).getScreenTimeStats()
+            } catch (_: Exception) {
+                null
+            }
+            val healthData = try {
+                com.example.core.repository.HealthConnectRepository(context).fetchHealthData()
+            } catch (_: Exception) {
+                null
+            }
 
             // 2. Synthesize AI Briefing for 4 Time Phases
             val smartBriefing = llmManager.generateSmartWidgetBriefing(
                 topTaskTitle = topTaskTitle,
                 pendingTasksCount = upcomingTasks.size,
-                totalExpensesToday = 0.0,
+                totalExpensesToday = todayExpenses,
                 hourOfDay = currentHour
             )
 
@@ -149,7 +170,11 @@ class WidgetUpdateWorker(
                 weatherCondition = currentWeather?.conditionDescription,
                 energyScore = smartBriefing.energyScore,
                 remainingCalendarEventsCount = todayEvents.size,
-                topTaskTitle = topTaskTitle
+                upcomingEventsSummary = todayEvents.firstOrNull()?.title,
+                topTaskTitle = topTaskTitle,
+                sleepHoursLastNight = healthData?.sleepDurationMinutes?.let { it / 60.0 },
+                screenTimeMinutesToday = screenTimeStats?.totalScreenTimeTodayMillis?.let { (it / 60_000L).toInt() },
+                stepsToday = healthData?.currentSteps
             )
 
             val aiBriefingResult = briefingGenerator.generate(briefingContext)
@@ -177,6 +202,9 @@ class WidgetUpdateWorker(
             // 5. Broadcast to receivers for instant OS reflection
             NowBriefWidgetReceiver.triggerUpdate(context)
             NovaPulseGlanceWidgetReceiver.triggerUpdate(context)
+            if (com.example.feature.island.NowBarLiveService.isRunning) {
+                com.example.feature.island.NowBarLiveService.startOrRefresh(context)
+            }
 
             Log.d(
                 TAG,

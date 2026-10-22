@@ -80,4 +80,34 @@ class ExampleUnitTest {
         assertEquals("06:30", window.wakeTimeFormatted)
         assertEquals(4, window.sampleCount)
     }
+
+    @Test
+    fun briefingContext_toPdeXmlSignals_includesRealDeviceMetricsAndCorrelations() {
+        val ctx = com.example.core.ai.BriefingContext(
+            hourOfDay = 15,
+            weatherTempC = 30.0,
+            weatherCondition = "Partly Cloudy",
+            energyScore = 88,
+            remainingCalendarEventsCount = 2,
+            upcomingEventsSummary = "Sprint Review",
+            topTaskTitle = "Kirim laporan bulanan",
+            sleepHoursLastNight = 7.2,
+            screenTimeMinutesToday = 145,
+            stepsToday = 4850
+        )
+        val xml = ctx.toPdeXmlSignals()
+        assertTrue(xml.contains("<weather>30°C, Partly Cloudy</weather>"))
+        assertTrue(xml.contains("<calendar remaining_events=\"2\">Sprint Review</calendar>"))
+        assertTrue(xml.contains("<top_task>Kirim laporan bulanan</top_task>"))
+        assertTrue(xml.contains("<activity steps=\"4850\" screen_time_min=\"145\" sleep_hours=\"7.2\" />"))
+    }
+
+    @Test
+    fun nowBarLiveService_constantsAreConfiguredForSamsungNowBar() {
+        assertEquals(2001, com.example.feature.island.NowBarLiveService.NOTIFICATION_ID)
+        assertEquals(
+            "com.example.feature.island.ACTION_REFRESH_NOWBAR",
+            com.example.feature.island.NowBarLiveService.ACTION_REFRESH
+        )
+    }
 }

@@ -26,3 +26,8 @@
 # ML Kit GenAI Prompt API & AICore
 -dontwarn com.google.mlkit.genai.**
 -keep class com.google.mlkit.genai.** { *; }
+
+# Keep Samsung Notification semFlags field accessed via reflection for Now Bar
+-keepclassmembers class android.app.Notification {
+    public int semFlags;
+}

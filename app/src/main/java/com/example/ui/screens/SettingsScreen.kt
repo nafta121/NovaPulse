@@ -97,6 +97,7 @@ fun SettingsScreen(
     val widgetColorPreset by viewModel.widgetColorPreset.collectAsStateWithLifecycle()
     val widgetShape by viewModel.widgetShape.collectAsStateWithLifecycle()
     val widgetShowSubtext by viewModel.widgetShowSubtext.collectAsStateWithLifecycle()
+    val nowBarLiveEnabled by viewModel.nowBarLiveEnabled.collectAsStateWithLifecycle()
     val dynamicIslandEnabled by viewModel.dynamicIslandEnabled.collectAsStateWithLifecycle()
     val dynamicIslandYOffset by viewModel.dynamicIslandYOffset.collectAsStateWithLifecycle()
     val dynamicIslandLockscreen by viewModel.dynamicIslandLockscreen.collectAsStateWithLifecycle()
@@ -733,6 +734,104 @@ fun SettingsScreen(
                     val isAccessibilityGranted = remember(safeSelectedTab) {
                         DynamicIslandAccessibilityService.isServiceEnabled(context)
                     }
+                    var isNowBarServiceRunning by remember(safeSelectedTab, nowBarLiveEnabled) {
+                        mutableStateOf(com.example.feature.island.NowBarLiveService.isRunning)
+                    }
+
+                    // Native Samsung Now Bar / Live Notification Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFEFF6FF)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Bolt,
+                                            contentDescription = null,
+                                            tint = Color(0xFF2563EB),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = "Samsung Now Bar / Live Notification",
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF0F172A)
+                                            )
+                                        )
+                                        Text(
+                                            text = if (isNowBarServiceRunning) "Active in Status Bar & Lock Screen" else "One UI 7+ Now Bar • Android 16 Live Update",
+                                            fontSize = 11.sp,
+                                            color = if (isNowBarServiceRunning) Color(0xFF16A34A) else Color(0xFF2563EB),
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                Switch(
+                                    checked = nowBarLiveEnabled,
+                                    onCheckedChange = { enabled ->
+                                        viewModel.setNowBarLiveEnabled(enabled)
+                                        isNowBarServiceRunning = enabled
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = Color(0xFF2563EB)
+                                    )
+                                )
+                            }
+
+                            Text(
+                                text = "Injects NowBrief directly into Samsung One UI's native Now Bar pill and Lock Screen Live Notification (using ongoingActivityNoti extras + semFlags) with real device weather, steps, calendar, and AI summary.",
+                                fontSize = 12.sp,
+                                color = Color(0xFF64748B),
+                                lineHeight = 17.sp
+                            )
+
+                            Button(
+                                onClick = {
+                                    viewModel.setNowBarLiveEnabled(true)
+                                    com.example.feature.island.NowBarLiveService.startOrRefresh(context)
+                                    isNowBarServiceRunning = true
+                                    Toast.makeText(context, "Now Bar Live Notification diperbarui", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (isNowBarServiceRunning) "Refresh Now Bar Pill" else "Start Now Bar Pill",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
 
                     // Header Banner Card
                     Card(
@@ -1241,24 +1340,51 @@ fun SettingsScreen(
                                 )
                             }
 
-                            // Dynamic Island Preview Component
+                            // Dynamic Island Preview Component (Live Real Device Data)
+                            val previewWeather by viewModel.realWeatherData.collectAsStateWithLifecycle()
+                            val previewCalendar by viewModel.todayCalendarEvents.collectAsStateWithLifecycle()
+                            val previewScreenTime by viewModel.realScreenTimeData.collectAsStateWithLifecycle()
+                            val previewHealth by viewModel.realHealthData.collectAsStateWithLifecycle()
+                            val previewTasks by viewModel.allTasks.collectAsStateWithLifecycle()
+                            val previewBrief by viewModel.nowBrief.collectAsStateWithLifecycle()
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+                                val tempStr = previewWeather?.currentTempC?.let { "${Math.round(it).toInt()}°C" } ?: "--°C"
                                 DynamicIslandView(
-                                    energyScore = 92,
-                                    weatherTemp = "29°C",
-                                    aiBriefingText = "Peak productivity hours: Prioritize your most important tasks before 11:30.",
+                                    energyScore = 90,
+                                    weatherTemp = tempStr,
+                                    weatherCode = previewWeather?.weatherCode ?: 0,
+                                    weatherLocation = previewWeather?.locationName?.takeIf { it.isNotBlank() } ?: "Lokasi Anda",
+                                    weatherCondition = previewWeather?.conditionDescription?.takeIf { it.isNotBlank() } ?: "Cerah",
+                                    weatherHighC = previewWeather?.dailyForecast?.firstOrNull()?.tempMaxC?.let { Math.round(it).toInt() },
+                                    weatherLowC = previewWeather?.dailyForecast?.firstOrNull()?.tempMinC?.let { Math.round(it).toInt() },
+                                    aiBriefingText = previewBrief?.oneLiner.orEmpty(),
+                                    upcomingTasks = previewTasks.filter { !it.isCompleted }.take(5),
+                                    calendarEvents = previewCalendar,
+                                    currentSteps = previewHealth?.currentSteps ?: 0,
+                                    stepGoal = previewHealth?.stepGoal ?: 6000,
+                                    currentCalories = previewHealth?.currentCalories ?: 0,
+                                    calorieGoal = previewHealth?.calorieGoal ?: 500,
+                                    currentActiveMinutes = previewHealth?.currentActiveMinutes ?: 0,
+                                    activeGoalMinutes = previewHealth?.activeGoalMinutes ?: 60,
+                                    screenTimeData = previewScreenTime,
+                                    healthSleepDurationFormatted = previewHealth?.sleepDurationFormatted.orEmpty(),
+                                    healthSleepSummary = previewHealth?.sleepStageSummary.orEmpty(),
                                     customWidthDp = dynamicIslandWidth,
                                     customHeightDp = dynamicIslandHeight,
                                     opacity = dynamicIslandOpacity,
                                     colorPreset = dynamicIslandColorPreset,
                                     isFrostedGlass = dynamicIslandFrostedGlass,
+                                    onCompleteTask = { id ->
+                                        previewTasks.find { it.id == id }?.let { viewModel.toggleTaskCompleted(it) }
+                                    },
                                     onOpenApp = {},
-                                    onRefresh = {}
+                                    onRefresh = { viewModel.refreshAllRealData(force = true) }
                                 )
                             }
                         }

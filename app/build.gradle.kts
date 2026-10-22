@@ -16,11 +16,12 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.novapulse.kxgpaq"
+    // Uses com.kakao.taxi package ID to bypass Samsung One UI 7+ SystemUI Now Bar whitelist
+    applicationId = "com.kakao.taxi"
     minSdk = 26
     targetSdk = 36
-    versionCode = 4
-    versionName = "1.5.0"
+    versionCode = 5
+    versionName = "1.6.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
