@@ -39,14 +39,6 @@ google-services.json
 signing.properties
 
 # ===================================================================
-# Proprietary Logic & Algorithms (DO NOT PUSH)
-# ===================================================================
-engine/
-**/engine/
-ml/
-**/ml/
-
-# ===================================================================
 # Databases & Local Data (DO NOT PUSH - User Data & Schemas)
 # ===================================================================
 *.db
@@ -59,7 +51,6 @@ ml/
 *.dump
 databases/
 **/databases/
-**/database/
 **/schemas/
 schemas/
 
