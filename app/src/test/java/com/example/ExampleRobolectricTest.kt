@@ -37,4 +37,45 @@ class ExampleRobolectricTest {
     assertNotNull(screenRepo)
     assertNotNull(healthRepo)
   }
+
+  @Test
+  fun `verify legacy Ho Chi Minh cache purge and real media history deduplication`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val origTz = java.util.TimeZone.getDefault()
+    try {
+      java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Jakarta"))
+
+      val legacyWeather = com.example.core.repository.RealWeatherData(
+        currentTempC = 32.0,
+        apparentTempC = 35.0,
+        weatherCode = 1,
+        conditionDescription = "Mainly clear",
+        hourlyForecast = emptyList(),
+        locationName = "Ho Chi Minh City"
+      )
+      com.example.core.repository.WeatherCacheManager.save(context, legacyWeather)
+      val loaded = com.example.core.repository.WeatherCacheManager.load(context)
+      assertEquals(null, loaded)
+
+      com.example.core.music.RecentMediaTracker.updatePlayback(
+        context = context,
+        title = "Hati-Hati di Jalan",
+        artist = "Tulus",
+        packageName = "com.google.android.apps.youtube.music",
+        isPlaying = true
+      )
+      com.example.core.music.RecentMediaTracker.updatePlayback(
+        context = context,
+        title = "Hati-Hati di Jalan",
+        artist = "Tulus",
+        packageName = "com.google.android.apps.youtube.music",
+        isPlaying = false
+      )
+      val history = com.example.core.music.RecentMediaTracker.recentHistoryState.value
+      assertEquals(1, history.size)
+      assertEquals("YouTube Music", history.first().appName)
+    } finally {
+      java.util.TimeZone.setDefault(origTz)
+    }
+  }
 }

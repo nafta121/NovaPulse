@@ -4,12 +4,14 @@ import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.session.MediaSessionManager
 import android.os.Build
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.example.NovaPulseApp
+import com.example.core.music.RecentMediaTracker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,16 +51,86 @@ class SmartNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private val activeSessionsListener = MediaSessionManager.OnActiveSessionsChangedListener {
+        RecentMediaTracker.refreshActiveSessions(applicationContext)
+    }
+
     override fun onListenerConnected() {
         super.onListenerConnected()
         _isConnected.value = true
         Log.d(TAG, "SmartNotificationListenerService connected and active.")
+
+        // 1. Register real-time MediaSession listener for YouTube Music / Spotify / YouTube
+        try {
+            val msm = getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+            val cn = ComponentName(this, SmartNotificationListenerService::class.java)
+            msm?.addOnActiveSessionsChangedListener(activeSessionsListener, cn)
+            RecentMediaTracker.refreshActiveSessions(applicationContext)
+        } catch (e: Exception) {
+            Log.w(TAG, "MediaSession listener registration skipped: ${e.message}")
+        }
+
+        // 2. Scan existing active notifications for any playing/paused media session
+        try {
+            activeNotifications?.forEach { sbn ->
+                extractMediaFromNotification(sbn)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Active notifications scan skipped: ${e.message}")
+        }
     }
 
     override fun onListenerDisconnected() {
+        try {
+            val msm = getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+            msm?.removeOnActiveSessionsChangedListener(activeSessionsListener)
+        } catch (_: Exception) {}
         super.onListenerDisconnected()
         _isConnected.value = false
         Log.d(TAG, "SmartNotificationListenerService disconnected.")
+    }
+
+    private fun extractMediaFromNotification(sbn: StatusBarNotification): Boolean {
+        val packageName = sbn.packageName ?: return false
+        val notification = sbn.notification ?: return false
+        val extras = notification.extras ?: return false
+
+        val lowerPkg = packageName.lowercase()
+        val hasMediaSession = extras.containsKey(Notification.EXTRA_MEDIA_SESSION)
+        val isMediaApp = hasMediaSession ||
+            lowerPkg.contains("youtube.music") ||
+            lowerPkg.contains("youtubemusic") ||
+            lowerPkg.contains("youtube") ||
+            lowerPkg.contains("spotify") ||
+            lowerPkg.contains("sec.android.app.music") ||
+            lowerPkg.contains("samsung.android.app.music") ||
+            lowerPkg.contains("apple.android.music") ||
+            lowerPkg.contains("soundcloud") ||
+            lowerPkg.contains("resso") ||
+            notification.category == Notification.CATEGORY_TRANSPORT
+
+        if (!isMediaApp) return false
+
+        // First query MediaSessionManager for rich metadata (title + artist + accurate PlaybackState)
+        if (RecentMediaTracker.refreshActiveSessions(applicationContext)) {
+            return true
+        }
+
+        val mediaTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
+        val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim()
+            ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim()
+            ?: ""
+        if (mediaTitle.isNotBlank()) {
+            RecentMediaTracker.updatePlayback(
+                context = applicationContext,
+                title = mediaTitle,
+                artist = mediaArtist,
+                packageName = packageName,
+                isPlaying = sbn.isOngoing
+            )
+            return true
+        }
+        return false
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -79,28 +151,8 @@ class SmartNotificationListenerService : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras
 
-        // Capture real-time song/artist playback info from YouTube / Spotify / Zing MP3
-        val isMediaApp = packageName.contains("youtube") ||
-                packageName.contains("spotify") ||
-                packageName.contains("zing") ||
-                packageName.contains("soundcloud") ||
-                notification.category == Notification.CATEGORY_TRANSPORT
-
-        if (isMediaApp && extras != null) {
-            val mediaTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-            val mediaArtist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-                ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
-                ?: ""
-            if (mediaTitle.isNotBlank()) {
-                com.example.core.music.RecentMediaTracker.updatePlayback(
-                    context = applicationContext,
-                    title = mediaTitle,
-                    artist = mediaArtist,
-                    packageName = packageName,
-                    isPlaying = sbn.isOngoing
-                )
-            }
-        }
+        // Capture real-time song/artist playback info from YouTube Music / YouTube / Spotify / Samsung Music
+        extractMediaFromNotification(sbn)
 
         // Ignore ongoing or foreground service notifications (e.g., charging, background music, navigation)
         if (sbn.isOngoing ||

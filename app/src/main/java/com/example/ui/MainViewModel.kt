@@ -457,6 +457,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
+            val prevLoc = _permissionsState.value.hasLocationPermission
             val hasHealth = healthConnectRepository.hasAllPermissions()
             _permissionsState.value = PermissionsState(
                 hasCalendarPermission = hasCal,
@@ -466,6 +467,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 hasHealthPermission = hasHealth,
                 hasActivityRecognitionPermission = hasActivityPermission
             )
+            if (!prevLoc && hasLoc) {
+                fetchRealWeather(force = true)
+            }
         }
     }
 
@@ -494,10 +498,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 _realScreenTimeData.value = null
             }
+
+            // 2.5 Refresh active MediaSession state (YouTube Music / Spotify / YouTube)
+            com.example.core.music.RecentMediaTracker.refreshActiveSessions(getApplication())
         }
 
         // 3. Fetch Weather from Open-Meteo API
-        fetchRealWeather()
+        fetchRealWeather(force = force)
 
         // 4. Fetch Health Connect Sleep & Heart Rate Records
         fetchRealHealthData()
@@ -615,7 +622,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         healthConnectRepository.openHealthConnectSettings(context)
     }
 
-    fun fetchRealWeather(lat: Double? = null, lon: Double? = null) {
+    fun fetchRealWeather(lat: Double? = null, lon: Double? = null, force: Boolean = false) {
         viewModelScope.launch {
             // Read cached data off the Main thread to avoid disk I/O + JSON parsing jank
             val (cached, isStale) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -628,7 +635,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Check if cache is still fresh (<30 mins) and not forced to refresh -> skip API call
-            if (!isStale && lat == null && lon == null && cached != null) {
+            if (!force && !isStale && lat == null && lon == null && cached != null) {
                 _isWeatherLoading.value = false
                 return@launch
             }

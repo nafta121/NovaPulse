@@ -313,14 +313,17 @@ fun DashboardScreen(
                 else -> rawDesc
             }
             val temp = Math.round(weather.currentTempC).toInt()
-            val location = weather.locationName.ifBlank { "Ho Chi Minh City" }
+            val location = weather.locationName.ifBlank {
+                com.example.core.location.LocationHelper.getLastKnownCityName(context)
+            }
             "$cleanDesc, $temp°C in $location"
         } else {
+            val fallbackCity = com.example.core.location.LocationHelper.getLastKnownCityName(context)
             when (diurnalPhase) {
-                DiurnalPhase.NIGHT -> "Clear night, 23°C in Ho Chi Minh City"
-                DiurnalPhase.EVENING -> "Sunset, 26°C in Ho Chi Minh City"
-                DiurnalPhase.AFTERNOON -> "Sunny, 33°C in Ho Chi Minh City"
-                DiurnalPhase.MORNING -> "Morning sun, 31°C in Ho Chi Minh City"
+                DiurnalPhase.NIGHT -> "Clear night in $fallbackCity"
+                DiurnalPhase.EVENING -> "Sunset in $fallbackCity"
+                DiurnalPhase.AFTERNOON -> "Sunny afternoon in $fallbackCity"
+                DiurnalPhase.MORNING -> "Morning sun in $fallbackCity"
             }
         }
     }

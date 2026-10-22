@@ -437,6 +437,24 @@ class NowBarLiveService : Service() {
                 )
             }
 
+            // 6. Active / Recent Media (YouTube Music / Spotify / YouTube)
+            com.example.core.music.RecentMediaTracker.refreshActiveSessions(this)
+            val media = com.example.core.music.RecentMediaTracker.currentPlaybackState.value
+            if (media != null && media.title.isNotBlank()) {
+                val subtitle = if (media.artist.isNotBlank()) "${media.artist} · ${media.appName}" else media.appName
+                items.add(
+                    NowBarCardItem(
+                        text = "\uD83C\uDFB5 ${media.title} — $subtitle",
+                        nowbarTitle = "${media.appName} · ${media.title.take(18)}",
+                        chipLabel = if (media.isPlaying) "Playing" else "Musik",
+                        iconRes = R.drawable.ic_capsule_horizon,
+                        chipBgColor = 0xFFE11D48.toInt(),
+                        progress = energyScore,
+                        progressColor = 0xFFFB7185.toInt()
+                    )
+                )
+            }
+
             cachedItems = items
         } catch (e: Exception) {
             Log.w(TAG, "refreshRealDevicePool error: ${e.message}")

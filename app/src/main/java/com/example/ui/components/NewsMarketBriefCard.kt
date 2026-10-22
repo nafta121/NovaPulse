@@ -60,17 +60,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun NewsMarketBriefCard(
     modifier: Modifier = Modifier,
-    tickers: List<MarketTickerItem> = remember { NewsMarketRepository.getMarketTickers() },
+    tickers: List<MarketTickerItem>? = null,
     isDark: Boolean = true,
     onArticleClick: ((NewsBriefArticle) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val liveArticles by NewsMarketRepository.newsState.collectAsStateWithLifecycle()
+    val liveTickers by NewsMarketRepository.tickersState.collectAsStateWithLifecycle()
+    val displayTickers = tickers ?: liveTickers
     var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        NewsMarketRepository.fetchLiveNews()
+        NewsMarketRepository.fetchLiveNews(context)
     }
 
     val containerBg = if (isDark) {
@@ -183,7 +185,7 @@ fun NewsMarketBriefCard(
                             if (!isRefreshing) {
                                 isRefreshing = true
                                 coroutineScope.launch {
-                                    NewsMarketRepository.fetchLiveNews()
+                                    NewsMarketRepository.fetchLiveNews(context)
                                     isRefreshing = false
                                 }
                             }
@@ -213,7 +215,7 @@ fun NewsMarketBriefCard(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                tickers.forEach { ticker ->
+                displayTickers.forEach { ticker ->
                     val isGreen = ticker.isPositive
                     val badgeColor = if (isGreen) Color(0xFF10B981) else Color(0xFFEF4444)
                     val badgeBg = if (isDark) {

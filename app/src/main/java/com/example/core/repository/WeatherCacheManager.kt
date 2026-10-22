@@ -86,12 +86,19 @@ object WeatherCacheManager {
                     )
                 }
             }
+            val cachedLocName = json.getString("locationName")
+            if (cachedLocName.contains("Ho Chi Minh", ignoreCase = true) &&
+                com.example.core.location.LocationHelper.getDetectedCountryCode(context) != "VN"
+            ) {
+                prefs.edit().clear().apply()
+                return null
+            }
             RealWeatherData(
                 currentTempC = json.getDouble("currentTempC"),
                 apparentTempC = json.getDouble("apparentTempC"),
                 weatherCode = json.getInt("weatherCode"),
                 conditionDescription = json.getString("conditionDescription"),
-                locationName = json.getString("locationName"),
+                locationName = cachedLocName,
                 hourlyForecast = hourlyList,
                 dailyForecast = dailyList,
                 isFromCache = true,

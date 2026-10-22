@@ -29,7 +29,7 @@ data class RealWeatherData(
     val conditionDescription: String,
     val hourlyForecast: List<HourlyWeatherItem>,
     val dailyForecast: List<DailyWeatherItem> = emptyList(),
-    val locationName: String = "Ho Chi Minh City",
+    val locationName: String = "",
     val isFromCache: Boolean = false,
     val cacheTimestampMs: Long = 0L
 )
@@ -38,12 +38,6 @@ class WeatherRepository(
     private val context: Context,
     private val client: OkHttpClient = com.example.NovaPulseApp.sharedHttpClient
 ) {
-
-    companion object {
-        const val DEFAULT_LAT = 10.8231 // Ho Chi Minh City
-        const val DEFAULT_LON = 106.6297
-        const val DEFAULT_LOCATION_NAME = "Ho Chi Minh City"
-    }
 
     fun isLocationPermissionGranted(): Boolean {
         return com.example.core.location.LocationHelper.isLocationPermissionGranted(context)
@@ -56,8 +50,8 @@ class WeatherRepository(
             com.example.core.location.LocationHelper.getCurrentLocation(context)
         }
 
-        val targetLat = location?.first ?: DEFAULT_LAT
-        val targetLon = location?.second ?: DEFAULT_LON
+        val targetLat = location.first
+        val targetLon = location.second
 
         val locationName = com.example.core.location.LocationHelper.getCityName(context, targetLat, targetLon)
 

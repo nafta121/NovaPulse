@@ -37,9 +37,9 @@ data class YouTubeVideoRecommendation(
 
 enum class YouTubeCategoryType(val label: String) {
     ALL("All"),
-    VPOP_ARTISTS("🌟 V-Pop & Artists"),
-    GENRE_MIX("🎸 Pop • Ballad • Rap"),
-    PODCAST_KNOWLEDGE("🎙️ Podcasts & Skills"),
+    VPOP_ARTISTS("🎵 Music & Artists"),
+    GENRE_MIX("🎸 Pop • Indie • Hits"),
+    PODCAST_KNOWLEDGE("🎙️ Podcasts & Tech"),
     LOFI_CHILL("☕ Acoustic & Lofi")
 }
 
@@ -58,61 +58,47 @@ object YouTubeRecommendationHelper {
     private val httpClient: OkHttpClient
         get() = com.example.NovaPulseApp.sharedHttpClient
 
-    // List of trending artists & quick search suggestions
-    val POPULAR_ARTISTS = listOf(
-        "Son Tung M-TP",
-        "Den Vau",
-        "Vu.",
-        "HIEUTHUHAI",
-        "Soobin Hoang Son",
-        "Vu Cat Tuong",
-        "GREY D",
-        "Trung Quan Idol",
-        "Taylor Swift",
-        "Best of Rap Viet"
-    )
-
-    // Diverse YouTube RSS sources: V-Pop, top artists, podcasts & acoustic
+    // Curated YouTube RSS sources: Music Labels, Tech/Knowledge Podcasts & Acoustic/Lofi
     private val LIVE_SOURCES = listOf(
-        // 1. Son Tung M-TP Official Channel
+        // 1. Musica Studios (Indonesian Pop & Band Hits - Noah, D'Masiv, Nidji, etc.)
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCKaTC4hX2dE5g_pU5N7K08Q",
-            defaultChannelName = "Son Tung M-TP Official",
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCU_fuBEJq12D37WcE7Gn2Tw",
+            defaultChannelName = "Musica Studios",
             categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-            categoryTag = "Trending V-Pop",
-            aiReason = "Upbeat music from Vietnam's top artist."
+            categoryTag = "Pop & Band Hits",
+            aiReason = "Trending music releases and timeless hits for your daily rhythm."
         ),
-        // 2. Den Vau Official Channel
+        // 2. Aquarius Musikindo (Top Indonesian Pop & Indie Releases)
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCa4g2qQc7b1qF5_e2W5Qxkg",
-            defaultChannelName = "Den Vau Official",
-            categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-            categoryTag = "Conscious Rap",
-            aiReason = "Thoughtful and authentic lyrics to relax your mind."
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCk7v_7F6e5G1j_7fG6W_z9Q",
+            defaultChannelName = "Aquarius Musikindo",
+            categoryType = YouTubeCategoryType.GENRE_MIX,
+            categoryTag = "Top Pop & Ballad",
+            aiReason = "Popular tracks curated for your current mood."
         ),
-        // 3. Vietcetera Podcast Channel
+        // 3. GadgetIn (Tech Reviews & Digital Lifestyle)
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCEm_b62Y4IisWj6S0gq4dvw",
-            defaultChannelName = "Vietcetera",
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1dI4tO13ApuSX0QeX8pHng",
+            defaultChannelName = "GadgetIn",
             categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
-            categoryTag = "Talk Podcast",
-            aiReason = "Insightful podcasts on life, career, and lifestyle."
+            categoryTag = "Tech & Gadgets",
+            aiReason = "Latest technology insights and smartphone reviews."
         ),
-        // 4. Web5Ngay Channel
+        // 4. TED-Ed (Knowledge & Productivity)
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC20h6p4f0UjU8Xo1jA8Jc2w",
-            defaultChannelName = "Web5Ngay",
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCsooa4yRKGN_zEE8iknghZA",
+            defaultChannelName = "TED-Ed",
             categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
-            categoryTag = "Life Skills",
-            aiReason = "Lessons on energy management and productive mindset."
+            categoryTag = "Knowledge & Skills",
+            aiReason = "Short lessons worth sharing to sharpen your mind."
         ),
         // 5. Cafe Music BGM Channel
         YouTubeFeedSource(
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCH4g5C_yYv_7F_c1kQeA1aA",
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCJhjE7wbdYAae1G25m0tHAA",
             defaultChannelName = "Cafe Music BGM",
             categoryType = YouTubeCategoryType.LOFI_CHILL,
             categoryTag = "Acoustic Cafe",
-            aiReason = "Gentle music for resting and recharging your energy."
+            aiReason = "Gentle jazz and acoustic music for resting and recharging your energy."
         ),
         // 6. Lofi Girl Channel
         YouTubeFeedSource(
@@ -128,21 +114,62 @@ object YouTubeRecommendationHelper {
     val liveVideosState: StateFlow<List<YouTubeVideoRecommendation>> = _liveVideosState.asStateFlow()
 
     suspend fun fetchLiveYouTubeVideos(context: Context? = null): List<YouTubeVideoRecommendation> = withContext(Dispatchers.IO) {
+        if (context != null) {
+            RecentMediaTracker.refreshActiveSessions(context)
+        }
         val liveResults = mutableListOf<YouTubeVideoRecommendation>()
 
+        // 1. Prioritize real tracks/artists currently or recently played on the user's device (YouTube Music / Spotify / YouTube)
+        val deviceHistory = RecentMediaTracker.recentHistoryState.value.take(1)
+        for (item in deviceHistory) {
+            val query = if (item.artist.isNotBlank()) "${item.title} ${item.artist}" else item.title
+            val resolved = searchYouTubeVideoForQuery(
+                query = query,
+                channelFallback = item.artist.ifBlank { item.appName },
+                categoryTag = "From Your ${item.appName}",
+                aiReason = "Based on your recent playback on ${item.appName}.",
+                categoryType = YouTubeCategoryType.VPOP_ARTISTS
+            )
+            if (resolved != null) {
+                liveResults.add(resolved)
+            }
+        }
+
+        // 2. If device history has fewer than 2 items, fetch live trending music for the user's country
+        if (liveResults.size < 2) {
+            val country = com.example.core.location.LocationHelper.getDetectedCountryCode(context)
+            val regionalQuery = if (country == "ID") {
+                "Lagu Pop Indonesia Terpopuler Official MV"
+            } else {
+                "Top Pop Music Hits Official Video"
+            }
+            val trendingHit = searchYouTubeVideoForQuery(
+                query = regionalQuery,
+                channelFallback = "YouTube Music",
+                categoryTag = "Trending Music",
+                aiReason = "Trending music in your region right now.",
+                categoryType = YouTubeCategoryType.VPOP_ARTISTS
+            )
+            if (trendingHit != null) {
+                liveResults.add(trendingHit)
+            }
+        }
+
+        // 3. Fetch from curated YouTube RSS feeds
         for (source in LIVE_SOURCES) {
             try {
                 val request = Request.Builder()
                     .url(source.url)
-                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36")
                     .build()
 
-                val response = httpClient.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val xmlString = response.body?.string()
-                    if (!xmlString.isNullOrBlank()) {
-                        val parsed = parseYouTubeAtomXml(xmlString, source)
-                        liveResults.addAll(parsed.take(2))
+                httpClient.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val xmlString = response.body?.string()
+                        if (!xmlString.isNullOrBlank()) {
+                            val parsed = parseYouTubeAtomXml(xmlString, source)
+                            liveResults.addAll(parsed.take(2))
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -156,11 +183,12 @@ object YouTubeRecommendationHelper {
             getFallbackVideos()
         }
 
-        // Sort videos by priority score learned from the ML model
+        // Sort videos by priority score learned from the ML model, keeping device-history items on top
         val sortedResults = if (context != null) {
             val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
-            finalResults.distinctBy { it.videoId.ifBlank { it.title } }.sortedByDescending {
-                mlEngine.mediaLearner.calculateCategoryScore(it.categoryType.name)
+            finalResults.distinctBy { it.videoId.ifBlank { it.title } }.sortedByDescending { rec ->
+                val baseScore = mlEngine.mediaLearner.calculateCategoryScore(rec.categoryType.name)
+                if (rec.categoryTag.startsWith("From Your")) baseScore + 100.0f else baseScore
             }
         } else {
             finalResults.distinctBy { it.videoId.ifBlank { it.title } }
@@ -168,6 +196,54 @@ object YouTubeRecommendationHelper {
 
         _liveVideosState.value = sortedResults
         return@withContext _liveVideosState.value
+    }
+
+    private fun searchYouTubeVideoForQuery(
+        query: String,
+        channelFallback: String,
+        categoryTag: String,
+        aiReason: String,
+        categoryType: YouTubeCategoryType
+    ): YouTubeVideoRecommendation? {
+        return try {
+            val url = "https://www.youtube.com/results?search_query=${Uri.encode(query)}"
+            val req = Request.Builder()
+                .url(url)
+                .header(
+                    "User-Agent",
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                )
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return null
+                val html = resp.body?.string() ?: return null
+                val marker = "\"videoRenderer\":{\"videoId\":\""
+                val startIdx = html.indexOf(marker)
+                if (startIdx < 0) return null
+                val snippet = html.substring(startIdx, minOf(html.length, startIdx + 700))
+                val videoId = snippet.substringAfter(marker, "").take(11)
+                if (videoId.length != 11) return null
+                val rawTitle = Regex("\"title\":\\{\"runs\":\\[\\{\"text\":\"([^\"]+)\"")
+                    .find(snippet)?.groupValues?.getOrNull(1)
+                    ?.replace("\\u0026", "&")
+                    ?.replace("&amp;", "&")
+                    ?.replace("\\\"", "\"")
+                    ?: query
+                YouTubeVideoRecommendation(
+                    id = "yt_search_$videoId",
+                    videoId = videoId,
+                    title = rawTitle,
+                    channelTitle = channelFallback,
+                    durationText = "YouTube Music",
+                    aiReason = aiReason,
+                    categoryTag = categoryTag,
+                    categoryType = categoryType,
+                    searchFallbackQuery = query
+                )
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun parseYouTubeAtomXml(
@@ -268,37 +344,37 @@ object YouTubeRecommendationHelper {
     fun getFallbackVideos(): List<YouTubeVideoRecommendation> {
         return listOf(
             YouTubeVideoRecommendation(
-                id = "yt_vpop_1",
-                videoId = "abPmZCZZrFA",
-                title = "Dung Lam Trai Tim Anh Dau - Son Tung M-TP | Official Music Video",
-                channelTitle = "Son Tung M-TP Official",
-                durationText = "05:18",
-                aiReason = "An energetic V-Pop hit for a bright new day.",
-                categoryTag = "Trending V-Pop",
+                id = "yt_pop_1",
+                videoId = "m57X6f12hNs",
+                title = "TULUS - Hati-Hati di Jalan (Official Music Video)",
+                channelTitle = "Tulus",
+                durationText = "04:22",
+                aiReason = "Warm Indonesian pop hit for a calm and uplifting mood.",
+                categoryTag = "Top Pop Hit",
                 categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-                searchFallbackQuery = "Dung Lam Trai Tim Anh Dau Son Tung M-TP"
+                searchFallbackQuery = "Tulus Hati Hati di Jalan"
             ),
             YouTubeVideoRecommendation(
-                id = "yt_vpop_2",
-                videoId = "Z3q1j3rM3cE",
-                title = "Cooking for You - Den ft. PiaLinh | Official Music Video",
-                channelTitle = "Den Vau Official",
-                durationText = "04:45",
-                aiReason = "Inspiring music filled with positivity and warmth.",
-                categoryTag = "Conscious Rap",
+                id = "yt_pop_2",
+                videoId = "e2f1y1W4uG8",
+                title = "Hindia - Evaluasi (Official Music Video)",
+                channelTitle = "Hindia",
+                durationText = "03:45",
+                aiReason = "Reflective and energizing indie anthem to recharge your spirit.",
+                categoryTag = "Indie Favorite",
                 categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-                searchFallbackQuery = "Nau An Cho Em Den Vau"
+                searchFallbackQuery = "Hindia Evaluasi Official Music Video"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_genre_1",
-                videoId = "K1B_442_gP4",
-                title = "Best Vietnamese Ballad & Indie Songs 2026",
-                channelTitle = "V-Pop Ballad Station",
-                durationText = "01:15:30",
-                aiReason = "A curated collection of deeply emotional ballads.",
-                categoryTag = "Curated Ballads",
+                videoId = "5qap5aO4i9A",
+                title = "Best Indonesian Acoustic & Indie Chill Mix",
+                channelTitle = "YouTube Music Mix",
+                durationText = "58:20",
+                aiReason = "A curated collection of acoustic and indie tracks.",
+                categoryTag = "Curated Mix",
                 categoryType = YouTubeCategoryType.GENRE_MIX,
-                searchFallbackQuery = "Best Vietnamese Ballad Songs"
+                searchFallbackQuery = "Best Indonesian Acoustic Indie Songs"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_fallback_1",
@@ -313,22 +389,28 @@ object YouTubeRecommendationHelper {
             ),
             YouTubeVideoRecommendation(
                 id = "yt_fallback_2",
-                videoId = "1ZYbU82GVz4",
-                title = "Have A Sip - Conversations on Life & Personal Growth",
-                channelTitle = "Vietcetera",
-                durationText = "45:10",
-                aiReason = "Thoughtful content to help unwind your mind after a busy day.",
-                categoryTag = "Talk Podcast",
-                categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
-                searchFallbackQuery = "Have A Sip Vietcetera podcast"
+                videoId = "Dx5qFachd3A",
+                title = "Relaxing Jazz Piano & Bossa Nova Cafe Music",
+                channelTitle = "Cafe Music BGM",
+                durationText = "01:30:00",
+                aiReason = "Soothing background music to unwind after a busy day.",
+                categoryTag = "Acoustic Cafe",
+                categoryType = YouTubeCategoryType.LOFI_CHILL,
+                searchFallbackQuery = "Relaxing Jazz Piano Cafe Music BGM"
             )
         )
     }
 
     /**
-     * Search for an artist or song directly on YouTube
+     * Search for an artist or song on YouTube Music (if installed/active) or YouTube
      */
     fun openSearchQuery(context: Context, query: String) {
+        val recentPkg = RecentMediaTracker.currentPlaybackState.value?.packageName ?: ""
+        if (recentPkg.contains("youtube.music")) {
+            MusicRecommendationHelper.openYouTubeMusicApp(context, query)
+            return
+        }
+
         try {
             val searchIntent = Intent(Intent.ACTION_SEARCH).apply {
                 setPackage("com.google.android.youtube")
@@ -337,6 +419,10 @@ object YouTubeRecommendationHelper {
             }
             context.startActivity(searchIntent)
         } catch (e: Exception) {
+            if (MusicRecommendationHelper.isPackageInstalled(context, MusicRecommendationHelper.YT_MUSIC_PACKAGE)) {
+                MusicRecommendationHelper.openYouTubeMusicApp(context, query)
+                return
+            }
             try {
                 val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=${Uri.encode(query)}")).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -349,11 +435,18 @@ object YouTubeRecommendationHelper {
     }
 
     /**
-     * Open the official YouTube app
+     * Open the official YouTube or YouTube Music app
      */
     fun openYouTubeApp(context: Context) {
+        val recentPkg = RecentMediaTracker.currentPlaybackState.value?.packageName ?: ""
+        if (recentPkg.contains("youtube.music")) {
+            MusicRecommendationHelper.openYouTubeMusicApp(context)
+            return
+        }
+
         try {
             val launchIntent = context.packageManager.getLaunchIntentForPackage("com.google.android.youtube")
+                ?: context.packageManager.getLaunchIntentForPackage(MusicRecommendationHelper.YT_MUSIC_PACKAGE)
             if (launchIntent != null) {
                 launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 context.startActivity(launchIntent)
@@ -369,7 +462,7 @@ object YouTubeRecommendationHelper {
     }
 
     /**
-     * Open the video directly in the YouTube app or via Deep Link
+     * Open the video directly in YouTube Music (if preferred for music) or the YouTube app
      */
     fun openYouTubeVideo(context: Context, rec: YouTubeVideoRecommendation) {
         try {
@@ -377,6 +470,24 @@ object YouTubeRecommendationHelper {
             mlEngine.recordMediaClick(rec.categoryType.name, "YOUTUBE")
         } catch (e: Exception) {
             Log.e(TAG, "Failed recording ML interaction: ${e.message}")
+        }
+
+        val recentPkg = RecentMediaTracker.currentPlaybackState.value?.packageName ?: ""
+        val isMusicCategory = rec.categoryType == YouTubeCategoryType.VPOP_ARTISTS ||
+            rec.categoryType == YouTubeCategoryType.GENRE_MIX
+
+        if (recentPkg.contains("youtube.music") && isMusicCategory && rec.videoId.isNotBlank()) {
+            try {
+                val ytMusicIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://music.youtube.com/watch?v=${rec.videoId}")
+                ).apply {
+                    setPackage(MusicRecommendationHelper.YT_MUSIC_PACKAGE)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(ytMusicIntent)
+                return
+            } catch (_: Exception) {}
         }
 
         try {

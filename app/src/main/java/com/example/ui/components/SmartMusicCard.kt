@@ -122,8 +122,22 @@ fun SmartMusicCard(
     }
 
     val recentPlayback by RecentMediaTracker.currentPlaybackState.collectAsStateWithLifecycle()
+    val recentHistory by RecentMediaTracker.recentHistoryState.collectAsStateWithLifecycle()
 
-    val spotifyRec = remember(currentHour) {
+    LaunchedEffect(recentPlayback?.isPlaying) {
+        if (recentPlayback != null) {
+            isPlaying = recentPlayback!!.isPlaying
+        }
+    }
+
+    val isYtMusicPreferred = remember(recentPlayback) {
+        val pkg = recentPlayback?.packageName ?: ""
+        pkg.contains("youtube.music") ||
+            MusicRecommendationHelper.isPackageInstalled(context, MusicRecommendationHelper.YT_MUSIC_PACKAGE)
+    }
+    val musicAppLabel = if (isYtMusicPreferred) "YT Music" else "Spotify"
+
+    val spotifyRec = remember(currentHour, recentPlayback) {
         MusicRecommendationHelper.getRecommendationForSession(currentHour)
     }
 
@@ -269,7 +283,7 @@ fun SmartMusicCard(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = "Spotify",
+                                text = musicAppLabel,
                                 fontSize = 11.5.sp,
                                 fontWeight = if (selectedPlatform == MediaPlatform.SPOTIFY) FontWeight.Bold else FontWeight.Medium,
                                 color = if (selectedPlatform == MediaPlatform.SPOTIFY) Color.White else (if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B))
@@ -294,7 +308,7 @@ fun SmartMusicCard(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = if (selectedPlatform == MediaPlatform.YOUTUBE) "Open YouTube" else "Open Spotify",
+                        text = if (selectedPlatform == MediaPlatform.YOUTUBE) "Open YouTube" else "Open $musicAppLabel",
                         color = activeAccentColor,
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold
@@ -347,7 +361,11 @@ fun SmartMusicCard(
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text(
-                                text = "Recently played: ${recentPlayback!!.title}",
+                                text = if (recentPlayback!!.isPlaying) {
+                                    "Now playing: ${recentPlayback!!.title}"
+                                } else {
+                                    "Recently played: ${recentPlayback!!.title}"
+                                },
                                 color = titleColor,
                                 fontSize = 12.5.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -427,10 +445,8 @@ fun SmartMusicCard(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                val artistList = if (selectedPlatform == MediaPlatform.YOUTUBE) {
-                    YouTubeRecommendationHelper.POPULAR_ARTISTS
-                } else {
-                    MusicRecommendationHelper.POPULAR_SPOTIFY_CHIPS
+                val artistList = remember(selectedPlatform, recentHistory) {
+                    MusicRecommendationHelper.getPersonalizedChips(context)
                 }
 
                 artistList.forEach { artist ->

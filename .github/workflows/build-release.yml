@@ -57,30 +57,33 @@ jobs:
 
       - name: Prepare Release APK
         run: |
-          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.7.0-release.apk
+          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.7.1-release.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NowBrief-v1.7.0-release
-          path: NowBrief-v1.7.0-release.apk
+          name: NowBrief-v1.7.1-release
+          path: NowBrief-v1.7.1-release.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: NowBrief-v1.7.0-release
-          name: NowBrief v1.7.0 (Full One UI 7/8 Live Notification & Now Bar Spec Release)
+          tag_name: NowBrief-v1.7.1-release
+          name: NowBrief v1.7.1 (Real Device Location, Weather, Localized News & YouTube Music Release)
           body: |
-            ## 🌟 NowBrief (NovaPulse) v1.7.0 - Full One UI 7/8 Live Notification & Now Bar Spec Release
+            ## 🌟 NowBrief (NovaPulse) v1.7.1 - Real Device Location, Weather, Localized News & YouTube Music Release
             
-            - Bumped application version to `v1.7.0` (`versionCode = 6`).
-            - **Full Akexorcist Samsung One UI 7/8 `ongoingActivityNoti` Specification (`NowBarLiveService`)**:
-              - **Gradient Live Notification Drawer + Status Bar Chip + Lock Screen Now Bar**: Upgraded channel to `nowbrief_samsung_nowbar_v2` (`IMPORTANCE_LOW`, `VISIBILITY_PUBLIC`) so One UI renders the prominent gradient Live Notification card in the drawer alongside the Status Bar Chip and Lock Screen Now Bar.
-              - **Dynamic Icons & Colors per Card Category**: Added `chipIcon`, `secondaryInfoIcon` (`Icon.createWithResource`), `chipBgColor`, and `chipExpandedText` tailored to each real-device card (Weather, AI Brief, Steps/Calories, Calendar, Tasks, Screen Time).
-              - **Multi-Segment Progress Bar Style**: Added `progress`, `progressMax = 100`, `progressSegments.icon`, `progressSegments.progressColor`, and `progressSegments` (`segmentStart` + `segmentColor`) reflecting real-time Energy Score, Step Goal %, and Screen Time %.
-              - **Interactive Action Buttons (`actionType = 1`, `actionPrimarySet = 0`)**: Added **"Berikutnya"** (`ACTION_NEXT_CARD`) to cycle live cards directly from the Lock Screen / Notification Drawer and **"Buka Brief"** to launch into the full AI summary.
-              - **Hybrid One UI 7 + One UI 8 (Android 16)**: Combines `android.ongoingActivityNoti.*` + `semFlags |= 32768` with Android 16 `setRequestPromotedOngoing(true)` + `setShortCriticalText()`.
-          files: NowBrief-v1.7.0-release.apk
+            - Bumped application version to `v1.7.1` (`versionCode = 7`).
+            - **Real Device Location & Weather (`LocationHelper`, `WeatherRepository`, `WeatherCacheManager`)**:
+              - Replaced hardcoded Ho Chi Minh City fallback with multi-stage real device location detection: fast cached `FusedLocationProviderClient.lastLocation` (<30 min), Android `LocationManager` (`GPS_PROVIDER` / `NETWORK_PROVIDER` / `PASSIVE_PROVIDER`), active balanced GPS fix, IP geolocation fallback (`ipwho.is` / `geojs.io`), and device timezone/country detection.
+              - Added automatic purge of legacy `"Ho Chi Minh City"` cached weather entries outside Vietnam and HTTP reverse-geocoding fallback (`BigDataCloud`) when Android `Geocoder` is unavailable.
+            - **Localized Live News & Market Tickers (`NewsMarketRepository`, `NewsMarketBriefCard`)**:
+              - Fetches live regional news via Google News RSS localized to the device's detected country (`hl=id&gl=ID&ceid=ID:id` for Indonesia, plus CNBC Indonesia & ANTARA News) with real publisher `<source>` attribution.
+              - Concurrently fetches live `USD/IDR` exchange rates (`open.er-api.com`) and live `BTC/USD`, `EMAS/USD (PAXG)`, and `ETH/USD` prices & 24h changes via CoinGecko API.
+            - **Real-Time YouTube Music & Device Media Sessions (`RecentMediaTracker`, `SmartNotificationListenerService`, `MusicRecommendationHelper`, `YouTubeRecommendationHelper`, `SmartMusicCard`)**:
+              - Reads active `MediaSessionManager` controllers and `PlaybackState` in real time for **YouTube Music** (`com.google.android.apps.youtube.music`), **YouTube**, **Spotify**, and **Samsung Music**, persisting deduplicated listening history on-device.
+              - Added Android 11+ `<queries>` package visibility for YouTube Music, YouTube, Spotify, and Samsung Music, and personalized quick-search chips + YouTube recommendations based on real device listening history.
+          files: NowBrief-v1.7.1-release.apk
           draft: false
           prerelease: false
         env:
