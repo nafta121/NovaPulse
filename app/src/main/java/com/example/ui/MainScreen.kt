@@ -14,9 +14,11 @@ import androidx.compose.ui.Modifier
 import com.example.ui.screens.ContentVisibilitySettingsScreen
 import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.SettingsScreen
+import com.example.ui.screens.TasksExpensesScreen
 
 enum class AppNavScreen {
     DASHBOARD,
+    TASKS_EXPENSES,
     SETTINGS,
     CONTENT_VISIBILITY
 }
@@ -38,9 +40,15 @@ fun MainScreen(
             AppNavScreen.DASHBOARD -> {
                 DashboardScreen(
                     viewModel = viewModel,
-                    onNavigateToTasks = { currentScreen = AppNavScreen.SETTINGS },
+                    onNavigateToTasks = { currentScreen = AppNavScreen.TASKS_EXPENSES },
                     onOpenSettings = { currentScreen = AppNavScreen.SETTINGS },
                     onOpenContentVisibility = { currentScreen = AppNavScreen.CONTENT_VISIBILITY }
+                )
+            }
+            AppNavScreen.TASKS_EXPENSES -> {
+                TasksExpensesScreen(
+                    viewModel = viewModel,
+                    onBack = { currentScreen = AppNavScreen.DASHBOARD }
                 )
             }
             AppNavScreen.SETTINGS -> {

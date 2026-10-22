@@ -34,18 +34,16 @@ data class RealWeatherData(
     val cacheTimestampMs: Long = 0L
 )
 
-class WeatherRepository(private val context: Context) {
+class WeatherRepository(
+    private val context: Context,
+    private val client: OkHttpClient = com.example.NovaPulseApp.sharedHttpClient
+) {
 
     companion object {
         const val DEFAULT_LAT = 10.8231 // Ho Chi Minh City
         const val DEFAULT_LON = 106.6297
         const val DEFAULT_LOCATION_NAME = "Ho Chi Minh City"
     }
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .build()
 
     fun isLocationPermissionGranted(): Boolean {
         return com.example.core.location.LocationHelper.isLocationPermissionGranted(context)

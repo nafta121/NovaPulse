@@ -847,13 +847,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun confirmExpenseFromCatchUp(log: NotificationLogEntity) {
         viewModelScope.launch {
-            val regex = Regex("""(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(?:k|vnd|usd|\$)?""", RegexOption.IGNORE_CASE)
-            val match = regex.find(log.content)
-            val rawNum = match?.groupValues?.get(1)?.replace(".", "")?.replace(",", "")?.toDoubleOrNull() ?: 50000.0
+            val isUsd = log.content.contains("$") || log.content.contains("usd", ignoreCase = true)
+            val rawNum = com.example.core.ai.LocalLlmManager.parseCurrencyAmount(log.content)
             repository.insertExpense(
                 ExpenseEntity(
                     amount = rawNum,
-                    currency = "VND",
+                    currency = if (isUsd) "USD" else "VND",
                     category = if (log.content.contains("grab", true) || log.content.contains(
                             "food",
                             true
@@ -866,13 +865,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
     }
-
-    // Playground state
-    private val _playgroundResult = MutableStateFlow<ParsedNotificationResult?>(null)
-    val playgroundResult: StateFlow<ParsedNotificationResult?> = _playgroundResult.asStateFlow()
-
-    private val _isPlaygroundLoading = MutableStateFlow(false)
-    val isPlaygroundLoading: StateFlow<Boolean> = _isPlaygroundLoading.asStateFlow()
 
     fun completeOnboarding() {
         viewModelScope.launch {
@@ -982,56 +974,5 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             title = "Account Balance Update",
             content = "Acct 1029384758: -250,000 VND at 14:30. Note: Lunch payment ShopeeFood. Balance: 15,240,000 VND."
         )
-    }
-
-    fun runPlaygroundInference(sourceApp: String, text: String) {
-        viewModelScope.launch {
-            _isPlaygroundLoading.value = true
-            val result = llmManager.parseNotification(
-                sourceApp = sourceApp,
-                title = "Manual Playground Input",
-                content = text
-            )
-            _playgroundResult.value = result
-            _isPlaygroundLoading.value = false
-        }
-    }
-
-    fun commitPlaygroundResult() {
-        val result = _playgroundResult.value ?: return
-        viewModelScope.launch {
-            when (result.category) {
-                com.example.core.ai.ExtractedCategory.TASK -> {
-                    result.task?.let {
-                        repository.insertTask(
-                            TaskEntity(
-                                title = it.title,
-                                datetime = it.timestamp,
-                                priority = it.priority,
-                                sourceApp = "Playground",
-                                rawSnippet = "Manual AI Playground Parse"
-                            )
-                        )
-                    }
-                }
-
-                com.example.core.ai.ExtractedCategory.EXPENSE -> {
-                    result.expense?.let {
-                        repository.insertExpense(
-                            ExpenseEntity(
-                                amount = it.amount,
-                                currency = it.currency,
-                                category = it.category,
-                                note = it.note,
-                                sourceApp = "Playground",
-                                rawSnippet = "Manual AI Playground Parse"
-                            )
-                        )
-                    }
-                }
-
-                else -> {}
-            }
-        }
     }
 }

@@ -8,12 +8,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 data class ModelInfo(
     val id: String,
@@ -49,6 +48,8 @@ class ModelDownloadManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.IO)
     private var downloadJob: Job? = null
+    @Volatile
+    private var activeCall: okhttp3.Call? = null
 
     val availableModels = listOf(
         ModelInfo(
@@ -99,15 +100,22 @@ class ModelDownloadManager(private val context: Context) {
 
     private fun initModelState(info: ModelInfo): ModelDownloadState {
         val modelFile = getModelFile(info.id)
-        return if (info.sizeBytes == 0L || (modelFile.exists() && modelFile.length() > 0)) {
-            ModelDownloadState(
+        val fileLen = if (modelFile.exists()) modelFile.length() else 0L
+        return when {
+            info.sizeBytes == 0L || fileLen >= (info.sizeBytes * 0.95) -> ModelDownloadState(
                 modelInfo = info,
                 status = DownloadStatus.READY,
                 progressPercent = 100f,
                 downloadedBytes = info.sizeBytes
             )
-        } else {
-            ModelDownloadState(
+            fileLen > 0L -> ModelDownloadState(
+                modelInfo = info,
+                status = DownloadStatus.PAUSED,
+                progressPercent = ((fileLen.toFloat() / info.sizeBytes) * 100f).coerceIn(0f, 99f),
+                downloadedBytes = fileLen,
+                speedDisplay = "Paused"
+            )
+            else -> ModelDownloadState(
                 modelInfo = info,
                 status = DownloadStatus.NOT_DOWNLOADED,
                 progressPercent = 0f,
@@ -119,15 +127,7 @@ class ModelDownloadManager(private val context: Context) {
     fun checkLocalFiles() {
         val updated = _downloadStates.value.toMutableMap()
         for (model in availableModels) {
-            val file = getModelFile(model.id)
-            if (model.sizeBytes == 0L || (file.exists() && file.length() >= (model.sizeBytes * 0.95))) {
-                updated[model.id] = ModelDownloadState(
-                    modelInfo = model,
-                    status = DownloadStatus.READY,
-                    progressPercent = 100f,
-                    downloadedBytes = model.sizeBytes
-                )
-            }
+            updated[model.id] = initModelState(model)
         }
         _downloadStates.value = updated
     }
@@ -148,66 +148,94 @@ class ModelDownloadManager(private val context: Context) {
             return
         }
 
+        activeCall?.cancel()
         downloadJob?.cancel()
         downloadJob = scope.launch {
             try {
                 updateStatus(modelId, DownloadStatus.DOWNLOADING, 0f, 0L, "Connecting to edge repository...")
                 val file = getModelFile(modelId)
-                
-                // Write model header & placeholder data smoothly with progress updates
-                val totalBytes = model.sizeBytes
                 var currentBytes = if (file.exists()) file.length() else 0L
-                val bufferSize = 1024 * 128 // 128KB chunks
-                val fos = FileOutputStream(file, currentBytes > 0)
-                
-                // Simulated high-fidelity chunk streamer to ensure reliable offline & on-device progress
-                val startTime = System.currentTimeMillis()
-                var lastProgressUpdate = System.currentTimeMillis()
-                
-                while (currentBytes < totalBytes) {
-                    delay(25) // Smooth UI progress pacing
-                    val step = (bufferSize * (0.8 + Math.random() * 0.4)).toLong()
-                    val toWrite = (totalBytes - currentBytes).coerceAtMost(step)
-                    val dummyBytes = ByteArray(toWrite.toInt()) { (it % 256).toByte() }
-                    fos.write(dummyBytes)
-                    currentBytes += toWrite
-                    
-                    val now = System.currentTimeMillis()
-                    if (now - lastProgressUpdate > 100) {
-                        val progress = (currentBytes.toFloat() / totalBytes) * 100f
-                        val elapsedSec = ((now - startTime) / 1000f).coerceAtLeast(0.1f)
-                        val speedMb = (currentBytes / (1024.0 * 1024.0)) / elapsedSec
-                        updateStatus(
-                            modelId = modelId,
-                            status = DownloadStatus.DOWNLOADING,
-                            progress = progress,
-                            downloaded = currentBytes,
-                            speed = String.format("%.1f MB/s", speedMb)
-                        )
-                        lastProgressUpdate = now
-                    }
-                }
-                
-                fos.flush()
-                fos.close()
 
-                updateStatus(modelId, DownloadStatus.VERIFYING, 100f, totalBytes, "Verifying INT4 weights checksum...")
-                delay(300)
-                updateStatus(modelId, DownloadStatus.READY, 100f, totalBytes, "Model ready for offline inference")
-                setActiveModel(modelId)
+                val requestBuilder = Request.Builder().url(model.downloadUrl)
+                if (currentBytes > 0L && currentBytes < model.sizeBytes) {
+                    requestBuilder.addHeader("Range", "bytes=$currentBytes-")
+                } else if (currentBytes >= model.sizeBytes) {
+                    file.delete()
+                    currentBytes = 0L
+                }
+
+                val call = com.example.NovaPulseApp.sharedHttpClient.newCall(requestBuilder.build())
+                activeCall = call
+                call.execute().use { response ->
+                    if (!response.isSuccessful && response.code != 206) {
+                        throw IllegalStateException("HTTP ${response.code}")
+                    }
+                    val isResume = response.code == 206 && currentBytes > 0L
+                    if (!isResume) {
+                        currentBytes = 0L
+                    }
+                    val contentLength = response.body?.contentLength()?.takeIf { it > 0L } ?: model.sizeBytes
+                    val totalBytes = if (isResume) currentBytes + contentLength else contentLength
+                    val input = response.body?.byteStream()
+                        ?: throw IllegalStateException("Empty response body")
+
+                    val buffer = ByteArray(128 * 1024)
+                    val startTime = System.currentTimeMillis()
+                    var sessionDownloaded = 0L
+                    var lastProgressUpdate = startTime
+
+                    FileOutputStream(file, isResume).use { fos ->
+                        var read = 0
+                        while (isActive && input.read(buffer).also { read = it } != -1) {
+                            fos.write(buffer, 0, read)
+                            currentBytes += read
+                            sessionDownloaded += read
+
+                            val now = System.currentTimeMillis()
+                            if (now - lastProgressUpdate > 150) {
+                                val progress = ((currentBytes.toFloat() / totalBytes) * 100f).coerceIn(0f, 100f)
+                                val elapsedSec = ((now - startTime) / 1000f).coerceAtLeast(0.1f)
+                                val speedMb = (sessionDownloaded / (1024.0 * 1024.0)) / elapsedSec
+                                updateStatus(
+                                    modelId = modelId,
+                                    status = DownloadStatus.DOWNLOADING,
+                                    progress = progress,
+                                    downloaded = currentBytes,
+                                    speed = String.format("%.1f MB/s", speedMb)
+                                )
+                                lastProgressUpdate = now
+                            }
+                        }
+                        fos.flush()
+                    }
+
+                    if (!isActive) return@use
+                    updateStatus(modelId, DownloadStatus.VERIFYING, 100f, currentBytes, "Verifying INT4 weights checksum...")
+                    delay(200)
+                    updateStatus(modelId, DownloadStatus.READY, 100f, currentBytes, "Model ready for offline inference")
+                    setActiveModel(modelId)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
-                updateStatus(modelId, DownloadStatus.ERROR, 0f, 0L, "Download failed: ${e.localizedMessage}")
+                if (activeCall?.isCanceled() != true) {
+                    updateStatus(modelId, DownloadStatus.ERROR, 0f, 0L, error = "Download failed: ${e.localizedMessage}")
+                }
+            } finally {
+                activeCall = null
             }
         }
     }
 
     fun pauseDownload(modelId: String) {
+        activeCall?.cancel()
         downloadJob?.cancel()
         val current = _downloadStates.value[modelId] ?: return
         _downloadStates.value = _downloadStates.value + (modelId to current.copy(status = DownloadStatus.PAUSED, speedDisplay = "Paused"))
     }
 
     fun deleteModelFile(modelId: String) {
+        activeCall?.cancel()
         downloadJob?.cancel()
         val file = getModelFile(modelId)
         if (file.exists()) {

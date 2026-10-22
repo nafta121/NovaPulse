@@ -14,8 +14,19 @@ import com.example.core.repository.ScreenTimeRepository
 import com.example.core.repository.WeatherRepository
 import com.example.core.routine.UserRoutineDetector
 import com.example.feature.widget.WidgetUpdateWorker
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 class NovaPulseApp : Application() {
+
+    companion object {
+        val sharedHttpClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .build()
+        }
+    }
 
     lateinit var database: AppDatabase
         private set

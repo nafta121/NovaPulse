@@ -48,35 +48,39 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Build Release APK
+      - name: Run Unit Tests and Build Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
           STORE_PASSWORD: novapulse123
           KEY_PASSWORD: novapulse123
-        run: gradle assembleRelease --stacktrace
+        run: gradle testDebugUnitTest assembleRelease --stacktrace
 
       - name: Prepare Release APK
         run: |
-          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.3.0-release.apk
+          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.4.0-release.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NowBrief-v1.3.0-release
-          path: NowBrief-v1.3.0-release.apk
+          name: NowBrief-v1.4.0-release
+          path: NowBrief-v1.4.0-release.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: NowBrief-v1.3.0-release
-          name: NowBrief v1.3.0 (English Release)
+          tag_name: NowBrief-v1.4.0-release
+          name: NowBrief v1.4.0 (Audit Fixes & Optimization Release)
           body: |
-            ## 🌟 NowBrief (NovaPulse) v1.3.0 - Full English Release
+            ## 🌟 NowBrief (NovaPulse) v1.4.0 - Audit Fixes & Optimization Release
             
-            - Bumped application version to `v1.3.0` (`versionCode = 2`).
-            - Complete English translation across UI, AI prompts, 7-session briefings, widgets, Dynamic Island (NowPill), notifications, on-device ML/engine modules, and documentation.
-            - Built and signed automatically via GitHub Actions.
-          files: NowBrief-v1.3.0-release.apk
+            - Bumped application version to `v1.4.0` (`versionCode = 3`).
+            - **Real HTTP Model Streaming & Resume**: Replaced dummy byte loop with resumable OkHttp streaming and instant pause/cancel (`ModelDownloadManager`).
+            - **Smart Per-Notification Debounce**: Pre-filters notifications before deduplicating per content hash so random alerts never block bank or task notifications (`SmartNotificationListenerService`).
+            - **7-Day Screen Time History**: Aggregated full Monday–Sunday foreground usage in `ScreenTimeRepository`.
+            - **Accurate USD & VND Expense Parsing**: Preserved decimal cents on USD expenses and ignored leading dates/card digits (`LocalLlmManager`, `TasksExpensesScreen`).
+            - **Tasks & Expenses Navigation & Battery Saver**: Connected `TasksExpensesScreen` navigation and paused Dynamic Island overlay animations when the screen turns off.
+            - **Lean Codebase**: Shared singleton `OkHttpClient`, removed 4 dead files & 5 unused Gradle dependencies, split `DashboardScreen.kt` (-3,600 lines), and added unit tests.
+          files: NowBrief-v1.4.0-release.apk
           draft: false
           prerelease: false
         env:

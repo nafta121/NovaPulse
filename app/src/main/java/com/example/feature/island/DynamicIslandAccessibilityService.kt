@@ -40,15 +40,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import kotlinx.coroutines.withContext
 
 class PassthroughFrameLayout(context: Context) : FrameLayout(context) {
     var isExpanded: Boolean = false
@@ -117,7 +113,6 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
     private var currentYOffset = 36
     private var isLockscreenAllowed = true
     private var isLockscreenOnly = true
-    private var lockscreenMonitorJob: Job? = null
     private var overlayParams: WindowManager.LayoutParams? = null
     private var isIslandExpanded = false
 
@@ -127,14 +122,15 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
             when (intent?.action) {
                 Intent.ACTION_SCREEN_ON -> {
                     Log.d(TAG, "Screen ON received.")
+                    lifecycleOwner?.onResume()
                     if (overlayView == null && isEnabled && isLockscreenAllowed) {
                         showOrUpdateIsland(
                             yOffsetDp = currentYOffset,
                             showOnLockscreen = true,
                             position = currentPosition
                         )
-                    } else if (isEnabled && isLockscreenAllowed) {
-                        overlayView?.visibility = android.view.View.VISIBLE
+                    } else if (isEnabled) {
+                        evaluateIslandVisibility()
                     }
                 }
 
@@ -149,6 +145,8 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
 
                 Intent.ACTION_SCREEN_OFF -> {
                     Log.d(TAG, "Screen OFF received.")
+                    overlayView?.visibility = android.view.View.GONE
+                    lifecycleOwner?.onPause()
                 }
             }
         }

@@ -21,7 +21,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Check
@@ -85,17 +87,44 @@ import java.util.Locale
 @Composable
 fun TasksExpensesScreen(
     viewModel: MainViewModel,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val tasks by viewModel.allTasks.collectAsStateWithLifecycle()
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(0) }
 
+    if (onBack != null) {
+        BackHandler(onBack = onBack)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (onBack != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = "Tasks & Expenses",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
         // Top Tab Switcher
         TabRow(
             selectedTabIndex = selectedTab,
@@ -422,7 +451,11 @@ private fun ExpenseItemCard(
     expense: ExpenseEntity,
     onDelete: () -> Unit
 ) {
-    val formattedAmount = DecimalFormat("#,###").format(expense.amount)
+    val formattedAmount = if (expense.currency.equals("USD", ignoreCase = true)) {
+        DecimalFormat("#,##0.##").format(expense.amount)
+    } else {
+        DecimalFormat("#,###").format(expense.amount)
+    }
     val formattedTime = SimpleDateFormat("HH:mm, dd/MM", Locale.getDefault()).format(Date(expense.timestamp))
 
     val (categoryIcon, categoryColor, categoryBg) = when (expense.category.lowercase(Locale.ROOT)) {

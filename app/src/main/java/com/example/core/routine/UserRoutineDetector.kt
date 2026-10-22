@@ -17,15 +17,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.concurrent.atomic.AtomicBoolean
 
 class UserRoutineDetector : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "UserRoutineDetector"
-        private var isRegistered = false
+        private val isRegistered = AtomicBoolean(false)
 
         fun registerReceiver(context: Context) {
-            if (isRegistered) return
+            if (!isRegistered.compareAndSet(false, true)) return
             try {
                 val filter = IntentFilter().apply {
                     addAction(Intent.ACTION_SCREEN_OFF)
@@ -34,9 +35,9 @@ class UserRoutineDetector : BroadcastReceiver() {
                     addAction(Intent.ACTION_POWER_DISCONNECTED)
                 }
                 context.applicationContext.registerReceiver(UserRoutineDetector(), filter)
-                isRegistered = true
                 Log.d(TAG, "UserRoutineDetector dynamically registered for system signals")
             } catch (e: Exception) {
+                isRegistered.set(false)
                 Log.e(TAG, "Failed to register UserRoutineDetector: ${e.message}")
             }
         }

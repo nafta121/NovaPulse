@@ -19,8 +19,8 @@ android {
     applicationId = "com.aistudio.novapulse.kxgpaq"
     minSdk = 26
     targetSdk = 36
-    versionCode = 2
-    versionName = "1.3.0"
+    versionCode = 3
+    versionName = "1.4.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -102,16 +102,12 @@ dependencies {
   implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.glance.material3)
   implementation(libs.androidx.work.runtime.ktx)
-  implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.logging.interceptor)
-  implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
   implementation(libs.play.services.location)
-  implementation(libs.retrofit)
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
@@ -129,5 +125,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.test.manifest)
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
-  "ksp"(libs.moshi.kotlin.codegen)
 }

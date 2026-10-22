@@ -63,40 +63,54 @@ class ScreenTimeRepository(private val context: Context) {
         cal.set(Calendar.MILLISECOND, 0)
         val startOfToday = cal.timeInMillis
         val now = System.currentTimeMillis()
+        val currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+        // In Java Calendar, SUNDAY=1, MONDAY=2, ... SATURDAY=7
+        val todayIdx = if (currentDayOfWeek == Calendar.SUNDAY) 6 else currentDayOfWeek - 2
 
-        var todayScreenTimeMillis = 0L
+        val weekStartCal = (cal.clone() as Calendar).apply {
+            add(Calendar.DAY_OF_YEAR, -todayIdx)
+        }
+        val startOfWeek = weekStartCal.timeInMillis
+        val dailyTotals = LongArray(7)
 
         try {
             val stats = usageStatsManager.queryUsageStats(
                 UsageStatsManager.INTERVAL_DAILY,
-                startOfToday,
+                startOfWeek,
                 now
             )
             if (stats != null) {
+                val bucketCal = Calendar.getInstance()
                 for (u in stats) {
-                    todayScreenTimeMillis += u.totalTimeInForeground
+                    val fgTime = u.totalTimeInForeground
+                    if (fgTime <= 0L) continue
+                    val stamp = if (u.firstTimeStamp >= startOfWeek) u.firstTimeStamp else u.lastTimeStamp
+                    if (stamp < startOfWeek) continue
+                    bucketCal.timeInMillis = stamp
+                    val dow = bucketCal.get(Calendar.DAY_OF_WEEK)
+                    val dayIdx = if (dow == Calendar.SUNDAY) 6 else dow - 2
+                    if (dayIdx in 0..6) {
+                        dailyTotals[dayIdx] += fgTime
+                    }
                 }
             }
         } catch (e: Exception) {
             // Guard against system service errors
         }
 
+        val todayScreenTimeMillis = dailyTotals[todayIdx]
         val hours = (todayScreenTimeMillis / (1000 * 60 * 60)).toInt()
         val minutes = ((todayScreenTimeMillis % (1000 * 60 * 60)) / (1000 * 60)).toInt()
         val formatted = "${hours}h ${minutes}m"
 
         // Calculate last 7 days history
         val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-        val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-        // In Java Calendar, SUNDAY=1, MONDAY=2, ... SATURDAY=7
-        val todayIdx = if (currentDayOfWeek == Calendar.SUNDAY) 6 else currentDayOfWeek - 2
 
         val history = dayLabels.mapIndexed { idx, label ->
             val isToday = idx == todayIdx
-            val duration = if (isToday) todayScreenTimeMillis else 0L
             ScreenTimeDayStats(
                 dayLabel = label,
-                totalTimeMillis = duration,
+                totalTimeMillis = dailyTotals[idx],
                 isToday = isToday
             )
         }

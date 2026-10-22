@@ -27,6 +27,50 @@ class RoutineRepository(private val context: Context) {
         const val EVENT_POWER_CONNECTED = "POWER_CONNECTED"
         const val EVENT_POWER_DISCONNECTED = "POWER_DISCONNECTED"
         const val EVENT_HEALTH_SLEEP = "HEALTH_CONNECT_SLEEP"
+
+        fun calculateSleepWindowFromLogs(recentLogs: List<UserRoutineLogEntity>): PredictedSleepWindow {
+            val bedtimeMinutesList = mutableListOf<Int>()
+            for (log in recentLogs) {
+                if (log.eventType in listOf(EVENT_SCREEN_OFF, EVENT_POWER_CONNECTED, EVENT_HEALTH_SLEEP)) {
+                    val h = log.hourOfDay
+                    val m = log.minuteOfHour
+                    if (h >= 20 || h <= 3) {
+                        val totalMins = if (h >= 20) (h - 20) * 60 + m else (h + 4) * 60 + m
+                        bedtimeMinutesList.add(totalMins)
+                    }
+                }
+            }
+
+            val wakeMinutesList = mutableListOf<Int>()
+            for (log in recentLogs) {
+                if (log.eventType in listOf(EVENT_USER_PRESENT, EVENT_POWER_DISCONNECTED)) {
+                    val h = log.hourOfDay
+                    val m = log.minuteOfHour
+                    if (h in 5..10) {
+                        wakeMinutesList.add(h * 60 + m)
+                    }
+                }
+            }
+
+            val avgBedtimeMins = if (bedtimeMinutesList.isNotEmpty()) bedtimeMinutesList.average().toInt() else 180
+            val avgWakeMins = if (wakeMinutesList.isNotEmpty()) wakeMinutesList.average().toInt() else 420
+
+            val predictedBedHour = if (avgBedtimeMins >= 240) (avgBedtimeMins - 240) / 60 else (avgBedtimeMins / 60) + 20
+            val predictedBedMin = (avgBedtimeMins % 60).coerceIn(0, 59)
+
+            val predictedWakeHour = (avgWakeMins / 60).coerceIn(0, 23)
+            val predictedWakeMin = (avgWakeMins % 60).coerceIn(0, 59)
+
+            return PredictedSleepWindow(
+                bedtimeHour = predictedBedHour,
+                bedtimeMinute = predictedBedMin,
+                wakeHour = predictedWakeHour,
+                wakeMinute = predictedWakeMin,
+                bedtimeFormatted = String.format("%02d:%02d", predictedBedHour, predictedBedMin),
+                wakeTimeFormatted = String.format("%02d:%02d", predictedWakeHour, predictedWakeMin),
+                sampleCount = recentLogs.size
+            )
+        }
     }
 
     private val database = AppDatabase.getInstance(context)
@@ -58,51 +102,7 @@ class RoutineRepository(private val context: Context) {
         try {
             val threeDaysAgo = System.currentTimeMillis() - (3 * 24 * 3600 * 1000L)
             val recentLogs = routineDao.getLogsSince(threeDaysAgo)
-
-            // Bedtime candidates: SCREEN_OFF or POWER_CONNECTED or HEALTH_SLEEP between 20:00 and 03:00
-            val bedtimeMinutesList = mutableListOf<Int>()
-            for (log in recentLogs) {
-                if (log.eventType in listOf(EVENT_SCREEN_OFF, EVENT_POWER_CONNECTED, EVENT_HEALTH_SLEEP)) {
-                    val h = log.hourOfDay
-                    val m = log.minuteOfHour
-                    if (h >= 20 || h <= 3) {
-                        val totalMins = if (h >= 20) (h - 20) * 60 + m else (h + 4) * 60 + m
-                        bedtimeMinutesList.add(totalMins)
-                    }
-                }
-            }
-
-            // Wake time candidates: USER_PRESENT or POWER_DISCONNECTED between 05:00 and 10:00
-            val wakeMinutesList = mutableListOf<Int>()
-            for (log in recentLogs) {
-                if (log.eventType in listOf(EVENT_USER_PRESENT, EVENT_POWER_DISCONNECTED)) {
-                    val h = log.hourOfDay
-                    val m = log.minuteOfHour
-                    if (h in 5..10) {
-                        wakeMinutesList.add(h * 60 + m)
-                    }
-                }
-            }
-
-            val avgBedtimeMins = if (bedtimeMinutesList.isNotEmpty()) bedtimeMinutesList.average().toInt() else 180 // Default ~23:00
-            val avgWakeMins = if (wakeMinutesList.isNotEmpty()) wakeMinutesList.average().toInt() else 420 // Default ~07:00
-
-            // Convert bedtime back to 24h
-            val predictedBedHour = if (avgBedtimeMins >= 240) (avgBedtimeMins - 240) / 60 else (avgBedtimeMins / 60) + 20
-            val predictedBedMin = (avgBedtimeMins % 60).coerceIn(0, 59)
-
-            val predictedWakeHour = (avgWakeMins / 60).coerceIn(0, 23)
-            val predictedWakeMin = (avgWakeMins % 60).coerceIn(0, 59)
-
-            PredictedSleepWindow(
-                bedtimeHour = predictedBedHour,
-                bedtimeMinute = predictedBedMin,
-                wakeHour = predictedWakeHour,
-                wakeMinute = predictedWakeMin,
-                bedtimeFormatted = String.format("%02d:%02d", predictedBedHour, predictedBedMin),
-                wakeTimeFormatted = String.format("%02d:%02d", predictedWakeHour, predictedWakeMin),
-                sampleCount = recentLogs.size
-            )
+            calculateSleepWindowFromLogs(recentLogs)
         } catch (e: Exception) {
             Log.e(TAG, "Error calculating sleep window prediction: ${e.message}")
             PredictedSleepWindow()

@@ -43,10 +43,8 @@ data class NewsBriefArticle(
 object NewsMarketRepository {
     private const val TAG = "NewsMarketRepository"
 
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(8, TimeUnit.SECONDS)
-        .readTimeout(8, TimeUnit.SECONDS)
-        .build()
+    private val httpClient: OkHttpClient
+        get() = com.example.NovaPulseApp.sharedHttpClient
 
     private val _newsState = MutableStateFlow(getDefaultArticles())
     val newsState: StateFlow<List<NewsBriefArticle>> = _newsState.asStateFlow()

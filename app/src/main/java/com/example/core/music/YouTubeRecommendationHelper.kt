@@ -55,10 +55,8 @@ object YouTubeRecommendationHelper {
 
     private const val TAG = "YouTubeRecHelper"
 
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(6, TimeUnit.SECONDS)
-        .readTimeout(6, TimeUnit.SECONDS)
-        .build()
+    private val httpClient: OkHttpClient
+        get() = com.example.NovaPulseApp.sharedHttpClient
 
     // List of trending artists & quick search suggestions
     val POPULAR_ARTISTS = listOf(

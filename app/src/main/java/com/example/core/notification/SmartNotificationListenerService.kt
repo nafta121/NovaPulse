@@ -13,19 +13,19 @@ import com.example.NovaPulseApp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.ConcurrentHashMap
 
 class SmartNotificationListenerService : NotificationListenerService() {
 
     companion object {
         private const val TAG = "SmartNotifService"
-        private const val DEBOUNCE_INTERVAL_MS = 60_000L // Max 1 notification every 60 seconds
+        private const val DEBOUNCE_INTERVAL_MS = 60_000L // Deduplicate identical notifications for 60s
 
         private val _isConnected = MutableStateFlow(false)
         val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-        // Atomic timestamp to ensure thread-safe 60s debounce
-        private val lastProcessedTimestamp = AtomicLong(0L)
+        // Per-notification content hash debounce so unrelated apps never block bank/task alerts
+        private val recentNotificationTimestamps = ConcurrentHashMap<Int, Long>()
 
         // List of system packages to completely ignore (e.g., charging, low battery, screenshots)
         private val SYSTEM_IGNORED_PACKAGES = setOf(
@@ -130,22 +130,27 @@ class SmartNotificationListenerService : NotificationListenerService() {
 
         if (title.isBlank() && text.isBlank()) return
 
-        // 2. DEBOUNCE (Time threshold): Process at most 1 notification every 60 seconds
+        val fullContent = if (subText.isNotBlank()) "$text ($subText)" else text
+
+        // 2. PRE-FILTER & PER-NOTIFICATION DEBOUNCE:
+        // Evaluate RegexPreFilter first and deduplicate per (packageName, title, fullContent)
+        val filterEvaluation = RegexPreFilter.evaluate(title, fullContent)
+        val dedupeKey = if (filterEvaluation.isTriggered) {
+            "$packageName|$title|$fullContent".hashCode()
+        } else {
+            packageName.hashCode()
+        }
         val now = System.currentTimeMillis()
-        val lastTime = lastProcessedTimestamp.get()
+        val lastTime = recentNotificationTimestamps[dedupeKey] ?: 0L
         if (now - lastTime < DEBOUNCE_INTERVAL_MS) {
             val remainingSec = (DEBOUNCE_INTERVAL_MS - (now - lastTime)) / 1000
-            Log.d(TAG, "Debounce: Throttled notification from $packageName. Remaining window: ${remainingSec}s")
+            Log.d(TAG, "Debounce: Throttled duplicate notification from $packageName. Remaining window: ${remainingSec}s")
             return
         }
-
-        // Update valid timestamp
-        if (!lastProcessedTimestamp.compareAndSet(lastTime, now)) {
-            // Concurrent race condition occurred
-            return
+        recentNotificationTimestamps[dedupeKey] = now
+        if (recentNotificationTimestamps.size > 128) {
+            recentNotificationTimestamps.entries.removeIf { now - it.value >= DEBOUNCE_INTERVAL_MS }
         }
-
-        val fullContent = if (subText.isNotBlank()) "$text ($subText)" else text
 
         val appName = try {
             val pm = applicationContext.packageManager

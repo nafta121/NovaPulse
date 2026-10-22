@@ -16,10 +16,6 @@ class LocalLlmManager(
     private val context: Context,
     private val downloadManager: ModelDownloadManager
 ) {
-    companion object {
-        private const val TAG = "LocalLlmManager"
-    }
-
     private val specs = DeviceCapabilityDetector.detect(context)
     private var isModelLoaded: Boolean = false
     private var loadedModelPath: String? = null
@@ -30,8 +26,10 @@ class LocalLlmManager(
 
     private fun initEngine() {
         val activeModel = downloadManager.activeModelId.value
+        val modelInfo = downloadManager.availableModels.find { it.id == activeModel }
+        val minBytes = ((modelInfo?.sizeBytes ?: 0L) * 0.95).toLong().coerceAtLeast(1L)
         val modelFile = downloadManager.getModelFile(activeModel)
-        if (modelFile.exists() && modelFile.length() > 0) {
+        if (modelFile.exists() && modelFile.length() >= minBytes) {
             loadedModelPath = modelFile.absolutePath
             isModelLoaded = true
             Log.d(
@@ -94,10 +92,10 @@ class LocalLlmManager(
         val startTime = System.currentTimeMillis()
         try {
             // If the prompt requests Lifestyle/Mindfulness JSON generation (rather than notification extraction)
-            if (prompt.contains("JSON", ignoreCase = true) || prompt.contains(
-                    "category",
-                    ignoreCase = true
-                ) || prompt.contains("recommend", ignoreCase = true) || prompt.contains("suggest", ignoreCase = true)
+            if (!prompt.contains("Extract actionable intelligence", ignoreCase = true) &&
+                (prompt.contains("lifestyle", ignoreCase = true) ||
+                        prompt.contains("recommend", ignoreCase = true) ||
+                        prompt.contains("suggest", ignoreCase = true))
             ) {
                 val tempMatch = Regex("(\\d+)\\s*°C").find(prompt)
                 val tempInt = tempMatch?.groupValues?.get(1)?.toIntOrNull() ?: 28
@@ -175,7 +173,10 @@ class LocalLlmManager(
                     val amount = extractAmount(rawText)
                     val category = guessCategory(rawText)
                     expenseObj.put("amount", amount)
-                    expenseObj.put("currency", if (rawText.contains("$")) "USD" else "VND")
+                    expenseObj.put(
+                        "currency",
+                        if (rawText.contains("$") || rawText.contains("usd", ignoreCase = true)) "USD" else "VND"
+                    )
                     expenseObj.put("category", category)
                     expenseObj.put("note", extractExpenseNote(rawText))
 
@@ -295,20 +296,46 @@ class LocalLlmManager(
         )
     }
 
-    private fun extractAmount(text: String): Double {
-        // Look for patterns like +50,000VND, -250.000, 1,500,000, $45.00
-        val regex =
-            Pattern.compile("([+-]?\\s*\\d{1,3}(?:[.,]\\d{3})*(?:[.,]\\d+)?)\\s*(?:VND|vnd|USD|usd|\\$)?")
-        val matcher = regex.matcher(text)
-        while (matcher.find()) {
-            val matchedStr = matcher.group(1)?.replace(" ", "")?.replace("+", "")?.replace("-", "") ?: ""
-            val clean = matchedStr.replace(",", "").replace(".", "")
-            val value = clean.toDoubleOrNull()
-            if (value != null && value > 500) {
-                return value
+    internal fun extractAmount(text: String): Double {
+        return parseCurrencyAmount(text)
+    }
+
+    companion object {
+        private const val TAG = "LocalLlmManager"
+
+        fun parseCurrencyAmount(text: String): Double {
+            val textHasUsd = text.contains("$") || Regex("""\bUSD\b""", RegexOption.IGNORE_CASE).containsMatchIn(text)
+            val regex = Pattern.compile(
+                "(\\$)?\\s*([+-]?\\s*\\d{1,3}(?:[.,]\\d{3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)\\s*(k|K|VND|vnd|USD|usd|\\$)?"
+            )
+            val matcher = regex.matcher(text)
+            var fallbackCandidate: Double? = null
+
+            while (matcher.find()) {
+                val hasDollarPrefix = matcher.group(1) != null
+                val rawNum = matcher.group(2)?.replace(" ", "")?.replace("+", "")?.replace("-", "") ?: continue
+                val suffix = matcher.group(3)?.lowercase(Locale.ROOT).orEmpty()
+                val hasExplicitMarker = hasDollarPrefix || suffix.isNotEmpty()
+                val tokenIsUsd = hasDollarPrefix || suffix == "usd" || suffix == "$" || (!hasExplicitMarker && textHasUsd)
+
+                val value = (if (tokenIsUsd) {
+                    rawNum.replace(",", "").toDoubleOrNull()
+                } else if (rawNum.matches(Regex("""\d+\.\d{1,2}"""))) {
+                    rawNum.toDoubleOrNull()
+                } else {
+                    val base = rawNum.replace(",", "").replace(".", "").toDoubleOrNull()
+                    if (base != null && suffix == "k") base * 1000.0 else base
+                }) ?: continue
+
+                if (hasExplicitMarker && ((tokenIsUsd && value > 0.0) || (!tokenIsUsd && value > 500.0))) {
+                    return value
+                }
+                if (fallbackCandidate == null && !tokenIsUsd && value > 500.0) {
+                    fallbackCandidate = value
+                }
             }
+            return fallbackCandidate ?: if (textHasUsd) 10.0 else 50000.0
         }
-        return 50000.0
     }
 
     private fun guessCategory(text: String): String {
