@@ -9,8 +9,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -41,8 +42,10 @@ fun Modifier.textAlphaMaskReveal(
     featherPx: Float = 180f,
     repeatMode: Boolean = false
 ): Modifier {
-    // Animation Progress from 0.0f (Fully hidden, Alpha=0) -> 1.0f (Fully revealed, Alpha=1)
-    val progress: Float = if (repeatMode) {
+    // Defer reading animation progress to the Draw phase (drawWithContent) to avoid per-frame recompositions
+    var isCompleted by remember { mutableStateOf(false) }
+
+    val infiniteProgressState: State<Float>? = if (repeatMode) {
         val infiniteTransition = rememberInfiniteTransition(label = "TextAlphaMaskTransition")
         infiniteTransition.animateFloat(
             initialValue = 0f,
@@ -52,22 +55,23 @@ fun Modifier.textAlphaMaskReveal(
                 repeatMode = RepeatMode.Restart
             ),
             label = "MaskRevealProgress"
-        ).value
+        )
     } else {
-        var animatedProgress by remember { mutableFloatStateOf(0f) }
-        LaunchedEffect(Unit) {
-            val animatable = Animatable(0f)
-            animatable.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = durationMillis, easing = LinearEasing)
-            ) {
-                animatedProgress = this.value
-            }
-        }
-        animatedProgress
+        null
     }
 
-    return if (progress >= 1f) {
+    val oneShotAnimatable = remember { Animatable(0f) }
+    if (!repeatMode) {
+        LaunchedEffect(durationMillis) {
+            oneShotAnimatable.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = durationMillis, easing = LinearEasing)
+            )
+            isCompleted = true
+        }
+    }
+
+    return if (!repeatMode && isCompleted) {
         // Once the one-shot animation completes (progress = 1.0f), skip Offscreen Layer for optimal performance
         this
     } else {
@@ -81,10 +85,11 @@ fun Modifier.textAlphaMaskReveal(
                 // Draw original content (Text, Column, etc.) onto the offscreen layer
                 drawContent()
 
+                val progress = infiniteProgressState?.value ?: oneShotAnimatable.value
                 val canvasWidth = size.width
                 val canvasHeight = size.height
 
-                if (canvasWidth > 0f && canvasHeight > 0f) {
+                if (progress < 1f && canvasWidth > 0f && canvasHeight > 0f) {
                     val totalSpan = canvasWidth + canvasHeight + featherPx * 2f
                     val edgeStart = -featherPx + progress * totalSpan
                     val edgeEnd = edgeStart + featherPx

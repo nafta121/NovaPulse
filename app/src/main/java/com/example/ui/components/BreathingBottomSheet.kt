@@ -183,7 +183,7 @@ fun BreathingBottomSheet(
                 modifier = Modifier.size(220.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Outer Glow Circle
+                // Draw Outer Glows + Inner Main Circle in Draw phase to avoid Layout invalidation every frame
                 Canvas(modifier = Modifier.size(220.dp)) {
                     drawCircle(
                         color = ringColor.copy(alpha = 0.15f),
@@ -193,24 +193,26 @@ fun BreathingBottomSheet(
                         color = ringColor.copy(alpha = 0.35f),
                         radius = (size.minDimension / 2.3f) * circleScale
                     )
-                }
-
-                // Inner Main Circle
-                Box(
-                    modifier = Modifier
-                        .size((160 * circleScale).dp.coerceAtLeast(70.dp))
-                        .clip(CircleShape)
-                        .background(ringColor)
-                        .border(2.dp, Color.White.copy(alpha = 0.6f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (isFinished) "Completed!" else "${secondsLeftInPhase}s",
-                        fontSize = if (isFinished) 16.sp else 32.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                    val innerDiameterPx = (160.dp.toPx() * circleScale).coerceAtLeast(70.dp.toPx())
+                    val innerRadiusPx = innerDiameterPx / 2f
+                    val borderStrokePx = 2.dp.toPx()
+                    drawCircle(
+                        color = ringColor,
+                        radius = innerRadiusPx
+                    )
+                    drawCircle(
+                        color = Color.White.copy(alpha = 0.6f),
+                        radius = innerRadiusPx - (borderStrokePx / 2f),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = borderStrokePx)
                     )
                 }
+
+                Text(
+                    text = if (isFinished) "Completed!" else "${secondsLeftInPhase}s",
+                    fontSize = if (isFinished) 16.sp else 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(28.dp))

@@ -54,17 +54,19 @@ fun ActivityRingsCanvas(
         label = "cal_ring_anim"
     )
 
-    // Gentle breathing glow effect when 100% of goals are completed
-    val infiniteTransition = rememberInfiniteTransition(label = "ring_glow_transition")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = if (isAllCompleted) 0.15f else 0f,
-        targetValue = if (isAllCompleted) 0.45f else 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "goal_glow_alpha"
-    )
+    // Gentle breathing glow effect only when 100% of goals are completed
+    val glowAlphaState = if (isAllCompleted) {
+        val infiniteTransition = rememberInfiniteTransition(label = "ring_glow_transition")
+        infiniteTransition.animateFloat(
+            initialValue = 0.15f,
+            targetValue = 0.45f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1500, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "goal_glow_alpha"
+        )
+    } else null
 
     val greenColor = Color(0xFFA3E635) // Outer Green Steps
     val cyanColor = Color(0xFF22D3EE)  // Middle Cyan Active Mins
@@ -80,6 +82,7 @@ fun ActivityRingsCanvas(
         val innerRadius = middleRadius - spacing
 
         // 0. When all 3 goals are completed: Draw a soft glowing aura
+        val glowAlpha = glowAlphaState?.value ?: 0f
         if (isAllCompleted && glowAlpha > 0f) {
             drawCircle(
                 color = Color(0xFF10B981).copy(alpha = glowAlpha * 0.35f),

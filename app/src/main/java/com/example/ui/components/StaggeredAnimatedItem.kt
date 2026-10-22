@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val OneUiCubicEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
 
@@ -61,35 +63,39 @@ fun StaggeredAnimatedItem(
     LaunchedEffect(index, isHeader) {
         if (isHeader) {
             // PHASE 1: Header Focus Entrance (0ms -> 1000ms, alpha 0f -> 1f, scale 0.96f -> 1.0f, translationY = 0dp)
-            alphaAnim.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 1000, easing = OneUiCubicEasing)
-            )
+            coroutineScope {
+                launch {
+                    alphaAnim.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(durationMillis = 1000, easing = OneUiCubicEasing)
+                    )
+                }
+                launch {
+                    scaleAnim.animateTo(
+                        targetValue = 1.0f,
+                        animationSpec = tween(durationMillis = 1000, easing = OneUiCubicEasing)
+                    )
+                }
+            }
         } else {
             // PHASE 2: Staggered Cards Slide-up (Start delay = 400ms, stagger = 80ms/card, duration = 650ms)
             val cardDelay = 400L + ((index - 1).coerceAtLeast(0) * 80L)
             delay(cardDelay)
-            alphaAnim.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 650, easing = OneUiCubicEasing)
-            )
+            coroutineScope {
+                launch {
+                    alphaAnim.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(durationMillis = 650, easing = OneUiCubicEasing)
+                    )
+                }
+                launch {
+                    offsetYAnim.animateTo(
+                        targetValue = 0f,
+                        animationSpec = tween(durationMillis = 650, easing = OneUiCubicEasing)
+                    )
+                }
+            }
             onAnimationFinished?.invoke()
-        }
-    }
-
-    LaunchedEffect(index, isHeader) {
-        if (isHeader) {
-            scaleAnim.animateTo(
-                targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 1000, easing = OneUiCubicEasing)
-            )
-        } else {
-            val cardDelay = 400L + ((index - 1).coerceAtLeast(0) * 80L)
-            delay(cardDelay)
-            offsetYAnim.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 650, easing = OneUiCubicEasing)
-            )
         }
     }
 

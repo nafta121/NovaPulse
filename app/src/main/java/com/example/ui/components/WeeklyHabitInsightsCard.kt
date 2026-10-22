@@ -256,6 +256,12 @@ fun WeeklyHabitInsightsCard(
     }
 }
 
+private val HABIT_RING_COLORS = listOf(
+    Color(0xFF5856D6), // Outer Ring: #5856D6
+    Color(0xFF34C759), // Middle Ring: #34C759
+    Color(0xFFFF9500)  // Inner Ring: #FF9500
+)
+
 /**
  * Optimized Concentric Rings Canvas Chart (Size 114dp, stroke 7dp, gap 3.5dp)
  * Leaves ample room for the text legend to display without truncation.
@@ -270,25 +276,18 @@ fun ConcentricActivityChart(
     val titleColor = if (isDark) Color.White else Color(0xFF191C1E)
     val subtitleColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF74777F)
 
-    val ringColors = listOf(
-        Color(0xFF5856D6), // Outer Ring: #5856D6
-        Color(0xFF34C759), // Middle Ring: #34C759
-        Color(0xFFFF9500)  // Inner Ring: #FF9500
-    )
-
     var triggerAnimation by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         triggerAnimation = true
     }
 
-    val animatedProgresses = stats.mapIndexed { index, stat ->
+    val animatedProgressStates = stats.mapIndexed { index, stat ->
         val target = if (triggerAnimation) (stat.percentage.coerceIn(0, 100) / 100f) else 0f
-        val anim by animateFloatAsState(
+        animateFloatAsState(
             targetValue = target,
             animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
             label = "RingProgress_$index"
         )
-        anim
     }
 
     Row(
@@ -314,8 +313,8 @@ fun ConcentricActivityChart(
 
                     val arcSize = Size(radius * 2f, radius * 2f)
                     val arcTopLeft = Offset(centerOffset.x - radius, centerOffset.y - radius)
-                    val color = ringColors.getOrElse(i) { Color.Gray }
-                    val progress = animatedProgresses.getOrElse(i) { 0f }
+                    val color = HABIT_RING_COLORS.getOrElse(i) { Color.Gray }
+                    val progress = animatedProgressStates.getOrNull(i)?.value ?: 0f
 
                     // Track Background (16% Alpha)
                     drawArc(
@@ -366,7 +365,7 @@ fun ConcentricActivityChart(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             stats.forEachIndexed { index, stat ->
-                val ringColor = ringColors.getOrElse(index % 3) { Color.Gray }
+                val ringColor = HABIT_RING_COLORS.getOrElse(index % 3) { Color.Gray }
 
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(

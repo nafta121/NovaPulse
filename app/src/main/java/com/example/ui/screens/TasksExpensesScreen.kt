@@ -368,8 +368,10 @@ private fun ExpensesListTab(
     expenses: List<ExpenseEntity>,
     onDelete: (Long) -> Unit
 ) {
-    val totalVnd = expenses.filter { it.currency == "VND" }.sumOf { it.amount }
-    val formattedTotal = DecimalFormat("#,###").format(totalVnd)
+    val formattedTotal = remember(expenses) {
+        val totalVnd = expenses.filter { it.currency == "VND" }.sumOf { it.amount }
+        DecimalFormat("#,###").format(totalVnd)
+    }
 
     Column(
         modifier = Modifier

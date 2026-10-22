@@ -18,7 +18,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -328,7 +327,9 @@ fun DashboardScreen(
         }
     }
 
-    val formattedSpent = DecimalFormat("#,###").format(metrics.totalExpensesVnd)
+    val formattedSpent = remember(metrics.totalExpensesVnd) {
+        DecimalFormat("#,###").format(metrics.totalExpensesVnd)
+    }
 
     val audioBriefScript =
         remember(metrics, headlineTitle, aiWeatherSnippet, allTasks, calendarEvents, realHealthData) {
@@ -350,78 +351,76 @@ fun DashboardScreen(
         modifier = modifier
             .fillMaxSize()
             .background(backgroundGradient)
-            .statusBarsPadding()
-    ) {
-        // -------------------------------------------------------------
-        // AMBIENT GLOW: 2 Radial Gradient Blur Orbs behind the cards
-        // -------------------------------------------------------------
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+            // AMBIENT GLOW: Cache 2 Radial Gradient Blur Orbs in drawWithCache (avoids extra Canvas node & per-frame Brush allocation)
+            .drawWithCache {
+                val width = size.width
+                val height = size.height
+                val orb1Center = Offset(width * 0.85f, height * 0.15f)
+                val orb1Radius = (width * 0.75f).coerceAtLeast(1f)
+                val orb2Center = Offset(width * 0.15f, height * 0.55f)
+                val orb2Radius = (width * 0.85f).coerceAtLeast(1f)
 
-            if (isDark) {
-                // Orb 1: Top-Right Cyan / Sky Blue Glow
-                drawCircle(
-                    brush = Brush.radialGradient(
+                val orb1Brush = if (isDark) {
+                    Brush.radialGradient(
                         colors = listOf(
                             Color(0xFF38BDF8).copy(alpha = 0.32f),
                             Color(0xFF0284C7).copy(alpha = 0.16f),
                             Color(0xFF0369A1).copy(alpha = 0.05f),
                             Color.Transparent
                         ),
-                        center = Offset(width * 0.85f, height * 0.15f),
-                        radius = width * 0.75f
-                    ),
-                    center = Offset(width * 0.85f, height * 0.15f),
-                    radius = width * 0.75f
-                )
+                        center = orb1Center,
+                        radius = orb1Radius
+                    )
+                } else {
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.65f),
+                            diurnalPhase.primaryColor.copy(alpha = 0.20f),
+                            Color.Transparent
+                        ),
+                        center = orb1Center,
+                        radius = orb1Radius
+                    )
+                }
 
-                // Orb 2: Middle-Left Indigo / Purple Glow
-                drawCircle(
-                    brush = Brush.radialGradient(
+                val orb2Brush = if (isDark) {
+                    Brush.radialGradient(
                         colors = listOf(
                             Color(0xFF818CF8).copy(alpha = 0.28f),
                             Color(0xFF6366F1).copy(alpha = 0.14f),
                             Color(0xFF4338CA).copy(alpha = 0.04f),
                             Color.Transparent
                         ),
-                        center = Offset(width * 0.15f, height * 0.55f),
-                        radius = width * 0.85f
-                    ),
-                    center = Offset(width * 0.15f, height * 0.55f),
-                    radius = width * 0.85f
-                )
-            } else {
-                // Day light ambient glow
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.65f),
-                            diurnalPhase.primaryColor.copy(alpha = 0.20f),
-                            Color.Transparent
-                        ),
-                        center = Offset(width * 0.85f, height * 0.15f),
-                        radius = width * 0.75f
-                    ),
-                    center = Offset(width * 0.85f, height * 0.15f),
-                    radius = width * 0.75f
-                )
-                drawCircle(
-                    brush = Brush.radialGradient(
+                        center = orb2Center,
+                        radius = orb2Radius
+                    )
+                } else {
+                    Brush.radialGradient(
                         colors = listOf(
                             diurnalPhase.secondaryColor.copy(alpha = 0.18f),
                             Color.White.copy(alpha = 0.40f),
                             Color.Transparent
                         ),
-                        center = Offset(width * 0.15f, height * 0.55f),
-                        radius = width * 0.85f
-                    ),
-                    center = Offset(width * 0.15f, height * 0.55f),
-                    radius = width * 0.85f
-                )
-            }
-        }
+                        center = orb2Center,
+                        radius = orb2Radius
+                    )
+                }
 
+                onDrawBehind {
+                    drawCircle(
+                        brush = orb1Brush,
+                        center = orb1Center,
+                        radius = orb1Radius
+                    )
+                    drawCircle(
+                        brush = orb2Brush,
+                        center = orb2Center,
+                        radius = orb2Radius
+                    )
+                }
+            }
+            .statusBarsPadding()
+    ) {
         val urgentContextCard = remember(contextCards) {
             contextCards.firstOrNull {
                 it.id.startsWith("weather_sched_") ||
@@ -443,7 +442,7 @@ fun DashboardScreen(
             contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
         ) {
             // INDEX 0: DYNAMIC SESSION HEADER (PHASE 1: Header Focus & Fade)
-            item {
+            item(key = "header", contentType = "header") {
                 StaggeredAnimatedItem(index = 0, isHeader = true, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -611,7 +610,7 @@ fun DashboardScreen(
 
             // INDEX 1: WEATHER CARD
             if ("weather" in enabledContentCards) {
-                item {
+                item(key = "weather_card", contentType = "weather_card") {
                     StaggeredAnimatedItem(index = 1, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         WeatherNowBriefCard(
                             weatherData = realWeatherData,
@@ -634,7 +633,7 @@ fun DashboardScreen(
                 }
 
                 // INDEX 1.5: DYNAMIC WEATHER ADVICE CARD (STICKER + SUN/RAIN/NIGHT GEAR TIPS)
-                item {
+                item(key = "weather_advice_card", contentType = "weather_advice_card") {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         val isNightMode = diurnalPhase.isDark || currentHour >= 19 || currentHour < 5
                         DynamicWeatherAdviceCard(
@@ -648,7 +647,7 @@ fun DashboardScreen(
 
             // INDEX 1.6: CROSS-CONTEXT ALERT ASSISTANT (SCHEDULE + HOURLY WEATHER / BATTERY / MEET)
             if (urgentContextCard != null && "now_nudge" in enabledContentCards) {
-                item(key = urgentContextCard.id) {
+                item(key = urgentContextCard.id, contentType = "cross_context_alert") {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         com.example.ui.components.CrossContextAlertCard(
                             card = urgentContextCard,
@@ -663,7 +662,7 @@ fun DashboardScreen(
 
             // INDEX 1.8: NOW NUDGE (SAMSUNG ONE UI 9 PROACTIVE 1-TAP ACTION PROMPT)
             if ("now_nudge" in enabledContentCards) {
-                item {
+                item(key = "now_nudge_card", contentType = "now_nudge_card") {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         val nudgeItem = remember(currentHour, allTasks.size, realHealthData) {
                             NowNudgeEngine.generateNudge(
@@ -714,7 +713,7 @@ fun DashboardScreen(
 
             // INDEX 2: ENERGY SCORE & HEALTH CARD (DAILY ACTIVITY)
             if ("health_energy" in enabledContentCards) {
-                item {
+                item(key = "health_energy_card", contentType = "health_energy_card") {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         val health = realHealthData
                         ActivityEnergyCard(
@@ -757,7 +756,7 @@ fun DashboardScreen(
 
             // ONE UI 9 SCHEDULE CARD (Real Calendar Data & Room DB)
             if ("calendar_schedule" in enabledContentCards) {
-                item {
+                item(key = "calendar_schedule_card", contentType = "calendar_schedule_card") {
                     val displayEvents = remember(calendarEvents) {
                         val now = System.currentTimeMillis()
                         calendarEvents.filter { it.endTimeMillis > now || it.startTimeMillis >= now }
@@ -765,11 +764,11 @@ fun DashboardScreen(
 
                     val upcomingScheduleEvents = remember(allTasks, displayEvents) {
                         val now = System.currentTimeMillis()
+                        val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
                         val list = mutableListOf<Pair<Long, com.example.ui.components.OneUICalendarEventItem>>()
                         for (e in displayEvents) {
                             if (e.endTimeMillis > now || e.startTimeMillis >= now - 5 * 60 * 1000L) {
-                                val timeStr =
-                                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(e.startTimeMillis))
+                                val timeStr = timeFormatter.format(Date(e.startTimeMillis))
                                 list.add(
                                     e.startTimeMillis to com.example.ui.components.OneUICalendarEventItem(
                                         title = e.title,
@@ -783,7 +782,7 @@ fun DashboardScreen(
                         }
                         for (t in allTasks.filter { !it.isCompleted }) {
                             if (t.datetime >= now - 15 * 60 * 1000L) {
-                                val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(t.datetime))
+                                val timeStr = timeFormatter.format(Date(t.datetime))
                                 list.add(
                                     t.datetime to com.example.ui.components.OneUICalendarEventItem(
                                         title = t.title,
@@ -832,15 +831,16 @@ fun DashboardScreen(
 
             // WEEKLY HABIT INSIGHTS & ENERGY SCORE CARD (ONE UI GLASSMORPHISM)
             if ("habit_insights" in enabledContentCards) {
-                item {
+                item(key = "habit_insights_card", contentType = "habit_insights_card") {
                     val habitAnalyticsEngine =
                         remember(context) { com.example.core.engine.HabitAnalyticsEngine(context) }
                     val firstUpcomingItem = remember(allTasks, calendarEvents) {
                         val now = System.currentTimeMillis()
+                        val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
                         // 1. Unfinished task occurring from now onwards (or today)
                         val nextTask = allTasks.firstOrNull { !it.isCompleted && it.datetime >= now - 30 * 60 * 1000L }
                         if (nextTask != null) {
-                            val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(nextTask.datetime))
+                            val timeStr = timeFormatter.format(Date(nextTask.datetime))
                             nextTask.title to timeStr
                         } else {
                             // 2. Upcoming calendar event (excluding all-day events like holidays)
@@ -848,11 +848,7 @@ fun DashboardScreen(
                                 !event.isAllDay && event.startTimeMillis >= now - 15 * 60 * 1000L
                             }
                             if (nextEvent != null) {
-                                val timeStr =
-                                    SimpleDateFormat(
-                                        "HH:mm",
-                                        Locale.getDefault()
-                                    ).format(Date(nextEvent.startTimeMillis))
+                                val timeStr = timeFormatter.format(Date(nextEvent.startTimeMillis))
                                 nextEvent.title to timeStr
                             } else {
                                 "" to ""
@@ -890,7 +886,7 @@ fun DashboardScreen(
                 }
 
                 // AI LIFESTYLE PERSONA CARD (ON-DEVICE PERSONA CLUSTERING K-MEANS)
-                item {
+                item(key = "persona_badge_card", contentType = "persona_badge_card") {
                     val mlEngine = remember(context) { com.example.core.ml.InternalMlEngine.getInstance(context) }
                     var personaProfile by remember {
                         mutableStateOf(
@@ -918,7 +914,7 @@ fun DashboardScreen(
 
             // INDEX 3: SLEEP & RECOVERY STATUS CARD
             if ("sleep_recovery" in enabledContentCards) {
-                item {
+                item(key = "sleep_recovery_card", contentType = "sleep_recovery_card") {
                     StaggeredAnimatedItem(index = 3, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         SleepRestStatusCard(
                             healthData = realHealthData,
@@ -929,7 +925,7 @@ fun DashboardScreen(
             }
 
             // ROUTINE & BEHAVIOR PREDICTION (MARKOV CHAIN) RIGHT BELOW SLEEP & RECOVERY
-            item {
+            item(key = "behavior_prediction_card", contentType = "behavior_prediction_card") {
                 StaggeredAnimatedItem(
                     index = 3,
                     hasPlayedAnimation = hasPlayedEntranceAnimation
@@ -943,7 +939,7 @@ fun DashboardScreen(
 
             // INDEX 4: SMART MUSIC RECOMMENDATION CARD (SINGLE SPOTIFY / YOUTUBE DEEP LINK CARD)
             if ("smart_music" in enabledContentCards) {
-                item {
+                item(key = "smart_music_card", contentType = "smart_music_card") {
                     StaggeredAnimatedItem(index = 4, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         SmartMusicCard(
                             currentHour = currentHour,
@@ -955,7 +951,7 @@ fun DashboardScreen(
 
             // INDEX 4.5: ONE UI 9 NEWS & MARKET BRIEF CARD (MARKET TICKER + NEWS HEADLINES)
             if ("news_market" in enabledContentCards) {
-                item {
+                item(key = "news_market_card", contentType = "news_market_card") {
                     StaggeredAnimatedItem(index = 4, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         NewsMarketBriefCard(
                             isDark = isDark
@@ -965,7 +961,7 @@ fun DashboardScreen(
             }
 
             // INDEX 5+: LIFESTYLE SUGGESTION CARDS & MINDFULNESS
-            item {
+            item(key = "smart_suggestion_widgets", contentType = "smart_suggestion_widgets") {
                 StaggeredAnimatedItem(
                     index = 5,
                     hasPlayedAnimation = hasPlayedEntranceAnimation,
@@ -983,7 +979,7 @@ fun DashboardScreen(
             }
 
             // BOTTOM SPACER: AVOID OVERLAPPING NAVIGATION BARS
-            item {
+            item(key = "bottom_spacer", contentType = "spacer") {
                 Spacer(modifier = Modifier.navigationBarsPadding().height(28.dp))
             }
         }
@@ -1007,7 +1003,7 @@ private fun VoiceWaveIconButton(
     isDark: Boolean = false,
     onClick: () -> Unit
 ) {
-    val pulseAlpha = if (isPlaying) {
+    val pulseAlphaState = if (isPlaying) {
         val infiniteTransition = rememberInfiniteTransition(label = "audio_wave_pulse")
         infiniteTransition.animateFloat(
             initialValue = 0.4f,
@@ -1017,8 +1013,8 @@ private fun VoiceWaveIconButton(
                 repeatMode = RepeatMode.Reverse
             ),
             label = "audio_wave_alpha"
-        ).value
-    } else 1.0f
+        )
+    } else null
 
     Row(
         modifier = Modifier
@@ -1032,10 +1028,14 @@ private fun VoiceWaveIconButton(
         Icon(
             imageVector = Icons.Default.GraphicEq,
             contentDescription = "Listen to brief",
-            tint = if (isPlaying) Color(0xFF3B82F6).copy(alpha = pulseAlpha) else if (isDark) Color(0xFF94A3B8) else Color(
+            tint = if (isPlaying) Color(0xFF3B82F6) else if (isDark) Color(0xFF94A3B8) else Color(
                 0xFF64748B
             ),
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier
+                .size(22.dp)
+                .graphicsLayer {
+                    alpha = pulseAlphaState?.value ?: 1f
+                }
         )
         if (isPlaying) {
             Text(

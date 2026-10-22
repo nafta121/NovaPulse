@@ -318,7 +318,11 @@ fun WeatherNowBriefCard(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(horizontal = 2.dp)
                 ) {
-                    items(weatherData.dailyForecast) { day ->
+                    items(
+                        items = weatherData.dailyForecast,
+                        key = { it.dayLabel },
+                        contentType = { "daily_forecast" }
+                    ) { day ->
                         val dayIcon = when (day.weatherCode) {
                             0 -> Icons.Default.WbSunny
                             1, 2, 3 -> Icons.Default.WbCloudy
