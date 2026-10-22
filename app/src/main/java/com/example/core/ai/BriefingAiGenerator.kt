@@ -10,18 +10,18 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 /**
- * 5 Khung giờ chuẩn trong ngày (Sáng / Trưa / Chiều / Hoàng hôn / Đêm)
+ * 5 standard time phases of the day (Morning / Noon / Afternoon / Evening / Night)
  */
 enum class DiurnalPhaseType(val label: String) {
-    MORNING("Sáng"),
-    NOON("Trưa"),
-    AFTERNOON("Chiều"),
-    EVENING("Hoàng hôn"),
-    NIGHT("Đêm")
+    MORNING("Morning"),
+    NOON("Noon"),
+    AFTERNOON("Afternoon"),
+    EVENING("Evening"),
+    NIGHT("Night")
 }
 
 /**
- * Ngữ cảnh thực tế để AI sinh câu chúc & tóm tắt
+ * Real-time context for AI greeting & summary generation
  */
 data class BriefingContext(
     val hourOfDay: Int = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
@@ -46,7 +46,7 @@ data class BriefingContext(
 }
 
 /**
- * Kết quả đầu ra từ AI Service
+ * Output result from AI Service
  */
 data class BriefingAiResult(
     val greetingHeadline: String,
@@ -56,7 +56,7 @@ data class BriefingAiResult(
 )
 
 /**
- * Service AI sinh lời chúc & tóm tắt thông minh không bịa số liệu, cực kỳ ngắn gọn (<18 từ)
+ * AI Service generating smart, ultra-concise (<18 words) greetings & summaries without hallucinating metrics
  */
 class BriefingAiGenerator(
     private val context: Context,
@@ -66,13 +66,13 @@ class BriefingAiGenerator(
         private const val TAG = "BriefingAiGenerator"
         
         /**
-         * System Prompt nghiêm ngặt gửi Local AI / LLM
+         * Strict System Prompt sent to Local AI / LLM
          */
         const val SYSTEM_PROMPT_TEMPLATE = 
-            "Hãy tạo 1 câu tóm tắt điểm tin thật tự nhiên, cực kỳ ngắn gọn (tối đa 18 từ) bằng tiếng Việt. TUYỆT ĐỐI KHÔNG tự bịa các con số phần trăm, pin, hay số liệu không được cung cấp trong context. Khung giờ Buổi sáng (5:00-11:29) BẮT BUỘC chỉ được tạo nội dung xoay quanh buổi sáng và tập trung làm việc, CẤM TUYỆT ĐỐI sinh các từ 'chiều', 'buổi chiều', 'tối'. Khung giờ Buổi trưa (11:30-13:59) BẮT BUỘC dùng từ 'Nghỉ trưa', 'Giữa ngày', CẤM TUYỆT ĐỐI dùng từ 'Buổi chiều'."
+            "Generate a natural, ultra-concise briefing summary sentence (max 18 words) in English. STRICTLY DO NOT invent percentages, battery levels, or metrics not provided in the context. Morning sessions (5:00-11:29) MUST strictly focus on morning and work productivity, NEVER generating the words 'afternoon' or 'evening'. Noon sessions (11:30-13:59) MUST use 'Lunch break' or 'Midday', NEVER using 'Afternoon'."
 
         /**
-         * Đọc phần trăm pin thực tế từ hệ thống Android qua BatteryManager
+         * Read actual battery percentage from the Android system via BatteryManager
          */
         fun getRealSystemBatteryPercentage(context: Context): Int {
             return try {
@@ -106,7 +106,7 @@ class BriefingAiGenerator(
 
     private fun generateGenZBriefing(ctx: BriefingContext): String {
         val tempInt = Math.round(ctx.weatherTempC ?: 28.0).toInt()
-        val weatherDesc = ctx.weatherCondition ?: "trời mát mẻ"
+        val weatherDesc = ctx.weatherCondition ?: "cool and pleasant"
         return BriefingContentProvider.getHeaderSummary(ctx.session, tempInt, weatherDesc)
     }
 }

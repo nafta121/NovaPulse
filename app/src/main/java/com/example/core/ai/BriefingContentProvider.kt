@@ -3,13 +3,13 @@ package com.example.core.ai
 import com.example.feature.widget.BriefingSession
 
 /**
- * Nhà cung cấp dữ liệu động (Dynamic Content Provider) quản lý kho câu tóm tắt Header 
- * và Thẻ gợi ý Lifestyle Carousel phong phú 5-6 thẻ chuẩn One UI 9.
+ * Dynamic Content Provider managing header summaries and a rich 5-6 card
+ * Lifestyle Carousel styled after One UI 9.
  */
 object BriefingContentProvider {
 
     /**
-     * Lấy câu tóm tắt Header động theo Session, tự động chèn nhiệt độ thật (${temp}°C) và thời tiết (${weather}).
+     * Get a dynamic Header summary by Session, automatically inserting actual temperature (${temp}°C) and weather (${weather}).
      */
     fun getFallbackRecap(sessionName: String, temp: Int, weatherDesc: String): String {
         val session = BriefingSession.values().firstOrNull {
@@ -24,52 +24,52 @@ object BriefingContentProvider {
 
         val options = when (session) {
             BriefingSession.EARLY_MORNING -> listOf(
-                "Bình minh trong lành! Nhiệt độ $tempStr $weatherClean. Hãy nạp một ly nước ấm để đánh thức cơ thể.",
-                "Chào ngày mới! Không khí $tempStr dễ chịu, thời điểm tuyệt vời để khởi động nhẹ và hít thở sâu.",
-                "Sẵn sàng cho ngày mới rực rỡ! Nhiệt độ $tempStr, chúc bạn một ngày làm việc tràn đầy năng lượng.",
-                "Nắng sớm dịu mát! Nhiệt độ $tempStr $weatherClean. Thưởng thức tách cà phê và bắt đầu ngày mới tràn hứng khởi."
+                "Fresh dawn air! It's $tempStr and $weatherClean. Start with a glass of warm water to wake up your body.",
+                "Good morning! Pleasant $tempStr weather—a great time for light stretching and deep breaths.",
+                "Ready for a bright new day! It's $tempStr outside, wishing you an energized and productive day ahead.",
+                "Gentle morning sunshine! $tempStr and $weatherClean. Enjoy a cup of coffee and kickstart your morning."
             )
 
             BriefingSession.MID_MORNING -> listOf(
-                "Khung giờ vàng cho sự tập trung! Nhiệt độ $tempStr $weatherClean. Hoàn thành công việc quan trọng nhất ngay bây giờ.",
-                "Sáng làm việc hiệu quả! Nhiệt độ $tempStr, giữ nhịp tập trung và hoàn thành các mục tiêu đề ra.",
-                "Tinh thần minh mẫn! Không khí $tempStr mát mẻ, giải quyết nhanh gọn danh sách công việc hôm nay.",
-                "Khung giờ bứt phá hiệu suất! Nhiệt độ $tempStr $weatherClean. Tự tin chinh phục các nhiệm vụ thử thách nhất."
+                "Golden hours for deep focus! $tempStr and $weatherClean. Tackle your most important task right now.",
+                "Productive morning flow! It's $tempStr—keep your momentum going and hit your daily goals.",
+                "Sharp and focused! Cool $tempStr air outside, breeze through your to-do list today.",
+                "Peak performance window! $tempStr and $weatherClean. Confidently conquer your most challenging tasks."
             )
 
             BriefingSession.NOON -> listOf(
-                "Đã đến giờ nạp năng lượng! Nhiệt độ $tempStr, thưởng thức bữa trưa thật ngon miệng nhé.",
-                "Nghỉ ngơi tái tạo sức lao động! Nhiệt độ ngoài trời $tempStr, hãy để mắt nghỉ ngơi sau buổi sáng làm việc.",
-                "Chợp mắt 15-20 phút buổi trưa để sẵn sàng cho một buổi chiều bùng nổ hiệu suất.",
-                "Nạp năng lượng giữa ngày! Không khí $tempStr $weatherClean, thưởng thức bữa trưa và thả lỏng tinh thần."
+                "Time to refuel! It's $tempStr outside—enjoy a delicious and nutritious lunch break.",
+                "Midday recharge! Outdoor temperature is $tempStr, rest your eyes after a busy morning of work.",
+                "Take a 15-20 minute power nap at noon to get ready for a high-energy afternoon.",
+                "Midday energy boost! $tempStr and $weatherClean, savor your lunch and unwind your mind."
             )
 
             BriefingSession.AFTERNOON -> listOf(
-                "Duy trì năng lượng buổi chiều! Nhiệt độ $tempStr, uống thêm nước hoặc trà để giữ sự tỉnh táo.",
-                "Tiếp tục bứt phá! Không khí $tempStr $weatherClean, hoàn thành nốt các nhiệm vụ còn lại trong ngày.",
-                "Vận động nhẹ tại chỗ để giải tỏa căng thẳng và duy trì năng suất làm việc đỉnh cao.",
-                "Buổi chiều tỉnh táo! Nhiệt độ $tempStr, nhâm nhi tách trà chiều và duy trì nhịp làm việc mượt mà."
+                "Keep your afternoon energy up! It's $tempStr—grab some water or tea to stay refreshed.",
+                "Power through! $tempStr and $weatherClean outside, wrap up your remaining tasks for the day.",
+                "Do some light desk stretches to release tension and maintain peak work productivity.",
+                "Stay sharp this afternoon! It's $tempStr, sip some afternoon tea and keep a smooth workflow."
             )
 
             BriefingSession.EVENING -> listOf(
-                "Hoàng hôn buông xuống! Nhiệt độ $tempStr dịu mát, gác lại công việc và tận hưởng buổi chiều tối.",
-                "Kết thúc ngày làm việc chăm chỉ! Không khí $tempStr $weatherClean, chuẩn bị về nhà và thư giãn cùng người thân.",
-                "Tiết trời hoàng hôn dễ chịu! Nhiệt độ $tempStr, vận động nhẹ nhàng hoặc đi dạo để giải tỏa mệt mỏi.",
-                "Chiều muộn thư thái! Nhiệt độ $tempStr, thả lỏng đầu óc chuẩn bị cho bữa tối ấm áp."
+                "Sunset is here! Pleasant $tempStr breeze—set work aside and enjoy your evening wind-down.",
+                "Another hardworking day complete! $tempStr and $weatherClean, head home and relax with loved ones.",
+                "Comfortable sunset weather at $tempStr! Take a light walk or stretch to melt away fatigue.",
+                "Relaxing late afternoon! It's $tempStr, clear your mind and get ready for a warm dinner."
             )
 
             BriefingSession.NIGHT -> listOf(
-                "Buổi tối an lành! Nhiệt độ $tempStr mát mẻ, dành thời gian chăm sóc bản thân và giải trí nhẹ nhàng.",
-                "Chuẩn bị cho giấc ngủ sâu! Nhiệt độ $tempStr $weatherClean, tắt bớt thiết bị điện tử để cơ thể phục hồi trọn vẹn đêm nay.",
-                "Buổi tối yên tĩnh! Không khí $tempStr, thưởng thức bữa tối ngon miệng và thư giãn cùng gia đình.",
-                "Trời đêm thoáng đãng! Nhiệt độ $tempStr, nhâm nhi tách trà ấm và tận hưởng không gian yên bình."
+                "Peaceful evening! Cool $tempStr air—take time for self-care and light entertainment.",
+                "Prepare for deep sleep! $tempStr and $weatherClean, dim your screens for full overnight recovery.",
+                "Quiet night ahead! It's $tempStr, enjoy a cozy dinner and unwind with your family.",
+                "Breezy night sky at $tempStr! Sip some warm herbal tea and enjoy the calm atmosphere."
             )
 
             BriefingSession.LATE_NIGHT -> listOf(
-                "Đêm muộn thư thái! Nhiệt độ $tempStr $weatherClean. Thả lỏng tâm trí và chuẩn bị cho giấc ngủ sâu.",
-                "Đã đến giờ nghỉ ngơi! Không khí $tempStr mát mẻ, tạm gác mọi lo âu để cơ thể phục hồi hoàn toàn.",
-                "Đêm dịu mát! Nhiệt độ $tempStr, giữ không gian phòng ngủ thoáng đãng và ngủ thật ngon nhé.",
-                "Giấc ngủ đêm chất lượng! Nhiệt độ $tempStr, tắt máy đi ngủ sớm nạp lại 100% năng lượng cho sáng mai."
+                "Calm late night! $tempStr and $weatherClean. Relax your mind and prepare for deep, restful sleep.",
+                "Time to rest! Cool $tempStr air outside, set aside all worries and let your body fully recover.",
+                "Gentle night breeze at $tempStr! Keep your bedroom airy and have a wonderful night's sleep.",
+                "Quality sleep time! It's $tempStr, put away your phone early to recharge 100% for tomorrow morning."
             )
         }
 
@@ -77,66 +77,66 @@ object BriefingContentProvider {
     }
 
     /**
-     * Bộ tóm tắt ngắn gọn, súc tích (Compact Briefing) thiết kế RIÊNG cho Dynamic Island
-     * Đảm bảo hiển thị vừa vặn trên thanh Island pill mà không bị tràn hay quá dài.
+     * Ultra-concise summary set (Compact Briefing) designed SPECIFICALLY for the Dynamic Island
+     * Ensures a clean fit inside the Island pill without overflowing or truncating.
      */
-    fun getIslandSummary(session: BriefingSession, temp: Int, weather: String = "mát mẻ"): String {
+    fun getIslandSummary(session: BriefingSession, temp: Int, weather: String = "pleasant"): String {
         val options = when (session) {
             BriefingSession.EARLY_MORNING -> listOf(
-                "Chào ngày mới tràn năng lượng!",
-                "Khởi đầu ngày mới thật vui!",
-                "Đón ánh bình minh ngày mới!",
-                "Sáng sớm trong lành đón nắng!",
-                "Chúc bạn ngày mới tốt lành!"
+                "Rise and shine with energy!",
+                "Kickstart a joyful new day!",
+                "Welcome the fresh morning dawn!",
+                "Crisp morning air and sunshine!",
+                "Wishing you a wonderful day!"
             )
 
             BriefingSession.MID_MORNING -> listOf(
-                "Khung giờ vàng để tập trung!",
-                "Tập trung cao độ làm việc!",
-                "Bứt phá hiệu suất đỉnh cao!",
-                "Làm việc hiệu quả hôm nay!",
-                "Giữ vững tinh thần làm việc!",
-                "Tự tin chinh phục mục tiêu!"
+                "Golden hours for deep focus!",
+                "Stay locked in on your work!",
+                "Unleash peak productivity now!",
+                "Have a super productive day!",
+                "Keep your work momentum strong!",
+                "Confidently crush your goals!"
             )
 
             BriefingSession.NOON -> listOf(
-                "Nghỉ trưa nạp lại năng lượng!",
-                "Thưởng thức bữa trưa ngon miệng!",
-                "Chợp mắt nghỉ ngơi giữa ngày!",
-                "Thả lỏng đôi mắt thư giãn!",
-                "Tái tạo năng lượng buổi chiều!"
+                "Lunch break—time to recharge!",
+                "Enjoy a delicious midday meal!",
+                "Take a quick midday power nap!",
+                "Rest your eyes and unwind!",
+                "Refuel for the afternoon ahead!"
             )
 
             BriefingSession.AFTERNOON -> listOf(
-                "Duy trì năng lượng buổi chiều!",
-                "Uống thêm nước và trà chiều!",
-                "Tập trung tăng tốc về đích!",
-                "Chiều làm việc thật hiệu quả!",
-                "Giữ vững phong độ làm việc!"
+                "Keep your afternoon energy high!",
+                "Hydrate with water or afternoon tea!",
+                "Focus up for the final sprint!",
+                "Have a productive afternoon!",
+                "Keep up your great momentum!"
             )
 
             BriefingSession.EVENING -> listOf(
-                "Gác lại công việc về nhà!",
-                "Tan ca thư giãn buổi chiều!",
-                "Hoàng hôn buông xuống dịu mát!",
-                "Thưởng thức bữa tối ấm cúng!",
-                "Thả lỏng tinh thần chiều tà!"
+                "Wrap up work and head home!",
+                "Clock out and unwind tonight!",
+                "Cool and breezy sunset vibes!",
+                "Enjoy a warm, cozy dinner!",
+                "Relax your mind this evening!"
             )
 
             BriefingSession.NIGHT -> listOf(
-                "Buổi tối an lành ấm cúng!",
-                "Thư giãn trọn vẹn buổi tối!",
-                "Dành thời gian cho bản thân!",
-                "Nghe bản nhạc nhẹ thư giãn!",
-                "Tận hưởng không gian yên bình!"
+                "Have a cozy, peaceful night!",
+                "Unwind and enjoy your evening!",
+                "Take some time for yourself!",
+                "Put on some soft, relaxing music!",
+                "Enjoy the calm night atmosphere!"
             )
 
             BriefingSession.LATE_NIGHT -> listOf(
-                "Tắt máy đi ngủ thôi nào!",
-                "Chúc bạn có giấc ngủ ngon!",
-                "Đêm đã về khuya nghỉ ngơi!",
-                "Chúc bạn có giấc mơ đẹp!",
-                "Tạm gác lại mọi âu lo!"
+                "Screens off, time for bed!",
+                "Wishing you a restful night!",
+                "It's late—time to rest up!",
+                "Sweet dreams tonight!",
+                "Set aside all worries and sleep!"
             )
         }
 
@@ -144,8 +144,8 @@ object BriefingContentProvider {
     }
 
     /**
-     * Lấy danh sách thẻ gợi ý Lifestyle Carousel phân loại phong phú 5-6 thẻ ngẫu nhiên mỗi phiên.
-     * Tự động điều chỉnh theo thời tiết/nhiệt độ thật (nóng >32°C vs mát <28°C).
+     * Get a rich, categorized list of 5-6 randomized Lifestyle Carousel recommendation cards per session.
+     * Automatically adapts to actual weather/temperature (hot >32°C vs cool <28°C).
      */
     fun getLifestyleTips(
         session: BriefingSession,
@@ -160,330 +160,330 @@ object BriefingContentProvider {
 
         val pool = when (session) {
             BriefingSession.EARLY_MORNING, BriefingSession.MID_MORNING -> listOf(
-                // Thẻ 1: Ẩm thực sáng
+                // Card 1: Morning Dining
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Bữa sáng",
-                    title = "Phở bò tái lăn nóng hổi",
-                    description = "Bát phở thơm nức nạp đạm và năng lượng cho cả sáng.",
+                    category = "Food & Dining",
+                    tag = "Breakfast",
+                    title = "Warm Artisan Noodle Soup",
+                    description = "A steaming, protein-rich bowl to fuel your entire morning.",
                     emoji = "🍜"
                 ),
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Bữa sáng",
-                    title = "Bánh mì ốp la giòn rụm",
-                    description = "Bữa sáng nhanh gọn, giòn thơm tràn năng lượng.",
+                    category = "Food & Dining",
+                    tag = "Breakfast",
+                    title = "Crispy Sunny-Side Baguette",
+                    description = "A quick, crunchy, and energizing morning breakfast.",
                     emoji = "🥖"
                 ),
 
-                // Thẻ 2: Thức uống theo nhiệt độ
+                // Card 2: Temperature-Adaptive Drink
                 LifestyleTip(
-                    category = "Thức uống",
-                    tag = if (isHot) "Giải nhiệt" else "Tỉnh táo",
-                    title = if (isHot) "Nước ép dưa hấu mát lạnh" else "Cà phê muối thơm lừng",
-                    description = if (isHot) "Thời tiết $tempStr nóng oi, giải nhiệt tức thì cho cơ thể." else "Nhiệt độ $tempStr dịu mát, nhâm nhi tách cà phê tỉnh táo.",
+                    category = "Drinks",
+                    tag = if (isHot) "Cooling" else "Energy Boost",
+                    title = if (isHot) "Chilled Watermelon Juice" else "Rich Salted Cream Coffee",
+                    description = if (isHot) "It's a warm $tempStr—cool down and hydrate instantly." else "Pleasant $tempStr weather—savor a cup of coffee to stay sharp.",
                     emoji = if (isHot) "🍉" else "☕"
                 ),
 
-                // Thẻ 3: Vận động / Sức khỏe
+                // Card 3: Fitness / Health
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thở sâu",
-                    title = "Hít thở sâu 5 phút",
-                    description = "Nhiệt độ $tempStr, dành 5 phút hít thở sâu để cân bằng lại tinh thần.",
+                    category = "Health",
+                    tag = "Deep Breath",
+                    title = "5-Minute Deep Breathing",
+                    description = "At $tempStr, take 5 minutes of deep breathing to center your mind.",
                     emoji = "🧘‍♂️"
                 ),
                 LifestyleTip(
-                    category = "Vận động",
-                    tag = "Sức khỏe",
-                    title = if (isCool) "Chạy bộ đón gió sương sớm" else "Giãn cơ buổi sáng 5 phút",
-                    description = if (isCool) "Không khí $tempStr trong lành, lý tưởng cho 15 phút chạy bộ." else "Đánh thức cơ thể nhẹ nhàng, giảm căng thẳng vai gáy.",
+                    category = "Fitness",
+                    tag = "Wellness",
+                    title = if (isCool) "Morning Breeze Jog" else "5-Minute Morning Stretch",
+                    description = if (isCool) "Crisp $tempStr air—ideal for a 15-minute outdoor jog." else "Gently wake up your body and relieve neck and shoulder tension.",
                     emoji = if (isCool) "🏃‍♂️" else "🧘‍♂️"
                 ),
 
-                // Thẻ 4: Thư giãn / Tinh thần
+                // Card 4: Mindfulness / Growth
                 LifestyleTip(
-                    category = "Tinh thần",
-                    tag = "Học hỏi",
-                    title = "Nghe Podcast phát triển bản thân",
-                    description = "Nạp tư duy tích cực 10 phút trước khi bắt đầu công việc.",
+                    category = "Mindfulness",
+                    tag = "Growth",
+                    title = "Personal Growth Podcast",
+                    description = "Tune into 10 minutes of positive insights before starting work.",
                     emoji = "🎙️"
                 ),
 
-                // Thẻ 5: Mẹo công việc / Năng suất
+                // Card 5: Work / Productivity Tip
                 LifestyleTip(
-                    category = "Năng suất",
-                    tag = "Tập trung",
-                    title = "Kỹ thuật Pomodoro 25 phút",
-                    description = "Tập trung cao độ giải quyết mục tiêu quan trọng nhất.",
+                    category = "Productivity",
+                    tag = "Focus",
+                    title = "25-Minute Pomodoro Sprint",
+                    description = "Lock in with deep focus to tackle your top priority.",
                     emoji = "⏱️"
                 ),
 
-                // Thẻ 6: Lối sống
+                // Card 6: Lifestyle
                 LifestyleTip(
-                    category = "Lối sống",
+                    category = "Lifestyle",
                     tag = "Hydrate",
-                    title = "Uống đủ 500ml nước ấm",
-                    description = "Kích hoạt hệ tiêu hóa và bổ sung độ ẩm đầu ngày.",
+                    title = "Drink 500ml of Warm Water",
+                    description = "Kickstart your metabolism and rehydrate first thing in the morning.",
                     emoji = "🥛"
                 )
             )
 
             BriefingSession.NOON -> listOf(
-                // Thẻ 1: Ẩm thực trưa
+                // Card 1: Midday Dining
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Bữa trưa",
-                    title = "Cơm tấm sườn bì chả",
-                    description = "Thưởng thức bữa trưa thanh mát, nạp lại năng lượng giữa ngày.",
+                    category = "Food & Dining",
+                    tag = "Lunch",
+                    title = "Grilled Pork Rice Platter",
+                    description = "Enjoy a balanced lunch to recharge your midday energy.",
                     emoji = "🍛"
                 ),
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Thanh mát",
-                    title = "Bún chả tươi mát & Canh chua",
-                    description = "Thực đơn thanh nhẹ giải nhiệt bữa trưa cực ngon miệng.",
+                    category = "Food & Dining",
+                    tag = "Refreshing",
+                    title = "Fresh Grilled Vermicelli & Broth",
+                    description = "A light, refreshing, and flavorful midday lunch option.",
                     emoji = "🍲"
                 ),
 
-                // Thẻ 2: Thức uống trưa
+                // Card 2: Midday Drink
                 LifestyleTip(
-                    category = "Thức uống",
-                    tag = "Giải nhiệt",
-                    title = if (isHot) "Nước dừa xiêm mọng nước" else "Trà đào cam sả mát",
-                    description = "Nhiệt độ ngoài trời $tempStr, bổ sung điện giải tự nhiên.",
+                    category = "Drinks",
+                    tag = "Cooling",
+                    title = if (isHot) "Fresh Chilled Coconut Water" else "Iced Peach Lemongrass Tea",
+                    description = "Outdoor temp is $tempStr—replenish natural electrolytes.",
                     emoji = if (isHot) "🥥" else "🍹"
                 ),
 
-                // Thẻ 3: Vận động / Nghỉ ngơi
+                // Card 3: Rest / Recovery
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Nghỉ trưa",
-                    title = "Chợp mắt 15-20 phút",
-                    description = "Cho não bộ thả lỏng, sẵn sàng cho ca chiều hiệu suất.",
+                    category = "Health",
+                    tag = "Midday Rest",
+                    title = "15-20 Minute Power Nap",
+                    description = "Let your brain rest and reset for a productive afternoon.",
                     emoji = "💤"
                 ),
 
-                // Thẻ 4: Thư giãn / Thở sâu
+                // Card 4: Relaxation / Deep Breathing
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thở sâu",
-                    title = "Hít thở sâu 5 phút",
-                    description = "Nhiệt độ $tempStr, dành 5 phút hít thở sâu để cân bằng lại tinh thần.",
+                    category = "Health",
+                    tag = "Deep Breath",
+                    title = "5-Minute Deep Breathing",
+                    description = "At $tempStr, take 5 minutes of deep breathing to center your mind.",
                     emoji = "🧘‍♀️"
                 ),
                 LifestyleTip(
-                    category = "Thư giãn",
-                    tag = "Phục hồi",
-                    title = "Massage mắt & Thở 4-7-8",
-                    description = "Giảm mỏi mắt sau nhiều giờ nhìn màn hình máy tính.",
+                    category = "Relaxation",
+                    tag = "Recovery",
+                    title = "Eye Care & 4-7-8 Breathing",
+                    description = "Relieve eye strain after hours of looking at screens.",
                     emoji = "👀"
                 ),
 
-                // Thẻ 5: Năng suất
+                // Card 5: Productivity
                 LifestyleTip(
-                    category = "Năng suất",
-                    tag = "Mẹo hay",
-                    title = "Dọn dẹp lại không gian làm việc",
-                    description = "Bàn làm việc ngăn nắp giúp tinh thần chiều thêm tươi mới.",
+                    category = "Productivity",
+                    tag = "Quick Tip",
+                    title = "Tidy Up Your Workspace",
+                    description = "A clean desk brings fresh clarity for the afternoon session.",
                     emoji = "🧹"
                 ),
 
-                // Thẻ 6: Lối sống
+                // Card 6: Lifestyle
                 LifestyleTip(
-                    category = "Lối sống",
-                    tag = "Râm mát",
-                    title = "Nghỉ ngơi nơi không gian râm mát",
-                    description = "Nhiệt độ $tempStr, tránh ánh nắng gắt giữa trưa.",
+                    category = "Lifestyle",
+                    tag = "Shade",
+                    title = "Relax in a Shaded Spot",
+                    description = "It's $tempStr outside—avoid harsh midday sun exposure.",
                     emoji = "🌿"
                 )
             )
 
             BriefingSession.AFTERNOON -> listOf(
-                // Thẻ 1: Ẩm thực xế chiều
+                // Card 1: Afternoon Snack
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Ăn nhẹ",
-                    title = "Bánh mì chảo & Sinh tố bơ",
-                    description = "Món ăn xế chiều thơm ngon nạp lại sự tỉnh táo.",
+                    category = "Food & Dining",
+                    tag = "Light Bite",
+                    title = "Toasted Croissant & Avocado Smoothie",
+                    description = "A tasty afternoon snack to restore your mental alertness.",
                     emoji = "🥑"
                 ),
 
-                // Thẻ 2: Thức uống chiều
+                // Card 2: Afternoon Drink
                 LifestyleTip(
-                    category = "Thức uống",
-                    tag = "Trà chiều",
-                    title = "Trà đào cam sả thanh mát",
-                    description = "Vị trà trái cây giải nhiệt sảng khoái xế chiều.",
+                    category = "Drinks",
+                    tag = "Afternoon Tea",
+                    title = "Refreshing Peach Citrus Tea",
+                    description = "Crisp fruit tea for an invigorating afternoon pick-me-up.",
                     emoji = "🍹"
                 ),
 
-                // Thẻ 3: Vận động
+                // Card 3: Movement
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thở sâu",
-                    title = "Hít thở sâu 5 phút",
-                    description = "Nhiệt độ $tempStr, dành 5 phút hít thở sâu để cân bằng lại tinh thần.",
+                    category = "Health",
+                    tag = "Deep Breath",
+                    title = "5-Minute Deep Breathing",
+                    description = "At $tempStr, take 5 minutes of deep breathing to center your mind.",
                     emoji = "🧘‍♂️"
                 ),
                 LifestyleTip(
-                    category = "Vận động",
-                    tag = "Giãn cơ",
-                    title = "Vận động nhẹ tại chỗ 3 phút",
-                    description = "Vươn vai giãn cơ lưng gáy giúp máu lưu thông não bộ.",
+                    category = "Fitness",
+                    tag = "Stretching",
+                    title = "3-Minute Desk Stretch",
+                    description = "Stretch your back and shoulders to boost circulation.",
                     emoji = "🤸‍♂️"
                 ),
 
-                // Thẻ 4: Thư giãn tinh thần
+                // Card 4: Mental Relaxation
                 LifestyleTip(
-                    category = "Tinh thần",
-                    tag = "Âm nhạc",
-                    title = "Nghe nhạc Lofi không lời",
-                    description = "Giai điệu lofi dịu nhẹ duy trì sự tập trung làm việc.",
+                    category = "Mindfulness",
+                    tag = "Music",
+                    title = "Instrumental Lofi Beats",
+                    description = "Gentle lofi melodies to sustain smooth afternoon focus.",
                     emoji = "🎧"
                 ),
 
-                // Thẻ 5: Năng suất
+                // Card 5: Productivity
                 LifestyleTip(
-                    category = "Năng suất",
-                    tag = "Mẹo hay",
-                    title = "Uống thêm 350ml nước lọc",
-                    description = "Duy trì độ ẩm cơ thể và giữ làn da tươi tắn cả ngày.",
+                    category = "Productivity",
+                    tag = "Quick Tip",
+                    title = "Drink 350ml of Pure Water",
+                    description = "Stay hydrated and keep your energy steady all afternoon.",
                     emoji = "💧"
                 ),
 
-                // Thẻ 6: Thư giãn
+                // Card 6: Relaxation
                 LifestyleTip(
-                    category = "Thư giãn",
-                    tag = "Đọc sách",
-                    title = "Đọc 5 trang sách yêu thích",
-                    description = "Gác lại màn hình 10 phút để tâm trí được thả lỏng.",
+                    category = "Relaxation",
+                    tag = "Reading",
+                    title = "Read 5 Pages of a Favorite Book",
+                    description = "Step away from screens for 10 minutes to rest your mind.",
                     emoji = "📖"
                 )
             )
 
             BriefingSession.EVENING -> listOf(
-                // Thẻ 1: Ẩm thực tối
+                // Card 1: Evening Dining
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Bữa tối",
-                    title = "Lẩu nấm thảo mộc thanh nhẹ",
-                    description = "Thưởng thức bữa tối thanh mát, nạp lại năng lượng sau giờ làm.",
+                    category = "Food & Dining",
+                    tag = "Dinner",
+                    title = "Light Herbal Mushroom Hotpot",
+                    description = "Enjoy a wholesome, soothing dinner to refuel after work.",
                     emoji = "🍲"
                 ),
 
-                // Thẻ 2: Thức uống tối
+                // Card 2: Evening Drink
                 LifestyleTip(
-                    category = "Thức uống",
-                    tag = "Thư thái",
-                    title = "Trà hoa cúc ấm áp",
-                    description = "Nhâm nhi trà ấm hỗ trợ thư giãn thần kinh tan tầm.",
+                    category = "Drinks",
+                    tag = "Calming",
+                    title = "Warm Chamomile Herbal Tea",
+                    description = "Sip warm tea to soothe your nerves after a busy workday.",
                     emoji = "🍵"
                 ),
 
-                // Thẻ 3: Vận động
+                // Card 3: Movement
                 LifestyleTip(
-                    category = "Vận động",
-                    tag = "Đi bộ",
-                    title = "Đi dạo công viên 15 phút",
-                    description = "Nhiệt độ $tempStr mát mẻ, đi bộ nhẹ hỗ trợ tiêu hóa tốt.",
+                    category = "Fitness",
+                    tag = "Walking",
+                    title = "15-Minute Park Stroll",
+                    description = "Pleasant $tempStr air—a light walk aids digestion and relaxation.",
                     emoji = "🚶‍♂️"
                 ),
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thở sâu",
-                    title = "Hít thở sâu 5 phút",
-                    description = "Nhiệt độ $tempStr, dành 5 phút hít thở sâu để cân bằng lại tinh thần.",
+                    category = "Health",
+                    tag = "Deep Breath",
+                    title = "5-Minute Deep Breathing",
+                    description = "At $tempStr, take 5 minutes of deep breathing to center your mind.",
                     emoji = "🧘‍♂️"
                 ),
 
-                // Thẻ 4: Tinh thần
+                // Card 4: Mindfulness
                 LifestyleTip(
-                    category = "Tinh thần",
+                    category = "Mindfulness",
                     tag = "Mindfulness",
-                    title = "Thả lỏng tinh thần tan tầm",
-                    description = "Gác lại deadline công việc và chuẩn bị trở về nhà.",
+                    title = "After-Work Mental Unwind",
+                    description = "Leave work deadlines behind and transition into home life.",
                     emoji = "🌇"
                 ),
 
-                // Thẻ 5: Lối sống
+                // Card 5: Lifestyle
                 LifestyleTip(
-                    category = "Lối sống",
-                    tag = "Thư giãn",
-                    title = "Đạp xe ngắm cảnh hoàng hôn",
-                    description = "Tiết trời $tempStr dễ chịu, tận hưởng chiều tối nhẹ nhàng.",
+                    category = "Lifestyle",
+                    tag = "Relaxation",
+                    title = "Sunset Evening Bike Ride",
+                    description = "Comfortable $tempStr weather—enjoy a breezy evening ride.",
                     emoji = "🚴‍♂️"
                 ),
 
-                // Thẻ 6: Chuẩn bị
+                // Card 6: Preparation
                 LifestyleTip(
-                    category = "Lối sống",
-                    tag = "Chuẩn bị",
-                    title = "Soạn sẵn đồ dùng cho ngày mai",
-                    description = "Chuẩn bị đồ đạc giúp buổi sáng mai luôn thong thả.",
+                    category = "Lifestyle",
+                    tag = "Prep",
+                    title = "Prepare Essentials for Tomorrow",
+                    description = "Lay out your outfit and bag for a stress-free morning.",
                     emoji = "👕"
                 )
             )
 
             BriefingSession.NIGHT, BriefingSession.LATE_NIGHT -> listOf(
-                // Thẻ 1: Món ăn nhẹ đêm
+                // Card 1: Light Late-Night Snack
                 LifestyleTip(
-                    category = "Ẩm thực",
-                    tag = "Ăn nhẹ",
-                    title = "Sữa ấm & Hạt ngũ cốc",
-                    description = "Món ăn nhẹ dễ tiêu hóa hỗ trợ giấc ngủ sâu.",
+                    category = "Food & Dining",
+                    tag = "Light Bite",
+                    title = "Warm Milk & Whole Grain Nuts",
+                    description = "An easy-to-digest snack that promotes deep, restful sleep.",
                     emoji = "🥛"
                 ),
 
-                // Thẻ 2: Thức uống
+                // Card 2: Drink
                 LifestyleTip(
-                    category = "Thức uống",
-                    tag = "Dưỡng tâm",
-                    title = "Trà hoa cúc mật ong ấm",
-                    description = "Thức uống xoa dịu thần kinh, chuẩn bị đi ngủ.",
+                    category = "Drinks",
+                    tag = "Soothing",
+                    title = "Warm Honey Chamomile Tea",
+                    description = "A calming bedtime drink to prepare your body for sleep.",
                     emoji = "🍵"
                 ),
 
-                // Thẻ 3: Thư giãn tinh thần
+                // Card 3: Mental Unwind
                 LifestyleTip(
-                    category = "Tinh thần",
-                    tag = "Giấc ngủ",
-                    title = "Tắt ánh sáng xanh thiết bị",
-                    description = "Để điện thoại xa giường 30 phút trước khi đi ngủ.",
+                    category = "Mindfulness",
+                    tag = "Sleep Hygiene",
+                    title = "Turn Off Blue Light Screens",
+                    description = "Set your phone aside 30 minutes before going to bed.",
                     emoji = "📱"
                 ),
 
-                // Thẻ 4: Sức khỏe
+                // Card 4: Health
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thiền định",
-                    title = "Thiền 5 phút chìm vào giấc ngủ",
-                    description = "Tập trung nhịp thở đều đặn nạp năng lượng cho ngày mai.",
+                    category = "Health",
+                    tag = "Meditation",
+                    title = "5-Minute Bedtime Meditation",
+                    description = "Focus on slow, steady breaths to recharge for tomorrow.",
                     emoji = "🧘‍♀️"
                 ),
                 LifestyleTip(
-                    category = "Sức khỏe",
-                    tag = "Thở sâu",
-                    title = "Hít thở sâu 5 phút",
-                    description = "Nhiệt độ $tempStr, dành 5 phút hít thở sâu để cân bằng lại tinh thần.",
+                    category = "Health",
+                    tag = "Deep Breath",
+                    title = "5-Minute Deep Breathing",
+                    description = "At $tempStr, take 5 minutes of deep breathing to center your mind.",
                     emoji = "🧘‍♂️"
                 ),
 
-                // Thẻ 5: Giải trí nhẹ
+                // Card 5: Light Entertainment
                 LifestyleTip(
-                    category = "Tinh thần",
-                    tag = "Âm nhạc",
-                    title = "Nghe nhạc Lofi & Tiếng mưa",
-                    description = "Giai điệu dịu nhẹ giúp thả lỏng tâm trí tuyệt đối.",
+                    category = "Mindfulness",
+                    tag = "Music",
+                    title = "Soft Lofi & Rain Sounds",
+                    description = "Gentle ambient sounds to help your mind completely unwind.",
                     emoji = "🎧"
                 ),
 
-                // Thẻ 6: Lối sống
+                // Card 6: Lifestyle
                 LifestyleTip(
-                    category = "Lối sống",
-                    tag = "Phòng ngủ",
-                    title = "Giữ phòng ngủ thoáng mát",
-                    description = "Nhiệt độ $tempStr mát mẻ, cho giấc ngủ trọn vẹn đêm nay.",
+                    category = "Lifestyle",
+                    tag = "Bedroom",
+                    title = "Keep Your Bedroom Cool & Airy",
+                    description = "Cool $tempStr night—ideal for uninterrupted, restorative sleep.",
                     emoji = "🌙"
                 )
             )

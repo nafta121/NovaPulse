@@ -81,7 +81,7 @@ fun PlaygroundScreen(
 ) {
     var sourceApp by remember { mutableStateOf("Zalo") }
     var inputText by remember {
-        mutableStateOf("Mai 9h sáng họp review thiết kế hệ thống và nộp deadline báo cáo quý nhé!")
+        mutableStateOf("Tomorrow at 9 AM we have a system design review meeting and quarterly report deadline!")
     }
     var isSaved by remember { mutableStateOf(false) }
 
@@ -202,11 +202,11 @@ fun PlaygroundScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             listOf(
-                "Vietcombank Expense" to "TK 1029384: -480,000 VND lúc 12:45. ND: Thanh toan GrabFood. So du: 12,000,000 VND.",
-                "Zalo Meeting Task" to "Nhớ chiều mai 14h họp dự án NovaPulse với khách hàng nhé.",
+                "Vietcombank Expense" to "Acct 1029384: -480,000 VND at 12:45. Note: GrabFood payment. Balance: 12,000,000 VND.",
+                "Zalo Meeting Task" to "Remember tomorrow at 14:00 we have a NovaPulse project meeting with the client.",
                 "Telegram Urgent Deadline" to "Submit security audit report deadline today before 18:00.",
-                "Techcombank Transfer" to "Giao dịch thành công 2,500,000 VND đến STK 0987654321 ND: Tra tien thue nha thang 8.",
-                "Spam Promo" to "Siêu sale 9/9, giảm giá tới 70% toàn sàn Shopee. Mua ngay kẻo lỡ!"
+                "Techcombank Transfer" to "Successful transfer of 2,500,000 VND to Acct 0987654321. Note: August rent payment.",
+                "Spam Promo" to "9/9 Super Sale, up to 70% off sitewide on Shopee. Shop now before it's gone!"
             ).forEach { (label, snippet) ->
                 Box(
                     modifier = Modifier

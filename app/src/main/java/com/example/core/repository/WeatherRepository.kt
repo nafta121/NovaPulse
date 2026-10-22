@@ -29,7 +29,7 @@ data class RealWeatherData(
     val conditionDescription: String,
     val hourlyForecast: List<HourlyWeatherItem>,
     val dailyForecast: List<DailyWeatherItem> = emptyList(),
-    val locationName: String = "TP. Hồ Chí Minh",
+    val locationName: String = "Ho Chi Minh City",
     val isFromCache: Boolean = false,
     val cacheTimestampMs: Long = 0L
 )
@@ -37,9 +37,9 @@ data class RealWeatherData(
 class WeatherRepository(private val context: Context) {
 
     companion object {
-        const val DEFAULT_LAT = 10.8231 // TP. Hồ Chí Minh
+        const val DEFAULT_LAT = 10.8231 // Ho Chi Minh City
         const val DEFAULT_LON = 106.6297
-        const val DEFAULT_LOCATION_NAME = "TP. Hồ Chí Minh"
+        const val DEFAULT_LOCATION_NAME = "Ho Chi Minh City"
     }
 
     private val client = OkHttpClient.Builder()
@@ -101,7 +101,7 @@ class WeatherRepository(private val context: Context) {
                 val count = minOf(24, times.length() - startIdx)
                 for (i in 0 until count) {
                     val rawTime = times.getString(startIdx + i)
-                    val hourLabel = if (i == 0) "Bây giờ" else {
+                    val hourLabel = if (i == 0) "Now" else {
                         val parts = rawTime.split("T")
                         if (parts.size > 1) parts[1].take(5) else rawTime
                     }
@@ -111,7 +111,7 @@ class WeatherRepository(private val context: Context) {
                     hourlyList.add(HourlyWeatherItem(hourLabel, rawHourlyTemp, rawApparentTemp, code))
                 }
 
-                // Parse daily forecast (7 ngày)
+                // Parse daily forecast (7 days)
                 val dailyList = mutableListOf<DailyWeatherItem>()
                 val daily = json.optJSONObject("daily")
                 if (daily != null) {
@@ -119,12 +119,12 @@ class WeatherRepository(private val context: Context) {
                     val dailyMaxTemps = daily.getJSONArray("temperature_2m_max")
                     val dailyMinTemps = daily.getJSONArray("temperature_2m_min")
                     val dailyCodes = daily.getJSONArray("weather_code")
-                    val dayNames = arrayOf("CN", "T2", "T3", "T4", "T5", "T6", "T7")
+                    val dayNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
 
                     for (i in 0 until dailyTimes.length()) {
                         val dateStr = dailyTimes.getString(i) // "2026-08-26"
                         val dayLabel = if (i == 0) {
-                            "Hôm nay"
+                            "Today"
                         } else {
                             try {
                                 val parts = dateStr.split("-")
@@ -158,42 +158,42 @@ class WeatherRepository(private val context: Context) {
                     isFromCache = false,
                     cacheTimestampMs = System.currentTimeMillis()
                 )
-                // Lưu cache sau khi fetch thành công
+                // Save to cache after successful fetch
                 WeatherCacheManager.save(context, freshData)
                 freshData
             }
         } catch (e: Exception) {
-            // Fallback sang cache khi mất mạng / API lỗi
+            // Fallback to cache when offline or on API error
             WeatherCacheManager.load(context)
         }
     }
 
     private fun parseWmoCode(code: Int): String {
         return when (code) {
-            0 -> "Trời quang đãng"
-            1 -> "Trời hầu như quang"
-            2 -> "Mây rải rác"
-            3 -> "Nhiều mây / Âm u"
-            45, 48 -> "Có sương mù"
-            51, 53, 55 -> "Mưa phùn"
-            56, 57 -> "Mưa phùn lạnh giá"
-            61 -> "Mưa nhỏ"
-            63 -> "Mưa vừa"
-            65 -> "Mưa to"
-            66, 67 -> "Mưa băng giá"
-            71, 73, 75 -> "Tuyết rơi"
-            77 -> "Mưa tuyết nhỏ"
-            80, 81, 82 -> "Mưa rào"
-            85, 86 -> "Mưa tuyết rào"
-            95 -> "Có dông sét"
-            96, 99 -> "Dông kèm mưa đá"
-            else -> "Thời tiết không xác định"
+            0 -> "Clear sky"
+            1 -> "Mainly clear"
+            2 -> "Partly cloudy"
+            3 -> "Cloudy"
+            45, 48 -> "Foggy"
+            51, 53, 55 -> "Drizzle"
+            56, 57 -> "Freezing drizzle"
+            61 -> "Light rain"
+            63 -> "Moderate rain"
+            65 -> "Heavy rain"
+            66, 67 -> "Freezing rain"
+            71, 73, 75 -> "Snowfall"
+            77 -> "Snow grains"
+            80, 81, 82 -> "Rain showers"
+            85, 86 -> "Snow showers"
+            95 -> "Thunderstorm"
+            96, 99 -> "Thunderstorm with hail"
+            else -> "Unknown weather"
         }
     }
 }
 
 /**
- * Tìm thời tiết dự báo tại một mốc thời gian cụ thể (timeMillis)
+ * Find forecasted weather at a specific timestamp (timeMillis)
  */
 fun RealWeatherData.getWeatherForTimestamp(timeMillis: Long): HourlyWeatherItem? {
     if (hourlyForecast.isEmpty()) return null
@@ -201,7 +201,7 @@ fun RealWeatherData.getWeatherForTimestamp(timeMillis: Long): HourlyWeatherItem?
     val targetHour = cal.get(java.util.Calendar.HOUR_OF_DAY)
 
     return hourlyForecast.firstOrNull { item ->
-        val hourInLabel = item.timeLabel.replace("Bây giờ", "").trim().split(":").firstOrNull()?.toIntOrNull()
+        val hourInLabel = item.timeLabel.replace("Now", "").trim().split(":").firstOrNull()?.toIntOrNull()
         hourInLabel == targetHour
     } ?: hourlyForecast.firstOrNull()
 }

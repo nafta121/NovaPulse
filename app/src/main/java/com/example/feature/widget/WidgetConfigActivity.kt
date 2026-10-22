@@ -89,14 +89,14 @@ class WidgetConfigActivity : ComponentActivity() {
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Quay lại",
+                                    contentDescription = "Back",
                                     tint = Color(0xFF0F172A)
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = "Tùy biến NowBrief Widget",
+                                    text = "Customize NowBrief Widget",
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 19.sp,
@@ -104,7 +104,7 @@ class WidgetConfigActivity : ComponentActivity() {
                                     )
                                 )
                                 Text(
-                                    text = "Cá nhân hóa giao diện Capsule Pill ngoài màn hình chính",
+                                    text = "Personalize the Capsule Pill appearance on your home screen",
                                     fontSize = 12.sp,
                                     color = Color(0xFF64748B)
                                 )

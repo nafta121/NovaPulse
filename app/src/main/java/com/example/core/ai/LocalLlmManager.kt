@@ -90,26 +90,33 @@ class LocalLlmManager(
     }
 
     suspend fun executeInference(prompt: String, rawText: String): String = withContext(Dispatchers.Default) {
-        Log.d("ON_DEVICE_AI", ">>> BẮT ĐẦU INFER VỚI PROMPT: $prompt")
+        Log.d("ON_DEVICE_AI", ">>> STARTING INFERENCE WITH PROMPT: $prompt")
         val startTime = System.currentTimeMillis()
         try {
-            // Nếu prompt yêu cầu sinh JSON Lifestyle/Mindfulness (chứ không phải bóc tách thông báo)
+            // If the prompt requests Lifestyle/Mindfulness JSON generation (rather than notification extraction)
             if (prompt.contains("JSON", ignoreCase = true) || prompt.contains(
                     "category",
                     ignoreCase = true
-                ) || prompt.contains("gợi ý", ignoreCase = true)
+                ) || prompt.contains("recommend", ignoreCase = true) || prompt.contains("suggest", ignoreCase = true)
             ) {
                 val tempMatch = Regex("(\\d+)\\s*°C").find(prompt)
                 val tempInt = tempMatch?.groupValues?.get(1)?.toIntOrNull() ?: 28
-                val weatherDesc = if (prompt.contains("mưa")) "trời mưa mát" else if (prompt.contains("nắng")) "trời nắng" else "trời mát mẻ"
+                val weatherDesc = if (prompt.contains("rain", ignoreCase = true)) {
+                    "cool rainy weather"
+                } else if (prompt.contains("sun", ignoreCase = true) || prompt.contains("clear", ignoreCase = true)) {
+                    "sunny weather"
+                } else {
+                    "cool and pleasant"
+                }
 
                 val session = when {
-                    prompt.contains("Bình minh", ignoreCase = true) -> com.example.feature.widget.BriefingSession.EARLY_MORNING
-                    prompt.contains("Buổi sáng", ignoreCase = true) || prompt.contains("Sáng", ignoreCase = true) -> com.example.feature.widget.BriefingSession.MID_MORNING
-                    prompt.contains("Buổi trưa", ignoreCase = true) || prompt.contains("Trưa", ignoreCase = true) -> com.example.feature.widget.BriefingSession.NOON
-                    prompt.contains("Buổi chiều", ignoreCase = true) || prompt.contains("Chiều", ignoreCase = true) -> com.example.feature.widget.BriefingSession.AFTERNOON
-                    prompt.contains("Hoàng hôn", ignoreCase = true) -> com.example.feature.widget.BriefingSession.EVENING
-                    prompt.contains("Buổi tối", ignoreCase = true) || prompt.contains("Tối", ignoreCase = true) -> com.example.feature.widget.BriefingSession.NIGHT
+                    prompt.contains("Early Morning", ignoreCase = true) || prompt.contains("Dawn", ignoreCase = true) || prompt.contains("EARLY_MORNING", ignoreCase = true) -> com.example.feature.widget.BriefingSession.EARLY_MORNING
+                    prompt.contains("Mid Morning", ignoreCase = true) || prompt.contains("Morning", ignoreCase = true) || prompt.contains("MID_MORNING", ignoreCase = true) -> com.example.feature.widget.BriefingSession.MID_MORNING
+                    prompt.contains("Noon", ignoreCase = true) || prompt.contains("Midday", ignoreCase = true) || prompt.contains("NOON", ignoreCase = true) -> com.example.feature.widget.BriefingSession.NOON
+                    prompt.contains("Afternoon", ignoreCase = true) || prompt.contains("AFTERNOON", ignoreCase = true) -> com.example.feature.widget.BriefingSession.AFTERNOON
+                    prompt.contains("Sunset", ignoreCase = true) || prompt.contains("Evening", ignoreCase = true) || prompt.contains("Golden Hour", ignoreCase = true) || prompt.contains("EVENING", ignoreCase = true) -> com.example.feature.widget.BriefingSession.EVENING
+                    prompt.contains("Late Night", ignoreCase = true) || prompt.contains("LATE_NIGHT", ignoreCase = true) -> com.example.feature.widget.BriefingSession.LATE_NIGHT
+                    prompt.contains("Night", ignoreCase = true) || prompt.contains("NIGHT", ignoreCase = true) -> com.example.feature.widget.BriefingSession.NIGHT
                     else -> com.example.feature.widget.BriefingSession.LATE_NIGHT
                 }
 
@@ -127,7 +134,7 @@ class LocalLlmManager(
 
                 val jsonResult = jsonArray.toString(2)
                 val elapsed = System.currentTimeMillis() - startTime
-                Log.d("ON_DEVICE_AI", ">>> INFER THÀNH CÔNG (${elapsed}ms). OUTPUT:\n$jsonResult")
+                Log.d("ON_DEVICE_AI", ">>> INFERENCE SUCCEEDED (${elapsed}ms). OUTPUT:\n$jsonResult")
                 return@withContext jsonResult
             }
 
@@ -135,41 +142,32 @@ class LocalLlmManager(
             val json = JSONObject()
             val textLower = rawText.lowercase(Locale.ROOT)
 
-            // Expense extraction logic (e.g. Vietcombank, Techcombank, MoMo, ZaloPay, SMS Banking)
-            val isBanking = textLower.contains("chuyen khoan") ||
-                    textLower.contains("chuyển khoản") ||
+            // Expense extraction logic (e.g. Digital Banking, Wallets, SMS Banking)
+            val isBanking = textLower.contains("transfer") ||
                     textLower.contains("vnd") ||
-                    textLower.contains("đ") ||
-                    textLower.contains("stk") ||
-                    textLower.contains("so du") ||
-                    textLower.contains("số dư") ||
-                    textLower.contains("giao dich") ||
-                    textLower.contains("giao dịch") ||
-                    textLower.contains("thanh toan") ||
-                    textLower.contains("thanh toán") ||
-                    textLower.contains("bien dong") ||
-                    textLower.contains("biến động") ||
+                    textLower.contains("usd") ||
+                    textLower.contains("account") ||
+                    textLower.contains("balance") ||
+                    textLower.contains("transaction") ||
+                    textLower.contains("payment") ||
+                    textLower.contains("alert") ||
                     textLower.contains("paid") ||
                     textLower.contains("spent") ||
                     textLower.contains("bank") ||
                     textLower.contains("$")
 
-            // Task extraction logic (e.g. Zalo, Telegram, Slack, Gmail, Google Calendar)
-            val isTask = textLower.contains("mai") ||
-                    textLower.contains("tomorrow") ||
+            // Task extraction logic (e.g. Messaging, Telegram, Slack, Gmail, Google Calendar)
+            val isTask = textLower.contains("tomorrow") ||
                     textLower.contains("deadline") ||
-                    textLower.contains("họp") ||
-                    textLower.contains("hop") ||
                     textLower.contains("meeting") ||
-                    textLower.contains("nộp") ||
-                    textLower.contains("nop") ||
                     textLower.contains("submit") ||
                     textLower.contains("remind") ||
-                    textLower.contains("nhắc") ||
-                    textLower.contains("lịch") ||
+                    textLower.contains("reminder") ||
                     textLower.contains("schedule") ||
+                    textLower.contains("calendar") ||
                     textLower.contains("report") ||
-                    textLower.contains("báo cáo")
+                    textLower.contains("appointment") ||
+                    textLower.contains("task")
 
             when {
                 isBanking -> {
@@ -211,10 +209,10 @@ class LocalLlmManager(
 
             val res = json.toString(2)
             val elapsed = System.currentTimeMillis() - startTime
-            Log.d("ON_DEVICE_AI", ">>> INFER THÀNH CÔNG (${elapsed}ms). OUTPUT:\n$res")
+            Log.d("ON_DEVICE_AI", ">>> INFERENCE SUCCEEDED (${elapsed}ms). OUTPUT:\n$res")
             return@withContext res
         } catch (e: Exception) {
-            Log.e("ON_DEVICE_AI", ">>> LỖI INFER: ${e.message}", e)
+            Log.e("ON_DEVICE_AI", ">>> INFERENCE ERROR: ${e.message}", e)
             throw e
         }
     }
@@ -298,9 +296,9 @@ class LocalLlmManager(
     }
 
     private fun extractAmount(text: String): Double {
-        // Look for patterns like +50,000VND, -250.000d, 1,500,000, $45.00
+        // Look for patterns like +50,000VND, -250.000, 1,500,000, $45.00
         val regex =
-            Pattern.compile("([+-]?\\s*\\d{1,3}(?:[.,]\\d{3})*(?:[.,]\\d+)?)\\s*(?:VND|vnd|VNĐ|vnđ|d|đ|USD|\\$)?")
+            Pattern.compile("([+-]?\\s*\\d{1,3}(?:[.,]\\d{3})*(?:[.,]\\d+)?)\\s*(?:VND|vnd|USD|usd|\\$)?")
         val matcher = regex.matcher(text)
         while (matcher.find()) {
             val matchedStr = matcher.group(1)?.replace(" ", "")?.replace("+", "")?.replace("-", "") ?: ""
@@ -316,51 +314,51 @@ class LocalLlmManager(
     private fun guessCategory(text: String): String {
         val lower = text.lowercase(Locale.ROOT)
         return when {
-            lower.contains("an uong") || lower.contains("ăn uống") || lower.contains("cafe") || lower.contains("coffee") || lower.contains(
+            lower.contains("dining") || lower.contains("restaurant") || lower.contains("cafe") || lower.contains("coffee") || lower.contains(
                 "food"
             ) || lower.contains("grab") || lower.contains("shopeefood") -> "Food & Dining"
 
-            lower.contains("mua sam") || lower.contains("mua sắm") || lower.contains("shopee") || lower.contains("tiki") || lower.contains(
+            lower.contains("shopping") || lower.contains("shopee") || lower.contains("tiki") || lower.contains(
                 "lazada"
             ) || lower.contains("store") -> "Shopping"
 
-            lower.contains("dien") || lower.contains("điện") || lower.contains("nuoc") || lower.contains("nước") || lower.contains(
+            lower.contains("electric") || lower.contains("electricity") || lower.contains("water") || lower.contains("utility") || lower.contains(
                 "bill"
             ) || lower.contains("internet") -> "Bills & Utilities"
 
-            lower.contains("chuyen khoan") || lower.contains("chuyển khoản") || lower.contains("transfer") || lower.contains(
-                "stk"
+            lower.contains("transfer") || lower.contains("wire") || lower.contains(
+                "account"
             ) -> "Transfer"
 
-            lower.contains("luong") || lower.contains("lương") || lower.contains("salary") -> "Income"
+            lower.contains("salary") || lower.contains("payroll") || lower.contains("income") -> "Income"
             else -> "General"
         }
     }
 
     private fun extractExpenseNote(text: String): String {
-        val parts = text.split(" - ", " : ", " / ", " ND: ", " Noi dung: ", " Nội dung: ")
+        val parts = text.split(" - ", " : ", " / ", " Note: ", " Memo: ", " Ref: ")
         return if (parts.size > 1) parts[1].take(60) else text.take(60)
     }
 
     private fun extractTaskDetails(text: String): Triple<String, Int, String> {
         val lower = text.lowercase(Locale.ROOT)
         val priority =
-            if (lower.contains("gap") || lower.contains("gấp") || lower.contains("urgent") || lower.contains("asap") || lower.contains(
-                    "quan trong"
-                ) || lower.contains("quan trọng")
+            if (lower.contains("urgent") || lower.contains("asap") || lower.contains(
+                    "important"
+                ) || lower.contains("critical")
             ) "HIGH" else "MEDIUM"
 
         val offsetMinutes = when {
-            lower.contains("chieu mai") || lower.contains("chiều mai") -> 18 * 60
-            lower.contains("sang mai") || lower.contains("sáng mai") || lower.contains("tomorrow morning") -> 9 * 60
-            lower.contains("mai") || lower.contains("tomorrow") -> 24 * 60
-            lower.contains("1h") || lower.contains("1 gio") || lower.contains("1 hour") -> 60
-            lower.contains("2h") || lower.contains("2 gio") || lower.contains("2 hours") -> 120
+            lower.contains("tomorrow afternoon") -> 18 * 60
+            lower.contains("tomorrow morning") -> 9 * 60
+            lower.contains("tomorrow") -> 24 * 60
+            lower.contains("1h") || lower.contains("1 hr") || lower.contains("1 hour") -> 60
+            lower.contains("2h") || lower.contains("2 hrs") || lower.contains("2 hours") -> 120
             else -> 180
         }
 
         val cleanTitle = text
-            .replace(Regex("(?i)nho\\s*mai|nhớ\\s*mai|deadline|họp|hop|meeting|remind|nhắc"), "")
+            .replace(Regex("(?i)remember\\s*tomorrow|deadline|meeting|remind|reminder"), "")
             .trim()
             .take(60)
             .ifEmpty { "Follow-up task from notification" }
@@ -420,25 +418,25 @@ class LocalLlmManager(
         val rawSubtext = when {
             !topTaskTitle.isNullOrBlank() -> {
                 when (session) {
-                    com.example.feature.widget.BriefingSession.EARLY_MORNING, com.example.feature.widget.BriefingSession.MID_MORNING -> "Ưu tiên: $topTaskTitle ⚡"
-                    com.example.feature.widget.BriefingSession.NOON, com.example.feature.widget.BriefingSession.AFTERNOON -> "Tiếp theo: $topTaskTitle"
-                    com.example.feature.widget.BriefingSession.EVENING -> "Hoàn tất: $topTaskTitle"
-                    else -> "Nhắc nhở: $topTaskTitle"
+                    com.example.feature.widget.BriefingSession.EARLY_MORNING, com.example.feature.widget.BriefingSession.MID_MORNING -> "Priority: $topTaskTitle ⚡"
+                    com.example.feature.widget.BriefingSession.NOON, com.example.feature.widget.BriefingSession.AFTERNOON -> "Up next: $topTaskTitle"
+                    com.example.feature.widget.BriefingSession.EVENING -> "Wrap up: $topTaskTitle"
+                    else -> "Reminder: $topTaskTitle"
                 }
             }
 
-            pendingTasksCount > 0 -> "$pendingTasksCount công việc đang chờ"
+            pendingTasksCount > 0 -> "$pendingTasksCount pending task${if (pendingTasksCount > 1) "s" else ""}"
             totalExpensesToday > 0 -> {
-                val formatted = String.format(Locale.getDefault(), "%,.0f đ", totalExpensesToday)
-                "Đã chi $formatted hôm nay"
+                val formatted = String.format(Locale.getDefault(), "%,.0f VND", totalExpensesToday)
+                "Spent $formatted today"
             }
 
-            session == com.example.feature.widget.BriefingSession.EARLY_MORNING -> "Khởi động ngày mới rực rỡ ☀️"
-            session == com.example.feature.widget.BriefingSession.MID_MORNING -> "Tập trung cao độ làm việc ⚡"
-            session == com.example.feature.widget.BriefingSession.NOON -> "Nghỉ ngơi nạp năng lượng giữa ngày 🍱"
-            session == com.example.feature.widget.BriefingSession.AFTERNOON -> "Duy trì nhịp làm việc hiệu quả ☕"
-            session == com.example.feature.widget.BriefingSession.EVENING -> "Thư giãn và tận hưởng hoàng hôn 🌇"
-            else -> "Trời đêm mát mẻ • Thư giãn nghỉ ngơi 🌙"
+            session == com.example.feature.widget.BriefingSession.EARLY_MORNING -> "Kickstart a bright new day ☀️"
+            session == com.example.feature.widget.BriefingSession.MID_MORNING -> "Deep focus for peak productivity ⚡"
+            session == com.example.feature.widget.BriefingSession.NOON -> "Midday break to recharge your energy 🍱"
+            session == com.example.feature.widget.BriefingSession.AFTERNOON -> "Keep up your productive momentum ☕"
+            session == com.example.feature.widget.BriefingSession.EVENING -> "Unwind and enjoy the sunset 🌇"
+            else -> "Cool night air • Relax and rest well 🌙"
         }
 
         val subtext = com.example.feature.widget.BriefingSessionHelper.sanitizeWidgetText(rawSubtext, session)

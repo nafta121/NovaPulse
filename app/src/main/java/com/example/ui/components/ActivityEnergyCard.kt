@@ -57,9 +57,9 @@ data class DailyHeartRingData(
 )
 
 /**
- * Card Hoạt Động & Năng Lượng Samsung Health với Biểu Đồ Trái Tim 3 Vòng
- * Hỗ trợ bấm chọn từng ngày (T2..CN) để xem chi tiết lịch sử bước chân & calo.
- * Tích hợp hiệu ứng Goal Achieved (Phát sáng nhẹ + Biểu tượng tích xanh hoàn thành mục tiêu).
+ * Samsung Health Activity & Energy Card with 3-Ring Heart Chart.
+ * Supports tapping individual days (Mon..Sun) to view detailed step and calorie history.
+ * Includes a Goal Achieved effect (soft glow + green checkmark icon upon goal completion).
  */
 @Composable
 fun ActivityEnergyCard(
@@ -73,13 +73,13 @@ fun ActivityEnergyCard(
     isNight: Boolean = false,
     onSyncClick: () -> Unit = {}
 ) {
-    // Trạng thái ngày đang được chọn (null = Xem Hôm nay)
+    // Currently selected day state (null = Viewing Today)
     var selectedDayIndex by remember { mutableStateOf<Int?>(null) }
 
     val selectedDay = selectedDayIndex?.let { historyList.getOrNull(it) }
     val isSelectingHistoricalDay = selectedDay != null
 
-    // Chỉ số hiển thị: nếu chọn ngày trong lịch sử thì lấy ngày đó, ngược lại lấy Hôm nay
+    // Displayed metrics: use the selected historical day if chosen, otherwise use Today
     val displayedSteps = if (isSelectingHistoricalDay) selectedDay!!.stepsCount else currentSteps
     val displayedActiveMinutes = if (isSelectingHistoricalDay) selectedDay!!.activeMinutes else currentActiveMinutes
     val displayedCalories = if (isSelectingHistoricalDay) selectedDay!!.caloriesBurned else currentCalories
@@ -90,7 +90,7 @@ fun ActivityEnergyCard(
 
     val isAllGoalsAchieved = stepsProgress >= 1f && activeProgress >= 1f && calProgress >= 1f
 
-    val numberFormatter = remember { NumberFormat.getNumberInstance(Locale("vi", "VN")) }
+    val numberFormatter = remember { NumberFormat.getNumberInstance(Locale.US) }
 
     OneUIGlassCard(
         modifier = Modifier
@@ -105,7 +105,7 @@ fun ActivityEnergyCard(
                 .padding(20.dp)
         ) {
             // -------------------------------------------------------------
-            // Header Row: Tiêu đề Thẻ / Tên ngày đã chọn + Badge hoàn thành hoặc Nút về Hôm nay
+            // Header Row: Card Title / Selected Day Name + Completion Badge or Back to Today Button
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -114,7 +114,7 @@ fun ActivityEnergyCard(
             ) {
                 Column {
                     Text(
-                        text = if (isSelectingHistoricalDay) "Chi tiết: ${selectedDay?.fullDayName?.ifBlank { selectedDay.dayLabel }}" else "Hoạt động hằng ngày",
+                        text = if (isSelectingHistoricalDay) "Details: ${selectedDay?.fullDayName?.ifBlank { selectedDay.dayLabel }}" else "Daily Activity",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
@@ -123,7 +123,7 @@ fun ActivityEnergyCard(
                     )
                     if (isSelectingHistoricalDay) {
                         Text(
-                            text = "Chạm lại để về Hôm nay",
+                            text = "Tap again to return to Today",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontSize = 11.sp,
                                 color = if (isNight) Color(0xFF38BDF8) else Color(0xFF0284C7)
@@ -142,7 +142,7 @@ fun ActivityEnergyCard(
                                 .padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
                             Text(
-                                text = "Về hôm nay",
+                                text = "Back to Today",
                                 color = if (isNight) Color(0xFF38BDF8) else Color(0xFF0284C7),
                                 fontSize = 11.5.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -150,7 +150,7 @@ fun ActivityEnergyCard(
                         }
                     }
                     isAllGoalsAchieved -> {
-                        // Badge chúc mừng hoàn thành 100% cả 3 vòng
+                        // Celebration badge for completing 100% of all 3 rings
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
@@ -168,7 +168,7 @@ fun ActivityEnergyCard(
                                     modifier = Modifier.size(13.dp)
                                 )
                                 Text(
-                                    text = "Đạt cả 3 mục tiêu",
+                                    text = "All 3 goals met",
                                     color = Color(0xFF10B981),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
@@ -192,14 +192,14 @@ fun ActivityEnergyCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // -------------------------------------------------------------
-            // NỬA TRÊN: Canvas Trái Tim 3 Vòng (Bên trái) + 3 Thông Số (Bên phải)
+            // TOP HALF: 3-Ring Heart Canvas (Left) + 3 Metrics (Right)
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Trái tim 3 vòng Samsung Health 96x96dp (có tâm tích xanh nếu đạt 100%)
+                // Samsung Health 3-ring heart 96x96dp (with green center checkmark if 100% achieved)
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.size(96.dp)
@@ -211,7 +211,7 @@ fun ActivityEnergyCard(
                         sizeDp = 96.dp
                     )
 
-                    // Biểu tượng tích xanh nổi bật ở tâm khi hoàn thành 100% cả 3 vòng
+                    // Prominent green checkmark icon in the center when 100% of all 3 rings are completed
                     if (isAllGoalsAchieved) {
                         Box(
                             modifier = Modifier
@@ -233,32 +233,32 @@ fun ActivityEnergyCard(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Cột bên phải: 3 dòng thông số
+                // Right column: 3 metric rows
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Dòng 1: Bước chân (Xanh lá #A3E635)
+                    // Row 1: Steps (Green #A3E635)
                     MetricRowItem(
                         icon = Icons.Default.DirectionsWalk,
                         iconTint = Color(0xFFA3E635),
                         valueText = numberFormatter.format(displayedSteps),
-                        goalText = "/${numberFormatter.format(stepGoal)} bước",
+                        goalText = "/${numberFormatter.format(stepGoal)} steps",
                         isCompleted = stepsProgress >= 1f,
                         isNight = isNight
                     )
 
-                    // Dòng 2: Thời gian vận động (Xanh Cyan #22D3EE)
+                    // Row 2: Active time (Cyan #22D3EE)
                     MetricRowItem(
                         icon = Icons.Default.Schedule,
                         iconTint = Color(0xFF22D3EE),
                         valueText = "$displayedActiveMinutes",
-                        goalText = "/$activeGoalMinutes phút",
+                        goalText = "/$activeGoalMinutes mins",
                         isCompleted = activeProgress >= 1f,
                         isNight = isNight
                     )
 
-                    // Dòng 3: Calo tiêu thụ (Tím Neon #C084FC)
+                    // Row 3: Calories burned (Neon Purple #C084FC)
                     MetricRowItem(
                         icon = Icons.Default.LocalFireDepartment,
                         iconTint = Color(0xFFC084FC),
@@ -271,7 +271,7 @@ fun ActivityEnergyCard(
             }
 
             // -------------------------------------------------------------
-            // Banner tóm tắt khi đang chọn ngày lịch sử
+            // Summary banner when a historical day is selected
             // -------------------------------------------------------------
             AnimatedVisibility(
                 visible = isSelectingHistoricalDay,
@@ -290,14 +290,14 @@ fun ActivityEnergyCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${selectedDay?.fullDayName?.ifBlank { selectedDay.dayLabel }}: ${numberFormatter.format(selectedDay?.stepsCount ?: 0)} bước • ${selectedDay?.activeMinutes ?: 0}p • ${selectedDay?.caloriesBurned ?: 0} kcal",
+                            text = "${selectedDay?.fullDayName?.ifBlank { selectedDay.dayLabel }}: ${numberFormatter.format(selectedDay?.stepsCount ?: 0)} steps • ${selectedDay?.activeMinutes ?: 0}m • ${selectedDay?.caloriesBurned ?: 0} kcal",
                             color = if (isNight) Color(0xFF38BDF8) else Color(0xFF0284C7),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Đóng chi tiết",
+                            contentDescription = "Close details",
                             tint = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                             modifier = Modifier
                                 .size(16.dp)
@@ -310,7 +310,7 @@ fun ActivityEnergyCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Divider mỏng phân cách 2 nửa
+            // Thin divider separating the two halves
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -321,7 +321,7 @@ fun ActivityEnergyCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             // -------------------------------------------------------------
-            // NỬA DƯỚI: Hàng Lịch Sử 7 Ngày (T2 -> CN) có thể bấm chọn tương tác
+            // BOTTOM HALF: 7-Day History Row (Mon -> Sun) with interactive selection
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -358,7 +358,7 @@ fun ActivityEnergyCard(
                             }
                         )
 
-                        // Trái tim 3 vòng mini 24x24dp (có chấm tích xanh nhỏ ở tâm nếu hoàn thành 100%)
+                        // Mini 3-ring heart 24x24dp (with small green dot in center if 100% completed)
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.size(24.dp)
@@ -435,7 +435,7 @@ private fun MetricRowItem(
             if (isCompleted) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Hoàn thành",
+                    contentDescription = "Completed",
                     tint = Color(0xFF10B981),
                     modifier = Modifier
                         .size(14.dp)
@@ -448,12 +448,12 @@ private fun MetricRowItem(
 
 fun defaultHistoryList(): List<DailyHeartRingData> {
     return listOf(
-        DailyHeartRingData("T2", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Hai"),
-        DailyHeartRingData("T3", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Ba"),
-        DailyHeartRingData("T4", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Tư"),
-        DailyHeartRingData("T5", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Năm"),
-        DailyHeartRingData("T6", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Sáu"),
-        DailyHeartRingData("T7", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thứ Bảy"),
-        DailyHeartRingData("CN", isSunday = true, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Chủ Nhật")
+        DailyHeartRingData("Mon", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Monday"),
+        DailyHeartRingData("Tue", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Tuesday"),
+        DailyHeartRingData("Wed", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Wednesday"),
+        DailyHeartRingData("Thu", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Thursday"),
+        DailyHeartRingData("Fri", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Friday"),
+        DailyHeartRingData("Sat", isSunday = false, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Saturday"),
+        DailyHeartRingData("Sun", isSunday = true, stepsProgress = 0f, activeProgress = 0f, calProgress = 0f, stepsCount = 0, fullDayName = "Sunday")
     )
 }

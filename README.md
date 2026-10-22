@@ -1,5 +1,5 @@
 # 🌟 NowBrief (NovaPulse)
-> **Trợ lý tóm tắt ngữ cảnh cá nhân hóa & AI On-Device chuẩn phong cách Samsung One UI**
+> **Personalized Context Briefing Assistant & On-Device AI styled after Samsung One UI**
 
 [![Android](https://img.shields.io/badge/Android-8.0%20to%2016+-3DDC84.svg?logo=android)](https://android.com)
 [![One UI 9](https://img.shields.io/badge/Design-Samsung%20One%20UI%209-6750A4.svg)](https://samsung.com)
@@ -8,34 +8,34 @@
 
 ---
 
-## 📖 Giới thiệu (Overview)
+## 📖 Overview
 
-**NowBrief** là ứng dụng tóm tắt ngữ cảnh thông minh và quản lý nhịp sống thế hệ mới dành cho Android. Ứng dụng kết hợp giữa **Học máy cục bộ (On-Device Machine Learning - 100% bảo mật riêng tư)** và ngôn ngữ thiết kế **Samsung One UI** để mang đến trải nghiệm cá nhân hóa toàn diện, đồng hành cùng bạn suốt 24 giờ trong ngày.
+**NowBrief** is a next-generation smart context briefing and daily rhythm management app for Android. It combines **On-Device Machine Learning (100% privacy-first)** with the **Samsung One UI** design language to deliver a comprehensive, personalized experience that accompanies you 24 hours a day.
 
 ```mermaid
 graph LR
-    %% Nguồn dữ liệu đầu vào
-    subgraph Input_Sources ["Nguồn Dữ Liệu Đầu Vào"]
-        A[Cảm biến & SDK: Thời tiết, Lịch trình, Sức khỏe]
-        C[Notification Listener: Zalo, Banking, OTT]
-        I[System Context: Màn hình khóa, PIN, Giờ hệ thống]
+    %% Input Data Sources
+    subgraph Input_Sources ["Input Data Sources"]
+        A[Sensors & SDKs: Weather, Calendar, Health]
+        C[Notification Listener: Messaging, Banking, OTT]
+        I[System Context: Lock Screen, Battery, System Time]
     end
 
-    %% Tầng xử lý trung tâm
+    %% Central Processing Layer
     subgraph Core_Engine ["NowBrief Core Engine"]
-        B[Bộ máy AI & ML On-Device]
-        R[Rule Engine & 7 Khung Giờ Briefing]
+        B[On-Device AI & ML Engine]
+        R[Rule Engine & 7 Briefing Sessions]
     end
 
-    %% Tầng hiển thị giao diện
-    subgraph UI_Outputs ["Giao diện Hiển thị One UI"]
-        E[Dashboard thích ứng theo giờ]
+    %% UI Presentation Layer
+    subgraph UI_Outputs ["One UI Presentation Layer"]
+        E[Time-Adaptive Dashboard]
         F[Dynamic Capsule / Mini Player]
-        G[Now Nudge Gợi ý 1-chạm]
+        G[Now Nudge 1-Tap Actions]
         H[Lockscreen Overlay & Glance Widget]
     end
 
-    %% Luồng liên kết
+    %% Data Flow Connections
     A --> Core_Engine
     C --> Core_Engine
     I --> Core_Engine
@@ -47,7 +47,7 @@ graph LR
     Core_Engine --> G
     Core_Engine --> H
 
-    %% Styling màu sắc cho nổi bật
+    %% Highlight Color Styling
     classDef inputStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:1px,color:#0369a1;
     classDef coreStyle fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6;
     classDef uiStyle fill:#f0fdf4,stroke:#16a34a,stroke-width:1px,color:#15803d;
@@ -84,86 +84,86 @@ graph LR
 
 
 
-(** Hình ảnh chỉ mang tính minh họa có vài đặc điểm sẽ thay đổi để phù hợp hơn với một số thiết bị **)
+(** Images are for illustration purposes only; certain visual details may adapt depending on the target device **)
 
-## 📥 Hướng Dẫn Cài Đặt File APK (Installation Guide)
+## 📥 APK Installation Guide
 
-### 1. Tải về và cài đặt:
-1. Tải file **`NowBrief-v1.1.2-release.apk`** về điện thoại Android của bạn.
-2. Mở file APK vừa tải và bấm **Cài đặt (Install)**.
-3. Nếu máy xuất hiện thông báo bảo mật:
-   - **"Cài đặt từ nguồn không xác định"**: Chọn **Cho phép từ nguồn này (Allow from this source)**.
-   - **Google Play Protect**: Do đây là bản cài trực tiếp (chưa đăng tải lên CH Play), bạn chỉ cần chọn **Vẫn cài đặt (Install anyway)**.
+### 1. Download and Install:
+1. Download **`NowBrief-v1.1.2-release.apk`** to your Android phone.
+2. Open the downloaded APK file and tap **Install**.
+3. If a security prompt appears:
+   - **"Install unknown apps"**: Select **Allow from this source**.
+   - **Google Play Protect**: Since this is a direct sideloaded build (not yet published on Google Play), simply select **Install anyway**.
 
-### 2. Thiết lập nhanh các tính năng:
-- **Cấp quyền thông báo**: Cho phép NowBrief đọc thông báo để tự động nhận diện lịch hẹn & chi tiêu.
-- **Cấp quyền vị trí**: Cập nhật thời tiết theo giờ chính xác từ Open-Meteo.
-- **Thêm Widget**: Ra màn hình chính -> Giữ ngón tay -> Chọn **Widget** -> Chọn **NowBrief** để đưa widget kính mờ ra màn hình chính.
+### 2. Quick Feature Setup:
+- **Grant Notification Access**: Allow NowBrief to read notifications to automatically detect schedules and expenses.
+- **Grant Location Permission**: Fetch accurate hourly local weather from Open-Meteo.
+- **Add Widget**: Go to your Home Screen -> Long press -> Select **Widgets** -> Choose **NowBrief** to place the frosted-glass widget on your home screen.
 
 ---
 
-## ✨ Các Tính Năng Nổi Bật (Key Features)
+## ✨ Key Features
 
-### 🌅 1. Động cơ Nhịp Sinh Học 7 Khung Giờ (Diurnal Phase Engine)
-- Tự động nhận diện và chuyển đổi gradient nền mờ, lời chào và màu sắc theo 7 buổi trong ngày:
-  - **Bình minh (Dawn)** (05:00 - 07:00)
-  - **Sáng sớm (Early Morning)** (07:00 - 09:00)
-  - **Buổi trưa (Midday)** (11:30 - 13:30)
-  - **Buổi chiều (Afternoon)** (14:00 - 17:00)
-  - **Hoàng hôn (Golden Hour)** (17:00 - 18:30)
-  - **Buổi tối (Evening)** (18:30 - 22:00)
-  - **Đêm muộn (Late Night)** (22:00 - 05:00)
+### 🌅 1. 7-Session Diurnal Phase Engine
+- Automatically detects and transitions blurred background gradients, greetings, and color palettes across 7 distinct phases of the day:
+  - **Dawn** (05:00 - 07:00)
+  - **Early Morning** (07:00 - 09:00)
+  - **Midday** (11:30 - 13:30)
+  - **Afternoon** (14:00 - 17:00)
+  - **Golden Hour** (17:00 - 18:30)
+  - **Evening** (18:30 - 22:00)
+  - **Late Night** (22:00 - 05:00)
 
-### 🧠 2. Trí Tuệ Nhân Tạo & Học Máy Cục Bộ (On-Device AI & ML)
-- **Lifestyle Preference Learner**: Ứng dụng thuật toán **Multi-Armed Bandit (UCB1)** tự động tối ưu hóa và xếp hạng các gợi ý nội dung, ẩm thực, âm nhạc dựa trên thói quen bấm của người dùng theo từng khung giờ.
-- **Task Procrastination Predictor**: Phân tích lịch sử hoàn thành công việc để cảnh báo nguy cơ trì hoãn và thúc đẩy năng suất.
-- **Offline SLM (Small Language Model)**: Tự động trích xuất lịch hẹn, nhắc nhở và chi tiêu từ thông báo SMS Banking, Zalo, Telegram mà **không cần kết nối internet và không gửi dữ liệu lên đám mây**.
+### 🧠 2. On-Device AI & Machine Learning
+- **Lifestyle Preference Learner**: Applies the **Multi-Armed Bandit (UCB1)** algorithm to automatically optimize and rank content, dining, and music recommendations based on user interaction habits for each time slot.
+- **Task Procrastination Predictor**: Analyzes task completion history to warn against procrastination risks and boost productivity.
+- **Offline SLM (Small Language Model)**: Automatically extracts appointments, reminders, and expenses from SMS Banking, messaging, and Telegram notifications **without an internet connection and without sending data to the cloud**.
 
-### 🎵 3. Thanh Capsule Mini Player (YouTube & Spotify)
-- Tích hợp Mini Player dạng viên con nhộng (Capsule) chuẩn One UI.
-- Thao tác **Play / Pause 1-chạm** với hiệu ứng nảy (spring physics) và rung phản hồi (Haptic Feedback).
-- **Thanh sóng nhạc động (Dynamic Audio Waveform)** và biểu tượng đĩa vinyl xoay mượt mà chạy trên GPU layer, tiết kiệm pin tối đa.
+### 🎵 3. Capsule Mini Player (YouTube & Spotify)
+- Integrated One UI-style Capsule Mini Player.
+- **1-Tap Play / Pause** controls with spring physics and Haptic Feedback.
+- **Dynamic Audio Waveform** and smooth spinning vinyl disc rendered on the GPU layer for maximum battery efficiency.
 
-### 🎯 4. Now Nudge - Đề Xuất Hành Động 1-Chạm
-- Đưa ra các gợi ý hành động chủ động dựa trên bối cảnh hiện tại:
-  - *Sáng*: Kiểm tra thời tiết, lộ trình di chuyển, nghe Audio Brief giọng đọc.
-  - *Chiều*: Nhắc nhở uống nước, giãn cơ 2 phút, kích hoạt chế độ Deep Focus.
-  - *Tối*: Thư giãn chánh niệm, tóm tắt chi tiêu trong ngày, hẹn giờ đi ngủ.
+### 🎯 4. Now Nudge - 1-Tap Proactive Actions
+- Delivers proactive action suggestions tailored to your current context:
+  - *Morning*: Check weather, commute route, listen to voice Audio Brief.
+  - *Afternoon*: Hydration reminders, 2-minute desk stretches, activate Deep Focus mode.
+  - *Evening*: Mindful wind-down, daily spending recap, bedtime alarm setup.
 
 ### 🏝️ 5. NowPill & Samsung Glance Widget
-- **NowPill**: Thanh thông tin nổi thông minh trên đỉnh hay dưới hay màn hình tùy chọn hiển thị theme theo ngày giờ hoặc có thể các trạng thái khác trong cài đặt.
-- **Glance App Widget**: Widget màn hình chính chuẩn Jetpack Glance đồng bộ tự động 15 phút/lần theo chu kỳ WorkManager.
+- **NowPill**: Smart floating information pill at the top or bottom of the screen with customizable time-of-day themes and status indicators in Settings.
+- **Glance App Widget**: Jetpack Glance home screen widget that automatically syncs every 15 minutes via WorkManager.
 
 ---
 
-## 🎨 Ngôn Ngữ Thiết Kế (Design System)
+## 🎨 Design System
 
-- **Liquid Glassmorphism**: Nền kính mờ cao cấp với Specular Highlight Border, đổ bóng đa tầng và Ambient Glow Orbs.
-- **Micro-Animations Mượt mà**: Tối ưu hóa render 120 FPS trên màn hình tần số quét cao thông qua `graphicsLayer`.
-- **Chế độ Sáng / Tối Thích Ứng (Dynamic Light / Dark Theme)**.
+- **Liquid Glassmorphism**: Premium frosted-glass surfaces with Specular Highlight Borders, multi-layered elevation shadows, and Ambient Glow Orbs.
+- **Smooth Micro-Animations**: Optimized for 120 FPS rendering on high-refresh-rate displays via `graphicsLayer`.
+- **Dynamic Light / Dark Theme**.
 
 ---
 
-## 🛡️ Quyền Ứng Dụng (Permissions)
+## 🛡️ App Permissions
 
-| Quyền | Mục đích sử dụng |
+| Permission | Purpose |
 | :--- | :--- |
-| `Truy cập Thông báo (Notification Access)` | Tự động tóm tắt sự kiện, mã vé, biến động số dư ngân hàng cục bộ. |
-| `Lịch trình (Calendar)` | Hiển thị và quản lý lịch sự kiện cá nhân trên thẻ thông minh. |
-| `Vị trí (Location)` | Cập nhật thời tiết địa phương từ Open-Meteo API. |
-| `Cảm biến & Hoạt động (Sensors)` | Đếm số bước chân, theo dõi năng lượng hoạt động trong ngày. |
-| `Hiển thị trên ứng dụng khác (Overlay)` | Hiển thị giao diện Dynamic Island(Pill Nowbrief) trên đỉnh màn hình hay phần dưới màn hình (tùy chọn). |
+| `Notification Access` | Locally summarize events, ticket codes, and bank balance updates. |
+| `Calendar` | Display and manage personal calendar events on smart cards. |
+| `Location` | Fetch local weather updates from the Open-Meteo API. |
+| `Sensors & Activity` | Count daily steps and track active energy throughout the day. |
+| `Display Over Other Apps (Overlay)` | Render the Dynamic Island (NowBrief Pill) at the top or bottom of the screen (optional). |
 
 ---
 
-## 📱 Khả Năng Tương Thích & Hiệu Năng (Compatibility)
+## 📱 Compatibility & Performance
 
-- **Thiết bị hỗ trợ**: Chạy tốt trên tất cả các dòng máy **Samsung Galaxy (One UI 5/6/7/8/9)**, **Xiaomi / POCO (HyperOS)**, **Google Pixel**, **Oppo / Realme (ColorOS)**, **Vivo (OriginOS/FuntouchOS)**.
-- **Phiên bản Android**: Android 8.0 (Oreo) đến Android 16 mới nhất.
-- **Hiệu năng & Pin**: Tối ưu hóa GPU, không chạy ngầm gây hao pin, bộ nhớ RAM chiếm dụng cực nhẹ (~260 MB).
+- **Supported Devices**: Runs smoothly across **Samsung Galaxy (One UI 5/6/7/8/9)**, **Xiaomi / POCO (HyperOS)**, **Google Pixel**, **Oppo / Realme (ColorOS)**, and **Vivo (OriginOS/FuntouchOS)**.
+- **Android Versions**: Android 8.0 (Oreo) through the latest Android 16.
+- **Performance & Battery**: GPU-accelerated rendering, zero background battery drain, and ultra-lightweight RAM footprint (~260 MB).
 
 ---
 
-## 📄 Bản Quyền & Thông Tin (License)
-Dự án được phát triển phục vụ mục đích học tập, nghiên cứu và xây dựng ứng dụng AI On-Device cá nhân hóa.
+## 📄 License
+Developed for educational, research, and personalized On-Device AI application development purposes.
 Copyright © 2026 NowBrief / NovaPulse. All rights reserved.

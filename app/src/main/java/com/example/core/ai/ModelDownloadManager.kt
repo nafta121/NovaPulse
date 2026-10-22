@@ -53,33 +53,33 @@ class ModelDownloadManager(private val context: Context) {
     val availableModels = listOf(
         ModelInfo(
             id = "qwen_0_5b",
-            name = "Chế độ Tiêu chuẩn (Khuyên dùng)",
+            name = "Standard Mode (Recommended)",
             parameterCount = "Qwen2.5-0.5B",
             format = "INT4 MediaPipe / GGUF",
             sizeBytes = 367_000_000L,
             sizeDisplay = "350 MB",
-            description = "Tối ưu cho tiếng Việt, lịch trình và lối sống (350 MB)",
+            description = "Optimized for natural language, schedules, and lifestyle (350 MB)",
             downloadUrl = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf",
             isDefault = true
         ),
         ModelInfo(
             id = "smollm2_360m",
-            name = "Chế độ Tiết kiệm Pin",
+            name = "Battery Saver Mode",
             parameterCount = "SmolLM2-360M",
             format = "INT4 Compact",
             sizeBytes = 205_000_000L,
             sizeDisplay = "195 MB",
-            description = "Phản hồi tức thì, tối ưu thời lượng pin (195 MB)",
+            description = "Instant response, optimized for battery life (195 MB)",
             downloadUrl = "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/main/smollm2-360m-instruct-q4_k_m.gguf"
         ),
         ModelInfo(
             id = "novapulse_hybrid",
-            name = "Chế độ Cơ bản",
+            name = "Basic Mode",
             parameterCount = "Edge-Core",
             format = "Deterministic Rule-SLM",
             sizeBytes = 0L,
             sizeDisplay = "0 MB",
-            description = "Không chiếm dung lượng, chạy quy tắc cơ bản (0 MB)",
+            description = "Zero storage footprint, runs essential rule-based engine (0 MB)",
             downloadUrl = "",
             isDefault = false
         )

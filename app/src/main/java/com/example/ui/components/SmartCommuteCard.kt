@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Card Lộ Trình Di Chuyển Thông Minh chuẩn Liquid Glassmorphism One UI 9 Mở Google Maps một chạm
+ * Smart Commute Card following One UI 9 Liquid Glassmorphism with one-tap Google Maps launch
  */
 @Composable
 fun SmartCommuteCard(
@@ -69,7 +69,7 @@ fun SmartCommuteCard(
     val openMapsAction = {
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         try {
-            val gmmIntentUri = Uri.parse("geo:0,0?q=Công+ty")
+            val gmmIntentUri = Uri.parse("geo:0,0?q=Work")
             val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
                 setPackage("com.google.android.apps.maps")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -88,9 +88,9 @@ fun SmartCommuteCard(
     val currentHour = remember { java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) }
     val commuteSubtext = remember(currentHour) {
         if (currentHour in 5..12) {
-            "Lộ trình đến nơi làm việc / trường học • 18 phút (7.2 km)"
+            "Route to work / school • 18 mins (7.2 km)"
         } else {
-            "Lộ trình trở về nhà • 18 phút (7.2 km)"
+            "Route home • 18 mins (7.2 km)"
         }
     }
 
@@ -132,7 +132,7 @@ fun SmartCommuteCard(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Điều hướng / Map (44x44dp) màu Cam Vàng Glassmorphism 3D
+            // Navigation / Map Icon (44x44dp) in Amber Gold 3D Glassmorphism
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -159,10 +159,10 @@ fun SmartCommuteCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nội dung Thông tin Di chuyển
+            // Commute Information Content
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Lộ trình di chuyển & Giao thông",
+                    text = "Smart Commute & Traffic",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -181,7 +181,7 @@ fun SmartCommuteCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Icon Mở Google Maps (Pill Action Button với hiệu ứng bóng kính)
+            // Open Google Maps Icon (Pill Action Button with glossy glass effect)
             Box(
                 modifier = Modifier
                     .size(40.dp)

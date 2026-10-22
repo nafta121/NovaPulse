@@ -245,7 +245,7 @@ fun DynamicIslandView(
     val fullBriefingText = remember(upcomingTasks, currentSession, tempInt) {
         when {
             upcomingTasks.isNotEmpty() -> upcomingTasks.first().title
-            else -> BriefingContentProvider.getIslandSummary(currentSession, tempInt, "mát mẻ")
+            else -> BriefingContentProvider.getIslandSummary(currentSession, tempInt, "pleasant")
         }.cleanEmoji()
     }
 
@@ -514,7 +514,7 @@ fun DynamicIslandView(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Đóng",
+                                contentDescription = "Close",
                                 tint = Color.White.copy(alpha = 0.95f),
                                 modifier = Modifier.size(16.dp)
                             )
@@ -558,7 +558,7 @@ fun DynamicIslandView(
                                         )
                                     }
                                     Text(
-                                        text = "Khuyến nghị thời tiết",
+                                        text = "Weather Advice",
                                         color = titleColor,
                                         fontSize = 13.5.sp,
                                         fontWeight = FontWeight.Bold
@@ -573,7 +573,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 9.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = if (tempInt >= 30) "Nắng nóng" else if (isNight) "Đêm mát" else "Dễ chịu",
+                                        text = if (tempInt >= 30) "Hot & Sunny" else if (isNight) "Cool Night" else "Pleasant",
                                         color = if (tempInt >= 30) Color(0xFFF59E0B) else if (isNight) Color(0xFF818CF8) else Color(
                                             0xFF10B981
                                         ),
@@ -589,9 +589,9 @@ fun DynamicIslandView(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = if (tempInt >= 30) "Nhiệt độ ngoài trời $weatherTemp oi bức. Hãy bù nước thường xuyên và hạn chế nắng gắt."
-                                    else if (isNight) "Nhiệt độ $weatherTemp dịu mát. Không khí trong lành, thích hợp để nghỉ ngơi phục hồi."
-                                    else "Nhiệt độ $weatherTemp mát mẻ. Thời tiết thuận lợi cho các hoạt động và làm việc hiệu quả.",
+                                    text = if (tempInt >= 30) "Outdoor temperature is a warm $weatherTemp. Stay hydrated and limit direct sun exposure."
+                                    else if (isNight) "A cool $weatherTemp tonight. Fresh air, ideal for restful recovery."
+                                    else "A pleasant $weatherTemp outside. Great conditions for activities and productive work.",
                                     color = subtitleColor,
                                     fontSize = 12.sp,
                                     lineHeight = 17.sp,
@@ -621,7 +621,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 11.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "💧 Uống nước",
+                                        text = "💧 Hydrate",
                                         color = titleColor,
                                         fontSize = 10.5.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -635,7 +635,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 11.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "🥤 Bổ sung khoáng",
+                                        text = "🥤 Electrolytes",
                                         color = titleColor,
                                         fontSize = 10.5.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -649,7 +649,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 11.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "🌿 Thư giãn",
+                                        text = "🌿 Relax",
                                         color = titleColor,
                                         fontSize = 10.5.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -693,7 +693,7 @@ fun DynamicIslandView(
                                         )
                                     }
                                     Text(
-                                        text = "Now Nudge • Gợi ý AI",
+                                        text = "Now Nudge • AI Suggestion",
                                         color = titleColor,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -707,7 +707,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 7.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Chủ động",
+                                        text = "Proactive",
                                         color = Color(0xFFC084FC),
                                         fontSize = 9.5.sp,
                                         fontWeight = FontWeight.Bold
@@ -716,14 +716,14 @@ fun DynamicIslandView(
                             }
 
                             Text(
-                                text = "Bứt phá mục tiêu hôm nay",
+                                text = "Crush today's goals",
                                 color = titleColor,
                                 fontSize = 13.5.sp,
                                 fontWeight = FontWeight.Bold
                             )
 
                             Text(
-                                text = "Theo dõi tiến độ lịch trình hoặc mở nhanh danh sách việc quan trọng cần hoàn thành.",
+                                text = "Track your schedule progress or quickly open your priority task list.",
                                 color = subtitleColor,
                                 fontSize = 11.sp,
                                 lineHeight = 15.sp
@@ -740,7 +740,7 @@ fun DynamicIslandView(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "▶ Xem lịch trình chi tiết",
+                                    text = "▶ View detailed schedule",
                                     color = titleColor,
                                     fontSize = 11.5.sp,
                                     fontWeight = FontWeight.Bold
@@ -783,7 +783,7 @@ fun DynamicIslandView(
                                         )
                                     }
                                     Text(
-                                        text = "Hoạt động thể chất",
+                                        text = "Physical Activity",
                                         color = titleColor,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -837,7 +837,7 @@ fun DynamicIslandView(
                                         }
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "$currentSteps / $stepGoal bước",
+                                            text = "$currentSteps / $stepGoal steps",
                                             color = titleColor,
                                             fontSize = 10.5.sp,
                                             fontWeight = FontWeight.Bold
@@ -860,7 +860,7 @@ fun DynamicIslandView(
                                         }
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "35 / 60 phút",
+                                            text = "35 / 60 mins",
                                             color = titleColor,
                                             fontSize = 10.5.sp,
                                             fontWeight = FontWeight.Bold
@@ -897,7 +897,7 @@ fun DynamicIslandView(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN").forEachIndexed { idx, day ->
+                                listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEachIndexed { idx, day ->
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
                                             text = day,
@@ -932,7 +932,7 @@ fun DynamicIslandView(
                                 sdf.format(java.util.Date(topTask.datetime))
                             } else "22:00"
                         }
-                        val taskApp = topTask?.sourceApp?.ifBlank { null } ?: "Nhắc nhở công việc"
+                        val taskApp = topTask?.sourceApp?.ifBlank { null } ?: "Task Reminder"
 
                         IslandInnerCardContainer(isLightGlass = isLightGlass) {
                             Row(
@@ -980,7 +980,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 7.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Sắp diễn ra",
+                                        text = "Upcoming",
                                         color = Color(0xFF38BDF8),
                                         fontSize = 9.5.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -993,7 +993,7 @@ fun DynamicIslandView(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                val taskTitle = topTask?.title ?: "Vào học bài mới trên Duolingo 💚"
+                                val taskTitle = topTask?.title ?: "Start a new lesson on Duolingo 💚"
                                 val taskPred = remember(taskTitle) {
                                     com.example.core.ml.TaskProcrastinationPredictor.predict(taskTitle)
                                 }
@@ -1093,7 +1093,7 @@ fun DynamicIslandView(
                                         )
                                     }
                                     Text(
-                                        text = "Hiệu suất sinh học",
+                                        text = "Bio Performance",
                                         color = titleColor,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -1108,7 +1108,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 7.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Chi tiết >",
+                                        text = "Details >",
                                         color = Color(0xFF38BDF8),
                                         fontSize = 9.5.sp,
                                         fontWeight = FontWeight.Bold
@@ -1120,7 +1120,7 @@ fun DynamicIslandView(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
-                                // Metric 1: Năng lượng AI
+                                // Metric 1: AI Energy
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1128,7 +1128,7 @@ fun DynamicIslandView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "⚡ Năng lượng AI",
+                                            text = "⚡ AI Energy",
                                             color = subtitleColor,
                                             fontSize = 9.5.sp,
                                             fontWeight = FontWeight.Medium
@@ -1148,7 +1148,7 @@ fun DynamicIslandView(
                                     )
                                 }
 
-                                // Metric 2: Tập trung
+                                // Metric 2: Focus
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1156,7 +1156,7 @@ fun DynamicIslandView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "🎯 Tập trung làm việc",
+                                            text = "🎯 Work Focus",
                                             color = subtitleColor,
                                             fontSize = 9.5.sp,
                                             fontWeight = FontWeight.Medium
@@ -1176,7 +1176,7 @@ fun DynamicIslandView(
                                     )
                                 }
 
-                                // Metric 3: Phục hồi
+                                // Metric 3: Recovery
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1184,7 +1184,7 @@ fun DynamicIslandView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "🌿 Thư giãn & Bù nước",
+                                            text = "🌿 Rest & Hydration",
                                             color = subtitleColor,
                                             fontSize = 9.5.sp,
                                             fontWeight = FontWeight.Medium
@@ -1241,7 +1241,7 @@ fun DynamicIslandView(
                                         )
                                     }
                                     Text(
-                                        text = "Giấc ngủ & Phục hồi",
+                                        text = "Sleep & Recovery",
                                         color = titleColor,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -1255,7 +1255,7 @@ fun DynamicIslandView(
                                         .padding(horizontal = 7.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Ổn định",
+                                        text = "Optimal",
                                         color = Color(0xFFC084FC),
                                         fontSize = 9.5.sp,
                                         fontWeight = FontWeight.Bold
@@ -1269,13 +1269,13 @@ fun DynamicIslandView(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Thời gian ngủ: 6h 30m",
+                                    text = "Sleep duration: 6h 30m",
                                     color = titleColor,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Mục tiêu 8h (81%)",
+                                    text = "8h goal (81%)",
                                     color = subtitleColor,
                                     fontSize = 10.5.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -1302,20 +1302,20 @@ fun DynamicIslandView(
 private fun selectMlCardIndex(hour: Int, tempInt: Int, weatherCode: Int, tasksCount: Int): Int {
     val weights = mutableMapOf<Int, Int>()
     if (hour in 5..10) {
-        weights[1] = 35 // Now Nudge Kế hoạch sáng
-        weights[5] = 30 // Giấc ngủ đêm qua & phục hồi
-        weights[4] = 20 // Báo cáo thói quen khung giờ vàng
-        weights[0] = 15 // Thời tiết sáng
+        weights[1] = 35 // Now Nudge morning plan
+        weights[5] = 30 // Last night's sleep & recovery
+        weights[4] = 20 // Golden hour habit report
+        weights[0] = 15 // Morning weather
     } else if (hour in 11..16) {
-        weights[0] = if (tempInt >= 30 || weatherCode in 51..99) 40 else 25 // Cảnh báo nắng nóng / mưa
-        weights[2] = 30 // Hoạt động thể chất / Bước chân / Calo
-        weights[4] = 25 // Báo cáo năng lượng
-        weights[1] = 20 // Kế hoạch chiều
+        weights[0] = if (tempInt >= 30 || weatherCode in 51..99) 40 else 25 // Heat / rain alert
+        weights[2] = 30 // Physical activity / Steps / Calories
+        weights[4] = 25 // Energy report
+        weights[1] = 20 // Afternoon plan
     } else {
-        weights[3] = if (tasksCount > 0) 40 else 20 // Lịch trình sắp tới
-        weights[5] = 30 // Giấc ngủ & phục hồi đêm
-        weights[4] = 25 // Báo cáo thói quen
-        weights[0] = 15 // Thời tiết đêm
+        weights[3] = if (tasksCount > 0) 40 else 20 // Upcoming schedule
+        weights[5] = 30 // Night sleep & recovery
+        weights[4] = 25 // Habit report
+        weights[0] = 15 // Night weather
     }
     val pool = mutableListOf<Int>()
     for (i in 0..5) {

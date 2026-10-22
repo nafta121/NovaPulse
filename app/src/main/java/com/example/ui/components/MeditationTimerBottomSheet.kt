@@ -123,13 +123,13 @@ fun MeditationTimerBottomSheet(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Thiền tĩnh lặng 5 phút",
+                            text = "5-Minute Mindful Meditation",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isNight) Color.White else Color(0xFF0F172A)
                         )
                         Text(
-                            text = "Nhắm mắt & thả lỏng tâm trí",
+                            text = "Close your eyes & relax your mind",
                             fontSize = 12.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                         )
@@ -139,7 +139,7 @@ fun MeditationTimerBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Đóng",
+                        contentDescription = "Close",
                         tint = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                     )
                 }
@@ -178,7 +178,7 @@ fun MeditationTimerBottomSheet(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (isFinished) "Hoàn thành 5 phút thiền" else "Tập trung hơi thở",
+                        text = if (isFinished) "Completed 5-minute meditation" else "Focus on your breath",
                         fontSize = 13.sp,
                         color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                     )
@@ -206,7 +206,7 @@ fun MeditationTimerBottomSheet(
                     ) {
                         Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Thiền lại", fontWeight = FontWeight.Bold)
+                        Text("Meditate again", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Button(
@@ -224,7 +224,7 @@ fun MeditationTimerBottomSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isRunning) "Tạm dừng" else "Bắt đầu thiền",
+                            text = if (isRunning) "Pause" else "Start meditation",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )

@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.example.core.engine.NowNudgeItem
 
 /**
- * Thẻ Now Nudge chuẩn One UI 9 Liquid Glassmorphism:
- * Thiết kế đồng bộ 100% với hệ thống thẻ Dashboard (Bo góc 26dp, Padding 20dp, Kính mờ xuyên thấu).
+ * Now Nudge Card following One UI 9 Liquid Glassmorphism:
+ * 100% unified with the Dashboard card system (26dp rounded corners, 20dp padding, translucent frosted glass).
  */
 @Composable
 fun NowNudgeCard(
@@ -71,7 +71,7 @@ fun NowNudgeCard(
         label = "nudge_button_scale"
     )
 
-    // Container Glass Tint đồng bộ với One UI 9 Dashboard
+    // Container Glass Tint unified with One UI 9 Dashboard
     val containerGlassColor = if (isDark) {
         Color(0xFF1E1B4B).copy(alpha = 0.22f)
     } else {
@@ -140,7 +140,7 @@ fun NowNudgeCard(
                             color = if (isDark) Color(0xFF818CF8) else Color(0xFF4F46E5)
                         )
                         Text(
-                            text = "Gợi ý thông minh",
+                            text = "Smart suggestion",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Normal,
                             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
@@ -179,7 +179,7 @@ fun NowNudgeCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Interactive One UI 9 Pill Action Button (Translucent Pastel / One UI Mờ)
+            // Interactive One UI 9 Pill Action Button (Translucent Pastel / Frosted One UI)
             val buttonContainerColor = if (isDark) {
                 Color(0xFF6366F1).copy(alpha = 0.22f)
             } else {

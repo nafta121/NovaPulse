@@ -82,12 +82,12 @@ enum class MediaPlatform {
 }
 
 /**
- * Thẻ Đề xuất Đa phương tiện Thông minh (YouTube & Spotify)
- * Hỗ trợ:
- * 1. Bắt bài hát thực tế người dùng vừa nghe trên máy (YouTube / Spotify / Zing MP3)
- * 2. Đa dạng thể loại: V-Pop & Nghệ sĩ, Pop/Ballad/Rap, Podcast, Lofi/Acoustic
- * 3. Tìm kiếm và chọn nhanh nghệ sĩ yêu thích (Sơn Tùng, Đen Vâu, Vũ, HIEUTHUHAI...)
- * 4. Nút 1 chạm mở thẳng ứng dụng cá nhân
+ * Smart Multimedia Recommendation Card (YouTube & Spotify)
+ * Supports:
+ * 1. Detecting actual tracks recently played on the device (YouTube / Spotify / Zing MP3)
+ * 2. Diverse categories: V-Pop & Artists, Pop/Ballad/Rap, Podcasts, Lofi/Acoustic
+ * 3. Quick search and selection of favorite artists
+ * 4. One-tap button to open the personal media app directly
  */
 @Composable
 fun SmartMusicCard(
@@ -157,7 +157,7 @@ fun SmartMusicCard(
         } else if (selectedPlatform == MediaPlatform.SPOTIFY) {
             spotifyRec.genreTag
         } else {
-            filteredVideos.firstOrNull()?.channelTitle ?: "Phát trực tiếp"
+            filteredVideos.firstOrNull()?.channelTitle ?: "Live stream"
         }
     }
 
@@ -278,7 +278,7 @@ fun SmartMusicCard(
                     }
                 }
 
-                // Nút Mở Ứng Dụng Chính Thức
+                // Open Official App Button
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -294,7 +294,7 @@ fun SmartMusicCard(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = if (selectedPlatform == MediaPlatform.YOUTUBE) "Mở YouTube" else "Mở Spotify",
+                        text = if (selectedPlatform == MediaPlatform.YOUTUBE) "Open YouTube" else "Open Spotify",
                         color = activeAccentColor,
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold
@@ -309,7 +309,7 @@ fun SmartMusicCard(
             }
 
             // -------------------------------------------------------------
-            // [DEVICE RECENT PLAYBACK BANNER]: Bài hát thực tế vừa nghe trên máy
+            // [DEVICE RECENT PLAYBACK BANNER]: Actual track recently played on device
             // -------------------------------------------------------------
             if (recentPlayback != null && recentPlayback!!.title.isNotBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
@@ -347,7 +347,7 @@ fun SmartMusicCard(
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text(
-                                text = "Vừa phát: ${recentPlayback!!.title}",
+                                text = "Recently played: ${recentPlayback!!.title}",
                                 color = titleColor,
                                 fontSize = 12.5.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -366,7 +366,7 @@ fun SmartMusicCard(
 
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Phát lại",
+                        contentDescription = "Replay",
                         tint = activeAccentColor,
                         modifier = Modifier.size(20.dp)
                     )
@@ -376,7 +376,7 @@ fun SmartMusicCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // -------------------------------------------------------------
-            // [CAPSULE MINI PLAYER]: Thanh Mini Player 1 chạm
+            // [CAPSULE MINI PLAYER]: One-tap Mini Player Bar
             // -------------------------------------------------------------
             MediaCapsuleMiniPlayer(
                 title = currentDisplayTitle,
@@ -419,7 +419,7 @@ fun SmartMusicCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // -------------------------------------------------------------
-            // [QUICK ARTIST CHIPS]: Nghệ sĩ thịnh hành & Tìm kiếm theo sở thích
+            // [QUICK ARTIST CHIPS]: Trending artists & preference-based search
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier
@@ -594,7 +594,7 @@ fun SmartMusicCard(
 
                                         Icon(
                                             imageVector = Icons.Default.NorthEast,
-                                            contentDescription = "Mở video",
+                                            contentDescription = "Open video",
                                             tint = timeTextColor,
                                             modifier = Modifier.size(15.dp)
                                         )
@@ -691,7 +691,7 @@ fun SmartMusicCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "Nghe nhạc Spotify",
+                                    contentDescription = "Listen on Spotify",
                                     tint = if (isDark) Color.White else spotifyGreen,
                                     modifier = Modifier.size(22.dp)
                                 )
@@ -705,7 +705,7 @@ fun SmartMusicCard(
 }
 
 /**
- * Thanh Mini Player dạng Capsule chuẩn One UI với sóng nhạc động
+ * One UI Capsule Mini Player Bar with animated audio waveform
  */
 @Composable
 fun MediaCapsuleMiniPlayer(
@@ -885,7 +885,7 @@ fun MediaCapsuleMiniPlayer(
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Tạm dừng" else "Phát",
+                        contentDescription = if (isPlaying) "Pause" else "Play",
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )

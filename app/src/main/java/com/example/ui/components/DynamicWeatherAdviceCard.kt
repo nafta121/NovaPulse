@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.example.core.repository.RealWeatherData
 
 /**
- * Model dữ liệu gợi ý đồ dùng / hành động theo thời tiết
+ * Data model for weather-based gear and action recommendations
  */
 data class WeatherAdviceItem(
     val title: String,
@@ -74,12 +74,12 @@ object WeatherAdviceEngine {
         return if (!isDark) {
             // === LIGHT THEME (TRANSLUCENT FROSTED GLASS ONE UI 9) ===
             when {
-                // 1. Mưa / Dông
+                // 1. Rain / Thunderstorm
                 code in 51..67 || code in 80..99 -> {
                     WeatherAdviceItem(
-                        title = "Cảnh báo mưa dông",
-                        description = "Trời đang/sắp có mưa rào. Bạn nhớ mang theo ô (dù) hoặc áo mưa khi đi ra ngoài nhé!",
-                        actionBadges = listOf("☂️ Mang ô/dù", "🧥 Áo mưa", "🛵 Lái xe an toàn"),
+                        title = "Rain & storm alert",
+                        description = "Showers are happening or expected soon. Remember to bring an umbrella or raincoat when heading out!",
+                        actionBadges = listOf("☂️ Bring umbrella", "🧥 Raincoat", "🛵 Ride safely"),
                         containerBg = listOf(Color(0xFFE0F2FE).copy(alpha = 0.55f), Color(0xFFBAE6FD).copy(alpha = 0.45f)),
                         borderColor = Color.White.copy(alpha = 0.65f),
                         textColor = Color(0xFF0369A1),
@@ -92,19 +92,19 @@ object WeatherAdviceEngine {
                         dismissTint = Color(0xFF0369A1)
                     )
                 }
-                // 2. Nắng gắt / Nóng bức (temp >= 30°C)
+                // 2. Intense Sun / Hot Weather (temp >= 30°C)
                 !isNight && temp >= 30 -> {
                     val isDirectSun = code in 0..1
                     WeatherAdviceItem(
-                        title = if (isDirectSun) "Nắng gắt • Chỉ số UV cao" else "Trời nóng oi bức • Cần bù nước",
+                        title = if (isDirectSun) "Intense sun • High UV index" else "Hot & humid • Stay hydrated",
                         description = if (isDirectSun)
-                            "Nhiệt độ ngoài trời ~$temp°C. Bạn hãy đeo khẩu trang, đội mũ nón và thoa kem chống nắng khi di chuyển."
+                            "Outdoor temperature is ~$temp°C. Wear a mask, hat, and apply sunscreen when commuting."
                         else
-                            "Nhiệt độ ngoài trời ~$temp°C khá oi bức. Hãy bổ sung nước thường xuyên và hạn chế vận động nặng ngoài trời giữa trưa.",
+                            "Outdoor temperature is ~$temp°C and quite humid. Drink water regularly and limit heavy outdoor exercise around midday.",
                         actionBadges = if (isDirectSun)
-                            listOf("🧢 Đội mũ/nón", "🧴 Thoa kem chống nắng", "💧 Mang bình nước")
+                            listOf("🧢 Wear a hat", "🧴 Apply sunscreen", "💧 Bring water bottle")
                         else
-                            listOf("💧 Uống đủ nước", "🥤 Bổ sung khoáng", "🌳 Tránh nắng gắt"),
+                            listOf("💧 Drink plenty of water", "🥤 Replenish electrolytes", "🌳 Avoid harsh sun"),
                         containerBg = listOf(Color(0xFFFFF7ED).copy(alpha = 0.55f), Color(0xFFFFEDD5).copy(alpha = 0.45f)),
                         borderColor = Color.White.copy(alpha = 0.65f),
                         textColor = Color(0xFF9A3412),
@@ -117,12 +117,12 @@ object WeatherAdviceEngine {
                         dismissTint = Color(0xFF9A3412)
                     )
                 }
-                // 3. Ban đêm
+                // 3. Nighttime
                 isNight -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết về đêm • Dịu mát",
-                        description = "Nhiệt độ hạ dần ~$temp°C. Khoác nhẹ một chiếc áo mỏng nếu bạn có lịch trình đi ra ngoài muộn nhé.",
-                        actionBadges = listOf("🧥 Áo khoác mỏng", "🍵 Trà ấm", "🌙 Nghỉ ngơi sớm"),
+                        title = "Night weather • Cool & pleasant",
+                        description = "Temperature is dropping to ~$temp°C. Bring a light jacket if you have late plans outdoors.",
+                        actionBadges = listOf("🧥 Light jacket", "🍵 Warm tea", "🌙 Rest early"),
                         containerBg = listOf(Color(0xFFF5F3FF).copy(alpha = 0.55f), Color(0xFFEDE9FE).copy(alpha = 0.45f)),
                         borderColor = Color.White.copy(alpha = 0.65f),
                         textColor = Color(0xFF3730A3),
@@ -135,12 +135,12 @@ object WeatherAdviceEngine {
                         dismissTint = Color(0xFF3730A3)
                     )
                 }
-                // 4. Trời se lạnh (temp <= 22°C)
+                // 4. Chilly weather (temp <= 22°C)
                 temp <= 22 -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết se lạnh",
-                        description = "Nhiệt độ ngoài trời ~$temp°C se lạnh. Hãy giữ ấm cơ thể khi ra ngoài để bảo vệ sức khỏe.",
-                        actionBadges = listOf("🧥 Áo khoác ấm", "🧣 Giữ ấm", "🍵 Nước ấm"),
+                        title = "Chilly weather",
+                        description = "Outdoor temperature is a chilly ~$temp°C. Keep warm when going outside to protect your health.",
+                        actionBadges = listOf("🧥 Warm jacket", "🧣 Keep warm", "🍵 Warm water"),
                         containerBg = listOf(Color(0xFFF0F9FF).copy(alpha = 0.55f), Color(0xFFE0F2FE).copy(alpha = 0.45f)),
                         borderColor = Color.White.copy(alpha = 0.65f),
                         textColor = Color(0xFF0369A1),
@@ -153,12 +153,12 @@ object WeatherAdviceEngine {
                         dismissTint = Color(0xFF0369A1)
                     )
                 }
-                // 5. Mát mẻ / Thời tiết lý tưởng (23°C - 29°C)
+                // 5. Cool / Ideal weather (23°C - 29°C)
                 else -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết lý tưởng",
-                        description = "Thời tiết hôm nay ~$temp°C rất dịu mát và dễ chịu. Rất thích hợp cho các hoạt động ngoài trời hoặc đi dạo.",
-                        actionBadges = listOf("🏃 Vận động ngoài trời", "☕ Đi dạo / Cà phê", "🌿 Hít thở không khí"),
+                        title = "Ideal weather",
+                        description = "Today's weather is ~$temp°C, very pleasant and comfortable. Great for outdoor activities or a walk.",
+                        actionBadges = listOf("🏃 Outdoor exercise", "☕ Walk / Coffee", "🌿 Fresh air"),
                         containerBg = listOf(Color(0xFFECFDF5).copy(alpha = 0.55f), Color(0xFFD1FAE5).copy(alpha = 0.45f)),
                         borderColor = Color.White.copy(alpha = 0.65f),
                         textColor = Color(0xFF065F46),
@@ -177,9 +177,9 @@ object WeatherAdviceEngine {
             when {
                 code in 51..67 || code in 80..99 -> {
                     WeatherAdviceItem(
-                        title = "Cảnh báo mưa dông",
-                        description = "Trời đang/sắp có mưa rào. Bạn nhớ mang theo ô (dù) hoặc áo mưa khi đi ra ngoài nhé!",
-                        actionBadges = listOf("☂️ Mang ô/dù", "🧥 Áo mưa", "🛵 Lái xe an toàn"),
+                        title = "Rain & storm alert",
+                        description = "Showers are happening or expected soon. Remember to bring an umbrella or raincoat when heading out!",
+                        actionBadges = listOf("☂️ Bring umbrella", "🧥 Raincoat", "🛵 Ride safely"),
                         containerBg = listOf(Color(0xFF1E3A8A).copy(alpha = 0.55f), Color(0xFF1E293B).copy(alpha = 0.65f)),
                         borderColor = Color.White.copy(alpha = 0.22f),
                         textColor = Color.White,
@@ -195,15 +195,15 @@ object WeatherAdviceEngine {
                 !isNight && temp >= 30 -> {
                     val isDirectSun = code in 0..1
                     WeatherAdviceItem(
-                        title = if (isDirectSun) "Nắng gắt • Chỉ số UV cao" else "Trời nóng oi bức • Cần bù nước",
+                        title = if (isDirectSun) "Intense sun • High UV index" else "Hot & humid • Stay hydrated",
                         description = if (isDirectSun)
-                            "Nhiệt độ ngoài trời ~$temp°C. Bạn hãy đeo khẩu trang, đội mũ nón và thoa kem chống nắng khi di chuyển."
+                            "Outdoor temperature is ~$temp°C. Wear a mask, hat, and apply sunscreen when commuting."
                         else
-                            "Nhiệt độ ngoài trời ~$temp°C khá oi bức. Hãy bổ sung nước thường xuyên và hạn chế vận động nặng ngoài trời giữa trưa.",
+                            "Outdoor temperature is ~$temp°C and quite humid. Drink water regularly and limit heavy outdoor exercise around midday.",
                         actionBadges = if (isDirectSun)
-                            listOf("🧢 Đội mũ/nón", "🧴 Thoa kem chống nắng", "💧 Mang bình nước")
+                            listOf("🧢 Wear a hat", "🧴 Apply sunscreen", "💧 Bring water bottle")
                         else
-                            listOf("💧 Uống đủ nước", "🥤 Bổ sung khoáng", "🌳 Tránh nắng gắt"),
+                            listOf("💧 Drink plenty of water", "🥤 Replenish electrolytes", "🌳 Avoid harsh sun"),
                         containerBg = listOf(Color(0xFF7C2D12).copy(alpha = 0.55f), Color(0xFF1E293B).copy(alpha = 0.65f)),
                         borderColor = Color.White.copy(alpha = 0.22f),
                         textColor = Color.White,
@@ -218,9 +218,9 @@ object WeatherAdviceEngine {
                 }
                 isNight -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết về đêm • Dịu mát",
-                        description = "Nhiệt độ hạ dần ~$temp°C. Khoác nhẹ một chiếc áo mỏng nếu bạn có lịch trình đi ra ngoài muộn nhé.",
-                        actionBadges = listOf("🧥 Áo khoác mỏng", "🍵 Trà ấm", "🌙 Nghỉ ngơi sớm"),
+                        title = "Night weather • Cool & pleasant",
+                        description = "Temperature is dropping to ~$temp°C. Bring a light jacket if you have late plans outdoors.",
+                        actionBadges = listOf("🧥 Light jacket", "🍵 Warm tea", "🌙 Rest early"),
                         containerBg = listOf(Color(0xFF312E81).copy(alpha = 0.55f), Color(0xFF0F172A).copy(alpha = 0.65f)),
                         borderColor = Color.White.copy(alpha = 0.22f),
                         textColor = Color.White,
@@ -235,9 +235,9 @@ object WeatherAdviceEngine {
                 }
                 temp <= 22 -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết se lạnh",
-                        description = "Nhiệt độ ngoài trời ~$temp°C se lạnh. Hãy giữ ấm cơ thể khi ra ngoài để bảo vệ sức khỏe.",
-                        actionBadges = listOf("🧥 Áo khoác ấm", "🧣 Giữ ấm", "🍵 Nước ấm"),
+                        title = "Chilly weather",
+                        description = "Outdoor temperature is a chilly ~$temp°C. Keep warm when going outside to protect your health.",
+                        actionBadges = listOf("🧥 Warm jacket", "🧣 Keep warm", "🍵 Warm water"),
                         containerBg = listOf(Color(0xFF1E3A8A).copy(alpha = 0.45f), Color(0xFF0F172A).copy(alpha = 0.65f)),
                         borderColor = Color.White.copy(alpha = 0.22f),
                         textColor = Color.White,
@@ -252,9 +252,9 @@ object WeatherAdviceEngine {
                 }
                 else -> {
                     WeatherAdviceItem(
-                        title = "Thời tiết lý tưởng",
-                        description = "Thời tiết hôm nay ~$temp°C rất dịu mát và dễ chịu. Rất thích hợp cho các hoạt động ngoài trời hoặc đi dạo.",
-                        actionBadges = listOf("🏃 Vận động ngoài trời", "☕ Đi dạo / Cà phê", "🌿 Hít thở không khí"),
+                        title = "Ideal weather",
+                        description = "Today's weather is ~$temp°C, very pleasant and comfortable. Great for outdoor activities or a walk.",
+                        actionBadges = listOf("🏃 Outdoor exercise", "☕ Walk / Coffee", "🌿 Fresh air"),
                         containerBg = listOf(Color(0xFF065F46).copy(alpha = 0.55f), Color(0xFF0F172A).copy(alpha = 0.65f)),
                         borderColor = Color.White.copy(alpha = 0.22f),
                         textColor = Color.White,
@@ -273,7 +273,7 @@ object WeatherAdviceEngine {
 }
 
 /**
- * Card Nhắc nhở Thời tiết Động với hiệu ứng Kính mờ Trong suốt Glassmorphism
+ * Dynamic Weather Advice Card with translucent frosted Glassmorphism effect
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -354,7 +354,7 @@ fun DynamicWeatherAdviceCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Ẩn thẻ",
+                                contentDescription = "Dismiss card",
                                 tint = advice.dismissTint,
                                 modifier = Modifier.size(15.dp)
                             )
@@ -380,7 +380,7 @@ fun DynamicWeatherAdviceCard(
 
                         Spacer(modifier = Modifier.width(12.dp))
 
-                        // High-Res Hero Weather Sticker với Nhún nhảy Floating Anim
+                        // High-Res Hero Weather Sticker with bouncing floating animation
                         WeatherStickerImage(
                             weatherCode = weather?.weatherCode ?: 0,
                             isNight = isNight,
@@ -391,7 +391,7 @@ fun DynamicWeatherAdviceCard(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Action Badges Row (Tương tác tích chọn vật dụng/hành động đã chuẩn bị)
+                    // Action Badges Row (Interactive checkable gear/actions prepared)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -427,7 +427,7 @@ fun DynamicWeatherAdviceCard(
                                 }
 
                                 Text(
-                                    text = if (isChecked) "$badge (Đã chuẩn bị)" else badge,
+                                    text = if (isChecked) "$badge (Ready)" else badge,
                                     color = advice.badgeText,
                                     fontSize = 12.5.sp,
                                     fontWeight = if (isChecked) FontWeight.Bold else FontWeight.SemiBold

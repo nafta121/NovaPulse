@@ -137,7 +137,7 @@ class NowBriefWidget : GlanceAppWidget() {
         val tempDisplayStr = "${currentTempInt}°C"
 
         val providerSummary =
-            com.example.core.ai.BriefingContentProvider.getHeaderSummary(currentSession, currentTempInt, "trời mát mẻ")
+            com.example.core.ai.BriefingContentProvider.getHeaderSummary(currentSession, currentTempInt, "pleasant weather")
         val nextTaskTitle = upcomingTasks.firstOrNull()?.title
         val subtitleRaw = when {
             !nextTaskTitle.isNullOrBlank() -> nextTaskTitle
@@ -151,7 +151,7 @@ class NowBriefWidget : GlanceAppWidget() {
             currentSession,
             currentTempInt
         ).cleanEmoji()
-        val task2 = (upcomingTasks.getOrNull(1)?.title ?: "Uống 500ml nước & thở sâu 3 phút").cleanEmoji()
+        val task2 = (upcomingTasks.getOrNull(1)?.title ?: "Drink 500ml water & take 3 mins of deep breaths").cleanEmoji()
 
         val fullCardTitle = activeGreeting.title
         val rawSummary = (if (aiBriefing.isNotBlank()) aiBriefing else activeGreeting.subtitle)
@@ -171,7 +171,7 @@ class NowBriefWidget : GlanceAppWidget() {
                 val size = LocalSize.current
 
                 if (size.height < 80.dp) {
-                    // Kích thước nhỏ 2x1, 3x1, 4x1: Render dạng thanh Capsule 56dp (Google Bar Style)
+                    // Small sizes 2x1, 3x1, 4x1: Render as 56dp Capsule Bar (Google Bar Style)
                     CapsulePillView(
                         context = context,
                         title = greetingTitle,
@@ -185,7 +185,7 @@ class NowBriefWidget : GlanceAppWidget() {
                         subtitleColor = subtitleColor
                     )
                 } else {
-                    // Kích thước lớn 3x3, 4x4: Render dạng Thẻ Lớn Full Card (Frosted Glass Blur)
+                    // Large sizes 3x3, 4x4: Render as Full Card (Frosted Glass Blur)
                     FullDashboardCardView(
                         context = context,
                         title = fullCardTitle,
@@ -269,7 +269,7 @@ class NowBriefWidget : GlanceAppWidget() {
     )
 
     // =========================================================================
-    // 1. CAPSULE PILL VIEW (Kích thước mỏng < 80dp — 2x1, 3x1, 4x1 Google Bar Style)
+    // 1. CAPSULE PILL VIEW (Compact height < 80dp — 2x1, 3x1, 4x1 Google Bar Style)
     // =========================================================================
     @Composable
     private fun CapsulePillView(
@@ -301,7 +301,7 @@ class NowBriefWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon tròn bên trái: Cố định GlanceModifier.size(46.dp).cornerRadius(23.dp)
+                // Left circular icon: Fixed GlanceModifier.size(46.dp).cornerRadius(23.dp)
                 Box(
                     modifier = GlanceModifier
                         .size(46.dp)
@@ -391,7 +391,7 @@ class NowBriefWidget : GlanceAppWidget() {
     }
 
     // =========================================================================
-    // 2. FULL DASHBOARD CARD VIEW (Kích thước lớn >= 80dp — 3x3, 4x4 Now Brief Card Style)
+    // 2. FULL DASHBOARD CARD VIEW (Large size >= 80dp — 3x3, 4x4 Now Brief Card Style)
     // =========================================================================
     @Composable
     private fun FullDashboardCardView(
@@ -418,13 +418,13 @@ class NowBriefWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Top
             ) {
-                // Góc trên: Icon tròn mặt trời hoàng hôn (Size 44dp)
+                // Top corner: Circular sunset horizon icon (Size 44dp)
                 Box(
                     modifier = GlanceModifier
                         .size(44.dp)
                         .background(iconBgProvider)
                         .cornerRadius(22.dp),
-                    contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center
                 ) {
                     Image(
                         provider = ImageProvider(R.drawable.ic_capsule_horizon),
@@ -433,10 +433,10 @@ class NowBriefWidget : GlanceAppWidget() {
                     )
                 }
 
-                // Spacer giãn cách tự động
+                // Auto-expanding spacer
                 Spacer(modifier = GlanceModifier.defaultWeight())
 
-                // Góc dưới: Tiêu đề & Nội dung tóm tắt AI
+                // Bottom corner: Title & AI summary content
                 Column(
                     modifier = GlanceModifier.fillMaxWidth()
                 ) {
@@ -465,7 +465,7 @@ class NowBriefWidget : GlanceAppWidget() {
     }
 
     // =========================================================================
-    // 2. SIZE VUÔNG 2x2 (Thời tiết + Điểm năng lượng + Mascot/Biểu tượng)
+    // 2. SQUARE SIZE 2x2 (Weather + Energy Score + Mascot/Icon)
     // =========================================================================
     @Composable
     private fun SquareWidget2x2(
@@ -604,7 +604,7 @@ class NowBriefWidget : GlanceAppWidget() {
     }
 
     // =========================================================================
-    // 3. SIZE TRUNG BÌNH 4x2 (Capsule Briefing + Lịch trình & Phím tắt)
+    // 3. MEDIUM SIZE 4x2 (Capsule Briefing + Schedule & Shortcuts)
     // =========================================================================
     @Composable
     private fun MediumWidget4x2(
@@ -699,14 +699,14 @@ class NowBriefWidget : GlanceAppWidget() {
 
                 Spacer(modifier = GlanceModifier.height(8.dp))
 
-                // Bottom Content: Cụm 3 Mini Card Chánh niệm (Tâm trạng / Thở 3 phút / Thiền & Nhạc)
+                // Bottom Content: 3 Mindfulness Mini Cards (Mood / 3-Min Breath / Meditation & Music)
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .defaultWeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Card 1: Tâm trạng
+                    // Card 1: Mood
                     Box(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -722,12 +722,12 @@ class NowBriefWidget : GlanceAppWidget() {
                         ) {
                             Image(
                                 provider = ImageProvider(R.drawable.ic_widget_task),
-                                contentDescription = "Tâm trạng",
+                                contentDescription = "Mood",
                                 modifier = GlanceModifier.size(18.dp)
                             )
                             Spacer(modifier = GlanceModifier.height(2.dp))
                             Text(
-                                text = "Tâm trạng",
+                                text = "Mood",
                                 style = TextStyle(
                                     color = ColorProvider(if (isLight) Color(0xFF0284C7) else Color(0xFF38BDF8)),
                                     fontSize = 10.5.sp,
@@ -739,7 +739,7 @@ class NowBriefWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.width(6.dp))
 
-                    // Card 2: Thở 3 phút
+                    // Card 2: 3-Min Breath
                     Box(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -755,12 +755,12 @@ class NowBriefWidget : GlanceAppWidget() {
                         ) {
                             Image(
                                 provider = ImageProvider(R.drawable.ic_widget_mindful),
-                                contentDescription = "Thở",
+                                contentDescription = "Breathe",
                                 modifier = GlanceModifier.size(18.dp)
                             )
                             Spacer(modifier = GlanceModifier.height(2.dp))
                             Text(
-                                text = "Thở 3 phút",
+                                text = "3-Min Breath",
                                 style = TextStyle(
                                     color = ColorProvider(if (isLight) Color(0xFF7C3AED) else Color(0xFFA78BFA)),
                                     fontSize = 10.5.sp,
@@ -772,7 +772,7 @@ class NowBriefWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.width(6.dp))
 
-                    // Card 3: Thiền & Nhạc
+                    // Card 3: Meditation & Music
                     Box(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -788,12 +788,12 @@ class NowBriefWidget : GlanceAppWidget() {
                         ) {
                             Image(
                                 provider = ImageProvider(R.drawable.ic_widget_music),
-                                contentDescription = "Thiền",
+                                contentDescription = "Meditate",
                                 modifier = GlanceModifier.size(18.dp)
                             )
                             Spacer(modifier = GlanceModifier.height(2.dp))
                             Text(
-                                text = "Thiền & Nhạc",
+                                text = "Zen & Music",
                                 style = TextStyle(
                                     color = ColorProvider(if (isLight) Color(0xFF059669) else Color(0xFF34D399)),
                                     fontSize = 10.5.sp,
@@ -808,7 +808,7 @@ class NowBriefWidget : GlanceAppWidget() {
     }
 
     // =========================================================================
-    // 4. SIZE LỚN 4x4 (Capsule Briefing + Lịch trình + Mini Chánh niệm & Âm nhạc)
+    // 4. LARGE SIZE 4x4 (Capsule Briefing + Schedule + Mini Mindfulness & Music)
     // =========================================================================
     @Composable
     private fun LargeWidget4x4(
@@ -916,7 +916,7 @@ class NowBriefWidget : GlanceAppWidget() {
                         )
                         Spacer(modifier = GlanceModifier.width(4.dp))
                         Text(
-                            text = "Năng lượng: $energyScore%",
+                            text = "Energy: $energyScore%",
                             style = TextStyle(
                                 color = ColorProvider(if (isLight) Color(0xFF0284C7) else Color(0xFF38BDF8)),
                                 fontSize = 11.5.sp,
@@ -944,7 +944,7 @@ class NowBriefWidget : GlanceAppWidget() {
                     modifier = GlanceModifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Lịch trình & Việc ưu tiên",
+                        text = "Schedule & Priority Tasks",
                         style = TextStyle(
                             color = ColorProvider(subColor),
                             fontSize = 11.sp,
@@ -1012,12 +1012,12 @@ class NowBriefWidget : GlanceAppWidget() {
 
                 Spacer(modifier = GlanceModifier.defaultWeight())
 
-                // Bottom Section: Mini Widgets (Chánh niệm & Âm nhạc thư giãn)
+                // Bottom Section: Mini Widgets (Mindfulness & Relaxing Music)
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Chánh niệm Card
+                    // Mindfulness Card
                     Box(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -1035,7 +1035,7 @@ class NowBriefWidget : GlanceAppWidget() {
                             Spacer(modifier = GlanceModifier.width(6.dp))
                             Column {
                                 Text(
-                                    text = "Chánh niệm",
+                                    text = "Mindfulness",
                                     style = TextStyle(
                                         color = ColorProvider(if (isLight) Color(0xFF7C3AED) else Color(0xFFA78BFA)),
                                         fontSize = 11.sp,
@@ -1043,7 +1043,7 @@ class NowBriefWidget : GlanceAppWidget() {
                                     )
                                 )
                                 Text(
-                                    text = "3 phút thở sâu",
+                                    text = "3-min deep breath",
                                     style = TextStyle(
                                         color = ColorProvider(subColor),
                                         fontSize = 10.sp,
@@ -1056,7 +1056,7 @@ class NowBriefWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.width(8.dp))
 
-                    // Âm nhạc Card
+                    // Music Card
                     Box(
                         modifier = GlanceModifier
                             .defaultWeight()
@@ -1074,7 +1074,7 @@ class NowBriefWidget : GlanceAppWidget() {
                             Spacer(modifier = GlanceModifier.width(6.dp))
                             Column {
                                 Text(
-                                    text = "Âm nhạc Lofi",
+                                    text = "Lofi Music",
                                     style = TextStyle(
                                         color = ColorProvider(if (isLight) Color(0xFFDB2777) else Color(0xFFF472B6)),
                                         fontSize = 11.sp,
@@ -1082,7 +1082,7 @@ class NowBriefWidget : GlanceAppWidget() {
                                     )
                                 )
                                 Text(
-                                    text = "Sóng não Beta",
+                                    text = "Beta brainwaves",
                                     style = TextStyle(
                                         color = ColorProvider(subColor),
                                         fontSize = 10.sp,

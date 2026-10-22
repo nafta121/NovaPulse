@@ -47,14 +47,14 @@ class ScreenTimeRepository(private val context: Context) {
         if (!isUsageAccessGranted()) {
             return RealScreenTimeData(
                 totalScreenTimeTodayMillis = 0L,
-                formattedDuration = "0g 0p",
+                formattedDuration = "0h 0m",
                 weeklyHistory = emptyList(),
                 hasPermission = false
             )
         }
 
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            ?: return RealScreenTimeData(0L, "0g 0p", emptyList(), hasPermission = false)
+            ?: return RealScreenTimeData(0L, "0h 0m", emptyList(), hasPermission = false)
 
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -83,10 +83,10 @@ class ScreenTimeRepository(private val context: Context) {
 
         val hours = (todayScreenTimeMillis / (1000 * 60 * 60)).toInt()
         val minutes = ((todayScreenTimeMillis % (1000 * 60 * 60)) / (1000 * 60)).toInt()
-        val formatted = "${hours}g ${minutes}p"
+        val formatted = "${hours}h ${minutes}m"
 
         // Calculate last 7 days history
-        val dayLabels = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+        val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         val currentDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         // In Java Calendar, SUNDAY=1, MONDAY=2, ... SATURDAY=7
         val todayIdx = if (currentDayOfWeek == Calendar.SUNDAY) 6 else currentDayOfWeek - 2

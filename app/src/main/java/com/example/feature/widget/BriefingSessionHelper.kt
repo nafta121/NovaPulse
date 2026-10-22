@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import java.time.LocalTime
 
 /**
- * Cặp Tiêu đề và Phụ đề chúc mừng tương ứng
+ * Matching greeting title and subtitle pair
  */
 data class BriefingGreeting(
     val title: String,
@@ -12,7 +12,7 @@ data class BriefingGreeting(
 )
 
 /**
- * Phân loại 7 khung giờ chi tiết trong ngày chuẩn One UI 9
+ * 7 detailed daily time sessions following One UI 9 standards
  */
 enum class BriefingSession(
     val greetings: List<BriefingGreeting>,
@@ -22,109 +22,109 @@ enum class BriefingSession(
 ) {
     EARLY_MORNING(
         greetings = listOf(
-            BriefingGreeting("Good morning", "Khởi đầu ngày mới tràn đầy hứng khởi và năng lượng."),
-            BriefingGreeting("Have a good day", "Chúc bạn một ngày làm việc thật thuận lợi và suôn sẻ."),
-            BriefingGreeting("Rise and shine", "Thức giấc đón ánh bình minh và nạp một ly nước ấm."),
-            BriefingGreeting("Start your day", "Sắp xếp mục tiêu quan trọng và bắt đầu ngày mới rực rỡ."),
-            BriefingGreeting("Morning sunshine", "Tận hưởng không khí trong lành và chuẩn bị ngày mới tươi đẹp."),
-            BriefingGreeting("Fresh start", "Một ngày mới với những cơ hội và trải nghiệm mới mẻ."),
-            BriefingGreeting("Ready for today", "Tự tin và sẵn sàng chinh phục mọi kế hoạch hôm nay."),
-            BriefingGreeting("Early bird", "Dậy sớm đón bình minh để làm chủ ngày dài năng động."),
-            BriefingGreeting("Wake up & thrive", "Đánh thức cơ thể, hít thở sâu và bắt nhịp ngày mới.")
+            BriefingGreeting("Good morning", "Start your new day filled with excitement and energy."),
+            BriefingGreeting("Have a good day", "Wishing you a smooth and productive day ahead."),
+            BriefingGreeting("Rise and shine", "Wake up to the dawn light and enjoy a glass of warm water."),
+            BriefingGreeting("Start your day", "Organize your key goals and kick off a brilliant day."),
+            BriefingGreeting("Morning sunshine", "Enjoy the fresh air and get ready for a wonderful day."),
+            BriefingGreeting("Fresh start", "A brand new day with fresh opportunities and experiences."),
+            BriefingGreeting("Ready for today", "Confident and ready to conquer all your plans today."),
+            BriefingGreeting("Early bird", "Rise early with the dawn to take charge of an active day."),
+            BriefingGreeting("Wake up & thrive", "Awaken your body, breathe deeply, and get into the rhythm of the day.")
         ),
-        sessionTag = "Bình minh",
+        sessionTag = "Dawn",
         emoji = "🌅",
         iconGradient = listOf(Color(0xFF00C6FF), Color(0xFF0072FF))
     ),
     MID_MORNING(
         greetings = listOf(
-            BriefingGreeting("Morning focus", "Khung giờ vàng cho sự tập trung và hiệu suất đỉnh cao."),
-            BriefingGreeting("Stay productive", "Giữ vững nhịp độ làm việc và hoàn thành các mục tiêu đề ra."),
-            BriefingGreeting("Keep the momentum", "Tiếp tục đà bứt phá để chinh phục các nhiệm vụ hôm nay."),
-            BriefingGreeting("Deep work", "Dành trọn sự chú ý cho những công việc quan trọng nhất."),
-            BriefingGreeting("In the zone", "Duy trì trạng thái tập trung cao độ để bứt phá hiệu quả."),
-            BriefingGreeting("Crush your goals", "Từng bước hoàn thành xuất sắc danh sách việc cần làm."),
-            BriefingGreeting("Stay sharp", "Tinh thần minh mẫn, giải quyết công việc nhanh gọn."),
-            BriefingGreeting("Focus mode", "Tạm gác phân tâm, tập trung tối đa cho kết quả tốt nhất."),
-            BriefingGreeting("Peak performance", "Thời điểm vàng để đạt năng suất làm việc vượt trội.")
+            BriefingGreeting("Morning focus", "Golden hours for deep focus and peak productivity."),
+            BriefingGreeting("Stay productive", "Maintain your work pace and accomplish your set goals."),
+            BriefingGreeting("Keep the momentum", "Keep up the momentum to conquer today's tasks."),
+            BriefingGreeting("Deep work", "Dedicate your full attention to your most important work."),
+            BriefingGreeting("In the zone", "Stay in a state of high concentration for breakthrough results."),
+            BriefingGreeting("Crush your goals", "Step by step, excellently complete your to-do list."),
+            BriefingGreeting("Stay sharp", "Keep a clear mind and tackle your tasks efficiently."),
+            BriefingGreeting("Focus mode", "Set aside distractions and maximize focus for the best outcomes."),
+            BriefingGreeting("Peak performance", "Prime time to achieve outstanding work productivity.")
         ),
-        sessionTag = "Buổi sáng",
+        sessionTag = "Morning",
         emoji = "☀️",
         iconGradient = listOf(Color(0xFF38BDF8), Color(0xFF0284C7))
     ),
     NOON(
         greetings = listOf(
-            BriefingGreeting("Midday recap", "Điểm lại buổi sáng và nạp lại năng lượng giữa ngày."),
-            BriefingGreeting("Lunch break", "Thưởng thức bữa trưa ngon miệng và để mắt nghỉ ngơi."),
-            BriefingGreeting("Time to recharge", "Chợp mắt 15-20 phút để sẵn sàng cho buổi chiều bùng nổ."),
-            BriefingGreeting("Midday breath", "Tạm rời màn hình, thả lỏng cơ thể và thư giãn đôi chút."),
-            BriefingGreeting("Refuel & relax", "Nạp đầy năng lượng với bữa ăn đủ chất và tâm trạng thoải mái."),
-            BriefingGreeting("Halfway there", "Đã đi được nửa chặng đường thành công của ngày hôm nay."),
-            BriefingGreeting("Take a pause", "Dành một khoảng lặng ngắn để làm mới lại tinh thần."),
-            BriefingGreeting("Noon refresh", "Uống một ngụm nước mát và khởi động lại sự tỉnh táo.")
+            BriefingGreeting("Midday recap", "Review your morning and recharge your energy for midday."),
+            BriefingGreeting("Lunch break", "Enjoy a delicious lunch and give your eyes a rest."),
+            BriefingGreeting("Time to recharge", "Take a 15-20 minute power nap to get ready for a productive afternoon."),
+            BriefingGreeting("Midday breath", "Step away from the screen, relax your body, and unwind a bit."),
+            BriefingGreeting("Refuel & relax", "Refuel with a nutritious meal and a relaxed mindset."),
+            BriefingGreeting("Halfway there", "You're halfway through a successful day."),
+            BriefingGreeting("Take a pause", "Take a short pause to refresh your mind."),
+            BriefingGreeting("Noon refresh", "Take a sip of cool water and reboot your alertness.")
         ),
-        sessionTag = "Buổi trưa",
+        sessionTag = "Noon",
         emoji = "🌤",
         iconGradient = listOf(Color(0xFFFBBF24), Color(0xFFF59E0B))
     ),
     AFTERNOON(
         greetings = listOf(
-            BriefingGreeting("Afternoon focus", "Duy trì sự tỉnh táo và đẩy nhanh tiến độ công việc."),
-            BriefingGreeting("Stay hydrated", "Uống thêm nước hoặc trà chiều để giữ tinh thần sảng khoái."),
-            BriefingGreeting("Power through", "Bứt phá vượt qua uể oải, hoàn tất các nhiệm vụ còn lại."),
-            BriefingGreeting("Good afternoon", "Duy trì nhịp làm việc hiệu quả và giữ vững phong độ."),
-            BriefingGreeting("Afternoon boost", "Thêm tách trà hoặc cà phê nhẹ để lấy lại sự hăng say."),
-            BriefingGreeting("Keep going", "Chỉ còn một chút nữa là hoàn thành trọn vẹn mục tiêu ngày."),
-            BriefingGreeting("Second wind", "Tìm lại nguồn cảm hứng mới cho các dự án buổi chiều."),
-            BriefingGreeting("Sprint finish", "Tập trung tăng tốc để về đích ngày làm việc thành công.")
+            BriefingGreeting("Afternoon focus", "Stay alert and accelerate your work progress."),
+            BriefingGreeting("Stay hydrated", "Drink more water or afternoon tea to keep your spirits refreshed."),
+            BriefingGreeting("Power through", "Push past afternoon sluggishness and finish your remaining tasks."),
+            BriefingGreeting("Good afternoon", "Maintain an effective workflow and stay on top of your game."),
+            BriefingGreeting("Afternoon boost", "Grab a light cup of tea or coffee to regain your enthusiasm."),
+            BriefingGreeting("Keep going", "Just a little further to fully accomplish today's goals."),
+            BriefingGreeting("Second wind", "Find fresh inspiration for your afternoon projects."),
+            BriefingGreeting("Sprint finish", "Focus and speed up to cross the finish line of a successful workday.")
         ),
-        sessionTag = "Buổi chiều",
+        sessionTag = "Afternoon",
         emoji = "⛅",
         iconGradient = listOf(Color(0xFF22D3EE), Color(0xFF0D9488))
     ),
     EVENING(
         greetings = listOf(
-            BriefingGreeting("Evening wind-down", "Gác lại công việc, tận hưởng hoàng hôn và vận động nhẹ."),
-            BriefingGreeting("Wrap up your day", "Tổng kết kết quả ngày hôm nay và chuẩn bị rời bàn làm việc."),
-            BriefingGreeting("Heading home", "Thư giãn trên đường về nhà và đón chào bữa tối ấm cúng."),
-            BriefingGreeting("Evening brief", "Thả lỏng tinh thần sau một ngày làm việc chăm chỉ."),
-            BriefingGreeting("Sunset vibes", "Ngắm ánh hoàng hôn buông xuống và cảm nhận sự bình yên."),
-            BriefingGreeting("Day completed", "Tự hào vì bạn đã nỗ lực hết mình trong suốt ngày hôm nay."),
-            BriefingGreeting("Clocking out", "Đóng lại công việc, mở ra khoảng thời gian cho gia đình."),
-            BriefingGreeting("Time to unwind", "Bước ra ngoài hít thở không khí dịu mát của buổi chiều tà.")
+            BriefingGreeting("Evening wind-down", "Set work aside, enjoy the sunset, and do some light exercise."),
+            BriefingGreeting("Wrap up your day", "Review today's achievements and get ready to leave your desk."),
+            BriefingGreeting("Heading home", "Relax on your way home and look forward to a cozy dinner."),
+            BriefingGreeting("Evening brief", "Unwind your mind after a hard day's work."),
+            BriefingGreeting("Sunset vibes", "Watch the sunset and feel the sense of peace."),
+            BriefingGreeting("Day completed", "Be proud of giving your best effort throughout the day."),
+            BriefingGreeting("Clocking out", "Close out work and open up quality time for family."),
+            BriefingGreeting("Time to unwind", "Step outside and breathe in the cool evening air.")
         ),
-        sessionTag = "Hoàng hôn",
+        sessionTag = "Sunset",
         emoji = "🌇",
         iconGradient = listOf(Color(0xFFF43F5E), Color(0xFFFB7185), Color(0xFFFBBF24))
     ),
     NIGHT(
         greetings = listOf(
-            BriefingGreeting("Night unwind", "Thư giãn, ăn tối và dành thời gian trọn vẹn cho bản thân."),
-            BriefingGreeting("Relax and recharge", "Giải tỏa căng thẳng bằng âm nhạc hoặc cuốn sách yêu thích."),
-            BriefingGreeting("Personal time", "Khoảnh khắc ấm áp bên người thân và chăm sóc chính mình."),
-            BriefingGreeting("Cozy evening", "Tận hưởng không gian ấm cúng, dễ chịu tại ngôi nhà của bạn."),
-            BriefingGreeting("Mindful evening", "Lắng đọng tâm hồn và biết ơn những điều tốt đẹp hôm nay."),
-            BriefingGreeting("Dinner & chill", "Thưởng thức bữa tối ngon lành và trò chuyện cùng người thân."),
-            BriefingGreeting("Peace of mind", "Để lại mọi áp lực phía sau và thư thái tận hưởng buổi tối."),
-            BriefingGreeting("Slow down", "Chậm lại một nhịp, lắng nghe cơ thể và chăm sóc bản thân.")
+            BriefingGreeting("Night unwind", "Relax, have dinner, and dedicate quality time to yourself."),
+            BriefingGreeting("Relax and recharge", "Relieve stress with your favorite music or a good book."),
+            BriefingGreeting("Personal time", "Warm moments with loved ones and self-care."),
+            BriefingGreeting("Cozy evening", "Enjoy the warm, comfortable atmosphere of your home."),
+            BriefingGreeting("Mindful evening", "Quiet your mind and be grateful for the good things today."),
+            BriefingGreeting("Dinner & chill", "Enjoy a delicious dinner and chat with family."),
+            BriefingGreeting("Peace of mind", "Leave all pressures behind and peacefully enjoy the night."),
+            BriefingGreeting("Slow down", "Slow down a beat, listen to your body, and take care of yourself.")
         ),
-        sessionTag = "Buổi tối",
+        sessionTag = "Night",
         emoji = "🌙",
         iconGradient = listOf(Color(0xFF818CF8), Color(0xFF6366F1))
     ),
     LATE_NIGHT(
         greetings = listOf(
-            BriefingGreeting("Sleep well", "Thả lỏng tâm trí, chuẩn bị cho một giấc ngủ thật sâu."),
-            BriefingGreeting("Late night", "Đêm đã về khuya, hãy để cơ thể được nghỉ ngơi phục hồi."),
-            BriefingGreeting("Sweet dreams", "Tắt các thiết bị điện tử và chìm vào giấc mơ ngọt ngào."),
-            BriefingGreeting("Time to rest", "Tạm gác mọi âu lo, chúc bạn có một đêm an giấc."),
-            BriefingGreeting("Late night recap", "Khép lại một ngày dài và nạp lại năng lượng cho ngày mai."),
-            BriefingGreeting("Night owl", "Nếu vẫn còn thức, hãy giữ ấm cơ thể và chuẩn bị đi ngủ nhé."),
-            BriefingGreeting("Quiet hours", "Không gian tĩnh lặng, thời điểm hoàn hảo để hồi phục năng lượng."),
-            BriefingGreeting("Drift away", "Thở chậm lại, thả lỏng toàn thân và chìm vào giấc ngủ ngon."),
-            BriefingGreeting("Restful sleep", "Chúc bạn có một giấc ngủ trọn vẹn để thức dậy tươi mới vào sáng mai.")
+            BriefingGreeting("Sleep well", "Relax your mind and prepare for a deep, restful sleep."),
+            BriefingGreeting("Late night", "It's getting late—let your body rest and recover."),
+            BriefingGreeting("Sweet dreams", "Turn off electronic devices and drift into sweet dreams."),
+            BriefingGreeting("Time to rest", "Put all worries aside; wishing you a peaceful night's sleep."),
+            BriefingGreeting("Late night recap", "Close out a long day and recharge your energy for tomorrow."),
+            BriefingGreeting("Night owl", "If you're still up, stay warm and get ready for bed soon."),
+            BriefingGreeting("Quiet hours", "Quiet hours—the perfect time to restore your energy."),
+            BriefingGreeting("Drift away", "Breathe slowly, relax your whole body, and fall into a sound sleep."),
+            BriefingGreeting("Restful sleep", "Wishing you a full night's sleep to wake up refreshed tomorrow.")
         ),
-        sessionTag = "Đêm muộn",
+        sessionTag = "Late Night",
         emoji = "🌌",
         iconGradient = listOf(Color(0xFF7C3AED), Color(0xFFDB2777))
     );
@@ -168,7 +168,7 @@ enum class BriefingSession(
 }
 
 /**
- * Information data structure cho Briefing Session
+ * Information data structure for Briefing Session
  */
 data class BriefingSessionInfo(
     val session: BriefingSession,
@@ -180,7 +180,7 @@ data class BriefingSessionInfo(
 )
 
 /**
- * Helper quản lý Tiêu đề & Subtitle chúc mừng linh hoạt theo 7 khung giờ trong ngày
+ * Helper managing dynamic greeting titles & subtitles across 7 daily time sessions
  */
 object BriefingSessionHelper {
 
@@ -202,26 +202,26 @@ object BriefingSessionHelper {
     }
 
     /**
-     * Hàm Guard làm sạch và kiểm tra khớp chuỗi Widget giữa Tiêu đề và Nội dung
+     * Guard function to sanitize and align widget text between title and content
      */
     fun sanitizeWidgetText(rawText: String, session: BriefingSession, currentTemp: Int = 28): String {
-        // Tự động thay thế số nhiệt độ cũ trong văn bản bằng nhiệt độ thực tế hiện tại
+        // Automatically replace outdated temperature numbers in text with the actual current temperature
         val updatedTempText = rawText
             .replace("\\d+°C".toRegex(), "${currentTemp}°C")
             .replace("\\d+°".toRegex(), "${currentTemp}°")
 
         if (session == BriefingSession.MID_MORNING || session == BriefingSession.EARLY_MORNING) {
             if (updatedTempText.contains(
-                    "Nhiệt độ hạ dần",
+                    "Temperature dropping",
                     ignoreCase = true
-                ) || updatedTempText.contains("Trời về đêm", ignoreCase = true)
+                ) || updatedTempText.contains("Night is falling", ignoreCase = true)
             ) {
-                return "Trời nắng nhẹ $currentTemp°C. Hãy tập trung cho các mục tiêu quan trọng sáng nay."
+                return "Mild sunshine at $currentTemp°C. Stay focused on your key goals this morning."
             }
         }
         if (session == BriefingSession.NOON) {
-            if (updatedTempText.contains("Chuẩn bị nghỉ ngơi", ignoreCase = true)) {
-                return "Giờ nghỉ trưa $currentTemp°C. Nạp lại năng lượng với bữa ăn và nghỉ ngơi nhẹ."
+            if (updatedTempText.contains("Get ready to rest", ignoreCase = true)) {
+                return "Lunch break at $currentTemp°C. Recharge with a good meal and some light rest."
             }
         }
         return updatedTempText

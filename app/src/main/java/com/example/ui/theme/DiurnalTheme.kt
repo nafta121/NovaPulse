@@ -27,10 +27,10 @@ import java.util.Calendar
 
 /**
  * 4 Diurnal Phases according to Samsung Now Brief Specification:
- * 1. Sáng (05h - 11h): Cyan -> Xanh Lam (#00E5FF -> #0091EA)
- * 2. Trưa/Chiều (11h - 17h): Vàng Cam -> Xanh Ngọc (#FFD54F -> #26A69A)
- * 3. Tối (17h - 22h): Hồng Hoàng Hôn -> Tím Pastel (#FF80AB -> #AB47BC)
- * 4. Đêm (22h - 05h): Tím Đậm -> Xanh Navy (#7C4DFF -> #303F9F)
+ * 1. Morning (05:00 - 11:00): Cyan -> Blue (#00E5FF -> #0091EA)
+ * 2. Afternoon (11:00 - 17:00): Amber -> Teal (#FFD54F -> #26A69A)
+ * 3. Evening (17:00 - 22:00): Sunset Pink -> Pastel Purple (#FF80AB -> #AB47BC)
+ * 4. Night (22:00 - 05:00): Deep Purple -> Navy Blue (#7C4DFF -> #303F9F)
  */
 enum class DiurnalPhase(
     val titleVi: String,
@@ -47,9 +47,9 @@ enum class DiurnalPhase(
     val bgGradientColors: List<Color>
 ) {
     MORNING(
-        titleVi = "Bình minh",
-        greeting = "Chào buổi sáng",
-        subtitle = "Bắt đầu ngày mới tràn đầy năng lượng.",
+        titleVi = "Dawn",
+        greeting = "Good morning",
+        subtitle = "Start your new day full of energy.",
         isDark = false,
         primaryColor = Color(0xFF00E5FF),
         secondaryColor = Color(0xFF0091EA),
@@ -64,9 +64,9 @@ enum class DiurnalPhase(
         )
     ),
     AFTERNOON(
-        titleVi = "Ban ngày",
-        greeting = "Chào buổi chiều",
-        subtitle = "Chúc bạn một buổi chiều làm việc hiệu quả.",
+        titleVi = "Daytime",
+        greeting = "Good afternoon",
+        subtitle = "Wishing you a productive afternoon.",
         isDark = false,
         primaryColor = Color(0xFFFFD54F),
         secondaryColor = Color(0xFF26A69A),
@@ -81,9 +81,9 @@ enum class DiurnalPhase(
         )
     ),
     EVENING(
-        titleVi = "Hoàng hôn",
-        greeting = "Hoàng hôn",
-        subtitle = "Thư giãn và tận hưởng ánh chiều tà.",
+        titleVi = "Sunset",
+        greeting = "Good evening",
+        subtitle = "Relax and enjoy the evening twilight.",
         isDark = false,
         primaryColor = Color(0xFFFF80AB),
         secondaryColor = Color(0xFFAB47BC),
@@ -98,9 +98,9 @@ enum class DiurnalPhase(
         )
     ),
     NIGHT(
-        titleVi = "Buổi tối",
-        greeting = "Chào buổi tối",
-        subtitle = "Thư giãn & nạp lại năng lượng cho ngày mai.",
+        titleVi = "Night",
+        greeting = "Good night",
+        subtitle = "Unwind & recharge your energy for tomorrow.",
         isDark = true,
         primaryColor = Color(0xFF7C4DFF),
         secondaryColor = Color(0xFF303F9F),
@@ -140,16 +140,16 @@ enum class DiurnalPhase(
             }
         }
 
-        /** Đồng bộ chính xác theo 7 mốc của BriefingSession (giống widget) */
+        /** Synchronized accurately with the 7 transitions of BriefingSession (same as widget) */
         fun fromHourAndMinute(hour: Int, minute: Int = 0): DiurnalPhase {
             val totalMins = hour * 60 + minute
             return when {
                 totalMins in (5 * 60)..(19 * 60 + 29) -> when {
-                    totalMins < (11 * 60 + 30) -> MORNING    // 05:00 - 11:29 (Bình minh + Buổi sáng)
-                    totalMins < (17 * 60) -> AFTERNOON       // 11:30 - 16:59 (Trưa + Chiều)
-                    else -> EVENING                          // 17:00 - 19:29 (Hoàng hôn)
+                    totalMins < (11 * 60 + 30) -> MORNING    // 05:00 - 11:29 (Dawn + Morning)
+                    totalMins < (17 * 60) -> AFTERNOON       // 11:30 - 16:59 (Noon + Afternoon)
+                    else -> EVENING                          // 17:00 - 19:29 (Sunset)
                 }
-                else -> NIGHT                               // 19:30 - 04:59 (Tối + Đêm muộn)
+                else -> NIGHT                               // 19:30 - 04:59 (Night + Late Night)
             }
         }
 
@@ -162,9 +162,9 @@ enum class DiurnalPhase(
 }
 
 /**
- * Dynamic Sunrise/Horizon Icon (Phong cách Samsung Now Brief)
- * - Nền: Squircle / Bo tròn đổ Gradient theo DiurnalPhase
- * - Nghệ thuật bên trong: Hình bán nguyệt mặt trời mọc/lặn ở đường chân trời + 2 vạch sóng nước uốn lượn
+ * Dynamic Sunrise/Horizon Icon (Samsung Now Brief Style)
+ * - Background: Squircle / Rounded corners with DiurnalPhase gradient
+ * - Inner artwork: Semicircle sun rising/setting on the horizon + 2 gentle wave lines
  */
 @Composable
 fun DynamicHorizonIcon(

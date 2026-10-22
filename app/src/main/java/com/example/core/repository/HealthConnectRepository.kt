@@ -27,7 +27,7 @@ import java.time.temporal.ChronoUnit
 data class RealHealthData(
     val sleepDurationMinutes: Long = 0L,
     val sleepDurationFormatted: String = "0h 00m",
-    val sleepStageSummary: String = "Giấc ngủ đêm qua",
+    val sleepStageSummary: String = "Last night's sleep",
     val averageHeartRateBpm: Int = 0,
     val minHeartRateBpm: Int = 0,
     val maxHeartRateBpm: Int = 0,
@@ -81,7 +81,7 @@ class HealthConnectRepository(private val context: Context) {
         val client = healthConnectClient ?: return false
         return try {
             val granted = client.permissionController.getGrantedPermissions()
-            // Chỉ cần cấp quyền Sleep hoặc Steps là cho phép truy vấn dữ liệu đã cấp
+            // Granting either Sleep, Steps, or HeartRate permission allows querying granted data
             granted.contains(HealthPermission.getReadPermission(SleepSessionRecord::class)) ||
             granted.contains(HealthPermission.getReadPermission(StepsRecord::class)) ||
             granted.contains(HealthPermission.getReadPermission(HeartRateRecord::class))
@@ -92,7 +92,7 @@ class HealthConnectRepository(private val context: Context) {
     }
 
     /**
-     * Truy vấn thực tế các record từ Health Connect bằng Aggregation Query linh hoạt
+     * Query real records from Health Connect using flexible aggregation queries
      */
     suspend fun fetchHealthData(): RealHealthData? {
         val client = healthConnectClient ?: return null
@@ -113,7 +113,7 @@ class HealthConnectRepository(private val context: Context) {
             val todayLocalDate = LocalDate.now(zoneId)
             val todayStart = todayLocalDate.atStartOfDay(zoneId).toInstant()
 
-            // 1. Query SleepSessionRecord (7 ngày gần nhất để đảm bảo bắt trọn giấc ngủ đêm qua từ Samsung Health)
+            // 1. Query SleepSessionRecord (last 7 days to ensure capturing last night's sleep from Samsung Health)
             val hasSleepPerm = granted.contains(HealthPermission.getReadPermission(SleepSessionRecord::class))
             var totalSleepMinutes = 0L
 
@@ -125,7 +125,7 @@ class HealthConnectRepository(private val context: Context) {
                 )
                 val sleepResponse = client.readRecords(sleepRequest)
                 
-                // Lấy session giấc ngủ gần nhất (latest sleep session)
+                // Get the latest sleep session
                 val latestSleepSession = sleepResponse.records.maxByOrNull { it.endTime }
                 if (latestSleepSession != null) {
                     totalSleepMinutes = Duration.between(latestSleepSession.startTime, latestSleepSession.endTime).toMinutes()
@@ -142,10 +142,10 @@ class HealthConnectRepository(private val context: Context) {
             }
 
             val sleepSummary = when {
-                totalSleepMinutes >= 420 -> "Giấc ngủ sâu & tối ưu"
-                totalSleepMinutes in 300..419 -> "Giấc ngủ ổn định"
-                totalSleepMinutes > 0 -> "Ngủ ít hơn mức khuyến nghị"
-                else -> "Chưa đồng bộ giấc ngủ"
+                totalSleepMinutes >= 420 -> "Deep & optimal sleep"
+                totalSleepMinutes in 300..419 -> "Steady sleep"
+                totalSleepMinutes > 0 -> "Less sleep than recommended"
+                else -> "Sleep not synced yet"
             }
 
             // 2. Query HeartRateRecord
@@ -170,14 +170,14 @@ class HealthConnectRepository(private val context: Context) {
             val minBpm = if (bpmList.isNotEmpty()) bpmList.minOrNull()?.toInt() ?: 58 else 58
             val maxBpm = if (bpmList.isNotEmpty()) bpmList.maxOrNull()?.toInt() ?: 86 else 86
 
-            // 3. Query Aggregation cho HÔM NAY (Steps, Active Calories, Active Duration)
+            // 3. Query aggregation for TODAY (Steps, Active Calories, Active Duration)
             val (realTodaySteps, realTodayCalories, realTodayActiveMins) = queryDayAggregation(client, todayStart, now, granted)
 
-            // 4. Query 7 ngày trong tuần hiện tại (Thứ 2 -> Chủ Nhật)
+            // 4. Query 7 days of the current week (Monday -> Sunday)
             val mondayDate = todayLocalDate.with(DayOfWeek.MONDAY)
             val weeklyHistory = mutableListOf<DailyHeartRingData>()
-            val dayLabels = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-            val dayFullNames = listOf("Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật")
+            val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+            val dayFullNames = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
             for (i in 0..6) {
                 val dayDate = mondayDate.plusDays(i.toLong())
@@ -199,7 +199,7 @@ class HealthConnectRepository(private val context: Context) {
                         )
                     )
                 } else if (dayDate == todayLocalDate) {
-                    // Hôm nay: Sử dụng dữ liệu real-time mới nhất
+                    // Today: Use latest real-time data
                     weeklyHistory.add(
                         DailyHeartRingData(
                             dayLabel = dayLabels[i],
@@ -210,7 +210,7 @@ class HealthConnectRepository(private val context: Context) {
                             stepsCount = realTodaySteps,
                             activeMinutes = realTodayActiveMins,
                             caloriesBurned = realTodayCalories,
-                            fullDayName = "Hôm nay (${dayFullNames[i]})"
+                            fullDayName = "Today (${dayFullNames[i]})"
                         )
                     )
                 } else {
@@ -255,7 +255,7 @@ class HealthConnectRepository(private val context: Context) {
     }
 
     /**
-     * Thực hiện Aggregation Query linh hoạt dựa trên quyền đã cấp
+     * Perform flexible aggregation query based on granted permissions
      */
     private suspend fun queryDayAggregation(
         client: HealthConnectClient,
@@ -288,7 +288,7 @@ class HealthConnectRepository(private val context: Context) {
 
             var steps = if (hasSteps) response[StepsRecord.COUNT_TOTAL]?.toInt() ?: 0 else 0
 
-            // Fallback: Nếu Aggregation bước chân trả về 0, đọc trực tiếp raw records
+            // Fallback: If steps aggregation returns 0, read raw records directly
             if (steps == 0 && hasSteps) {
                 val rawStepsReq = ReadRecordsRequest(
                     recordType = StepsRecord::class,
@@ -300,10 +300,10 @@ class HealthConnectRepository(private val context: Context) {
 
             val activeEnergy = if (hasActiveCal) response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories?.toInt() else null
 
-            // Calo vận động (Active Calories):
-            // - Nếu Health Connect có bản ghi ActiveCaloriesBurnedRecord thực tế (>0), ưu tiên dùng nó
-            // - Nếu không có ActiveCalories (null / 0), tính chuẩn theo số bước chân vận động thực tế (0.04 kcal/bước)
-            // - Tuyệt đối không lấy TotalCaloriesBurnedRecord (chứa BMR trao đổi chất cơ bản ~775-2000 kcal) gán vào mục tiêu 500 kcal vận động
+            // Active Calories:
+            // - Prefer actual ActiveCaloriesBurnedRecord from Health Connect (>0) if available
+            // - If ActiveCalories is null or 0, estimate from actual step count (0.04 kcal/step)
+            // - Never use TotalCaloriesBurnedRecord (which includes BMR ~775-2000 kcal) against the 500 kcal active goal
             val calories = if (activeEnergy != null && activeEnergy > 0) {
                 activeEnergy
             } else {
@@ -327,7 +327,7 @@ class HealthConnectRepository(private val context: Context) {
             context.startActivity(intent)
         } catch (e: Exception) {
             try {
-                // Fallback: Mở Samsung Health
+                // Fallback: Open Samsung Health
                 val shealthIntent = context.packageManager.getLaunchIntentForPackage("com.sec.android.app.shealth")
                 if (shealthIntent != null) {
                     context.startActivity(shealthIntent)

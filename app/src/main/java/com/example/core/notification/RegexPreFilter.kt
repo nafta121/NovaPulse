@@ -13,15 +13,15 @@ data class FilterEvaluation(
 object RegexPreFilter {
 
     private val TASK_PATTERN = Pattern.compile(
-        "(?i)\\b(mai|họp|hop|deadline|nộp|nop|meeting|remind|nhắc|lịch|schedule|tomorrow|task|due|báo cáo|report|hạn chót)\\b"
+        "(?i)\\b(tomorrow|meeting|conference|deadline|submit|submission|remind|reminder|schedule|calendar|task|due|report|appointment|agenda|todo)\\b"
     )
 
     private val EXPENSE_PATTERN = Pattern.compile(
-        "(?i)\\b(chuyển khoản|chuyen khoan|vnd|vnđ|\\bstk\\b|số dư|so du|giao dịch|giao dich|thanh toán|thanh toan|biến động|bien dong|paid|spent|momo|zalopay|vcb|tcb|mbbank|bidv|vietinbank|acb|tpbank|vpbank|sacombank|invoice|hóa đơn|hoa don)\\b"
+        "(?i)\\b(transfer|vnd|usd|\\bstk\\b|account|balance|transaction|payment|charged|debited|credited|paid|spent|momo|zalopay|vcb|tcb|mbbank|bidv|vietinbank|acb|tpbank|vpbank|sacombank|invoice|bill|receipt)\\b"
     )
 
     private val DIGEST_PATTERN = Pattern.compile(
-        "(?i)\\b(thông báo|thong bao|urgent|khẩn|quan trọng|important|security alert|mã otp|otp code)\\b"
+        "(?i)\\b(notification|alert|notice|urgent|critical|important|priority|security alert|verification code|otp code|otp)\\b"
     )
 
     fun evaluate(title: String, content: String): FilterEvaluation {

@@ -251,7 +251,7 @@ fun DashboardScreen(
         }
     }
 
-    // Tự động làm mới dữ liệu lịch & Glance widget ngay lập tức mỗi khi mở lại app (ON_RESUME)
+    // Automatically refresh calendar data & Glance widget immediately on app resume (ON_RESUME)
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -266,13 +266,13 @@ fun DashboardScreen(
         }
     }
 
-    // ── Live Clock Ticker: cập nhật Session & Phase mỗi phút tự động ──
+    // ── Live Clock Ticker: automatically updates Session & Phase every minute ──
     var liveCal by remember { mutableStateOf(Calendar.getInstance()) }
     LaunchedEffect(Unit) {
         while (true) {
             val now = Calendar.getInstance()
             liveCal = now
-            // Tính số giây còn lại đến đầu phút tiếp theo để đồng bộ chính xác
+            // Calculate remaining seconds until the next minute for accurate synchronization
             val secsToNextMinute = 60 - now.get(Calendar.SECOND)
             kotlinx.coroutines.delay(secsToNextMinute * 1000L)
         }
@@ -309,22 +309,22 @@ fun DashboardScreen(
         if (weather != null) {
             val rawDesc = weather.conditionDescription
             val cleanDesc = when {
-                rawDesc.contains("ít mây", ignoreCase = true) -> "Trời có mây"
-                rawDesc.contains("có mây", ignoreCase = true) -> "Trời có mây"
-                rawDesc.contains("mưa", ignoreCase = true) -> "Trời có mưa"
-                rawDesc.contains("nắng", ignoreCase = true) -> "Trời nắng ráo"
-                rawDesc.isBlank() -> "Trời nhiều mây"
-                else -> if (rawDesc.startsWith("Trời", ignoreCase = true)) rawDesc else "Trời $rawDesc"
+                rawDesc.contains("partly cloudy", ignoreCase = true) || rawDesc.contains("few clouds", ignoreCase = true) -> "Partly cloudy"
+                rawDesc.contains("cloud", ignoreCase = true) -> "Cloudy"
+                rawDesc.contains("rain", ignoreCase = true) || rawDesc.contains("drizzle", ignoreCase = true) || rawDesc.contains("shower", ignoreCase = true) -> "Rainy"
+                rawDesc.contains("sun", ignoreCase = true) || rawDesc.contains("clear", ignoreCase = true) -> "Clear & sunny"
+                rawDesc.isBlank() -> "Mostly cloudy"
+                else -> rawDesc
             }
             val temp = Math.round(weather.currentTempC).toInt()
-            val location = weather.locationName.ifBlank { "TP. Hồ Chí Minh" }
-            "$cleanDesc, $temp°C tại $location"
+            val location = weather.locationName.ifBlank { "Ho Chi Minh City" }
+            "$cleanDesc, $temp°C in $location"
         } else {
             when (diurnalPhase) {
-                DiurnalPhase.NIGHT -> "Trời đêm, 23°C tại TP. Hồ Chí Minh"
-                DiurnalPhase.EVENING -> "Hoàng hôn, 26°C tại TP. Hồ Chí Minh"
-                DiurnalPhase.AFTERNOON -> "Nắng ráo, 33°C tại TP. Hồ Chí Minh"
-                DiurnalPhase.MORNING -> "Nắng sớm, 31°C tại TP. Hồ Chí Minh"
+                DiurnalPhase.NIGHT -> "Clear night, 23°C in Ho Chi Minh City"
+                DiurnalPhase.EVENING -> "Sunset, 26°C in Ho Chi Minh City"
+                DiurnalPhase.AFTERNOON -> "Sunny, 33°C in Ho Chi Minh City"
+                DiurnalPhase.MORNING -> "Morning sun, 31°C in Ho Chi Minh City"
             }
         }
     }
@@ -335,15 +335,15 @@ fun DashboardScreen(
         remember(metrics, headlineTitle, aiWeatherSnippet, allTasks, calendarEvents, realHealthData) {
             val taskCount = allTasks.filter { !it.isCompleted }.size + calendarEvents.size
             val healthBrief = if (realHealthData != null && realHealthData?.isDataAvailable == true) {
-                "Giấc ngủ đêm qua đạt ${realHealthData?.sleepDurationFormatted}, nhịp tim trung bình ${realHealthData?.averageHeartRateBpm} bpm."
+                "Last night's sleep reached ${realHealthData?.sleepDurationFormatted}, with an average heart rate of ${realHealthData?.averageHeartRateBpm} bpm."
             } else {
-                "Dữ liệu sức khỏe sẵn sàng khi kết nối Samsung Health."
+                "Health data will be ready once connected to Samsung Health."
             }
-            "$headlineTitle, Alex. $subtitle $aiWeatherSnippet $healthBrief Bạn có $taskCount lịch trình và việc cần lưu ý hôm nay."
+            "$headlineTitle, Alex. $subtitle $aiWeatherSnippet $healthBrief You have $taskCount scheduled events and tasks today."
         }
 
     val dateFormatted = remember(liveCal) {
-        SimpleDateFormat("EEEE, d 'thg' M", Locale("vi", "VN")).format(liveCal.time)
+        SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(liveCal.time)
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
     }
 
@@ -443,7 +443,7 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
         ) {
-            // INDEX 0: CỤM DYNAMIC HEADER THEO BUỔI (PHA 1: Header Focus & Fade)
+            // INDEX 0: DYNAMIC SESSION HEADER (PHASE 1: Header Focus & Fade)
             item {
                 StaggeredAnimatedItem(index = 0, isHeader = true, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -489,7 +489,7 @@ fun DashboardScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.DashboardCustomize,
-                                        contentDescription = "Nội dung muốn đưa vào",
+                                        contentDescription = "Content to include",
                                         tint = if (isDark) Color.White else Color(0xFF1E293B),
                                         modifier = Modifier.size(19.dp)
                                     )
@@ -514,7 +514,7 @@ fun DashboardScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Tune,
-                                        contentDescription = "Cài đặt & Cấu hình",
+                                        contentDescription = "Settings & Configuration",
                                         tint = if (isDark) Color.White else Color(0xFF1E293B),
                                         modifier = Modifier.size(19.dp)
                                     )
@@ -542,7 +542,7 @@ fun DashboardScreen(
                                 }
                         )
 
-                        // Cụm Văn bản Header được áp dụng hiệu ứng Text Alpha Mask Reveal / Wipe (45°, 5000ms, feather 180px, quét 1 lần khi mở app)
+                        // Header Text Group with Text Alpha Mask Reveal / Wipe effect (45°, 5000ms, feather 180px, one-shot on app launch)
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -565,7 +565,7 @@ fun DashboardScreen(
                             Spacer(modifier = Modifier.height(2.dp))
 
                             if (isAiInferring) {
-                                // Skeleton / Shimmer loading khi On-Device Model đang suy luận (200-400ms)
+                                // Skeleton / Shimmer loading while On-Device Model is inferring (200-400ms)
                                 Box(
                                     modifier = Modifier
                                         .padding(vertical = 4.dp)
@@ -582,9 +582,9 @@ fun DashboardScreen(
                                 val rawDisplay = briefingAiSummaryText.ifBlank { subtitle }
                                 val displayText = remember(rawDisplay) {
                                     rawDisplay
-                                        .replace(Regex("Nhiệt độ \\d+°C,"), "")
-                                        .replace(Regex("nắng \\d+°C,"), "")
-                                        .replace(Regex("mưa \\d+°C,"), "")
+                                        .replace(Regex("Temperature \\d+°C,", RegexOption.IGNORE_CASE), "")
+                                        .replace(Regex("sunny \\d+°C,", RegexOption.IGNORE_CASE), "")
+                                        .replace(Regex("rainy \\d+°C,", RegexOption.IGNORE_CASE), "")
                                         .replace(Regex("\\d+°C,"), "")
                                         .replace(Regex("\\d+°C"), "")
                                         .trim()
@@ -610,7 +610,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 1: CARD THỜI TIẾT
+            // INDEX 1: WEATHER CARD
             if ("weather" in enabledContentCards) {
                 item {
                     StaggeredAnimatedItem(index = 1, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -634,7 +634,7 @@ fun DashboardScreen(
                     }
                 }
 
-                // INDEX 1.5: CARD NHẮC NHỞ THỜI TIẾT ĐỘNG (STICKER + GỢI Ý VẬT DỤNG NẮNG/MƯA/ĐÊM)
+                // INDEX 1.5: DYNAMIC WEATHER ADVICE CARD (STICKER + SUN/RAIN/NIGHT GEAR TIPS)
                 item {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
                         val isNightMode = diurnalPhase.isDark || currentHour >= 19 || currentHour < 5
@@ -647,7 +647,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 1.6: TRỢ LÝ CẢNH BÁO NGỮ CẢNH (LỊCH TRÌNH + THỜI TIẾT THEO GIỜ / PIN / MEET)
+            // INDEX 1.6: CROSS-CONTEXT ALERT ASSISTANT (SCHEDULE + HOURLY WEATHER / BATTERY / MEET)
             if (urgentContextCard != null && "now_nudge" in enabledContentCards) {
                 item(key = urgentContextCard.id) {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -713,7 +713,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 2: CARD ĐIỂM NĂNG LƯỢNG & SỨC KHỎE (HOẠT ĐỘNG HẰNG NGÀY)
+            // INDEX 2: ENERGY SCORE & HEALTH CARD (DAILY ACTIVITY)
             if ("health_energy" in enabledContentCards) {
                 item {
                     StaggeredAnimatedItem(index = 2, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -756,7 +756,7 @@ fun DashboardScreen(
                 }
             }
 
-            // CARD LỊCH TRÌNH CHUẨN ONE UI 9 (Đọc dữ liệu Lịch thật & Room DB)
+            // ONE UI 9 SCHEDULE CARD (Real Calendar Data & Room DB)
             if ("calendar_schedule" in enabledContentCards) {
                 item {
                     val calendarRepo = remember { com.example.core.repository.CalendarRepository(context) }
@@ -841,20 +841,20 @@ fun DashboardScreen(
                 }
             }
 
-            // CARD BÁO CÁO THÓI QUEN & ĐIỂM NĂNG LƯỢNG TUẦN (CHUẨN ONE UI GLASSMORPHISM)
+            // WEEKLY HABIT INSIGHTS & ENERGY SCORE CARD (ONE UI GLASSMORPHISM)
             if ("habit_insights" in enabledContentCards) {
                 item {
                     val habitAnalyticsEngine =
                         remember(context) { com.example.core.engine.HabitAnalyticsEngine(context) }
                     val firstUpcomingItem = remember(allTasks, calendarEvents) {
                         val now = System.currentTimeMillis()
-                        // 1. Task chưa hoàn thành và diễn ra từ bây giờ trở đi (hoặc hôm nay)
+                        // 1. Unfinished task occurring from now onwards (or today)
                         val nextTask = allTasks.firstOrNull { !it.isCompleted && it.datetime >= now - 30 * 60 * 1000L }
                         if (nextTask != null) {
                             val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(nextTask.datetime))
                             nextTask.title to timeStr
                         } else {
-                            // 2. Sự kiện lịch tương lai (không phải sự kiện cả ngày All-Day như lễ tết)
+                            // 2. Upcoming calendar event (excluding all-day events like holidays)
                             val nextEvent = calendarEvents.firstOrNull { event ->
                                 !event.isAllDay && event.startTimeMillis >= now - 15 * 60 * 1000L
                             }
@@ -893,7 +893,7 @@ fun DashboardScreen(
                     }
                 }
 
-                // CARD HỒ SƠ PHONG CÁCH SỐNG AI (ON-DEVICE PERSONA CLUSTERING K-MEANS)
+                // AI LIFESTYLE PERSONA CARD (ON-DEVICE PERSONA CLUSTERING K-MEANS)
                 item {
                     val mlEngine = remember(context) { com.example.core.ml.InternalMlEngine.getInstance(context) }
                     var personaProfile by remember {
@@ -920,7 +920,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 3: CARD TRẠNG THÁI GIẤC NGỦ & PHỤC HỒI
+            // INDEX 3: SLEEP & RECOVERY STATUS CARD
             if ("sleep_recovery" in enabledContentCards) {
                 item {
                     StaggeredAnimatedItem(index = 3, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -932,7 +932,7 @@ fun DashboardScreen(
                 }
             }
 
-            // DỰ ĐOÁN NHỊP SINH HOẠT & HÀNH VI (MARKOV CHAIN) NGAY DƯỚI GIẤC NGỦ & PHỤC HỒI
+            // ROUTINE & BEHAVIOR PREDICTION (MARKOV CHAIN) RIGHT BELOW SLEEP & RECOVERY
             item {
                 StaggeredAnimatedItem(
                     index = 3,
@@ -945,7 +945,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 4: CARD ĐỀ XUẤT NHẠC THÔNG MINH (DUY NHẤT 1 CARD SPOTIFY / YOUTUBE DEEP LINK)
+            // INDEX 4: SMART MUSIC RECOMMENDATION CARD (SINGLE SPOTIFY / YOUTUBE DEEP LINK CARD)
             if ("smart_music" in enabledContentCards) {
                 item {
                     StaggeredAnimatedItem(index = 4, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -957,7 +957,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 4.5: CARD TIN TỨC & THỊ TRƯỜNG CHUẨN ONE UI 9 (MARKET TICKER + ĐIỂM TIN BÁO CHÍ)
+            // INDEX 4.5: ONE UI 9 NEWS & MARKET BRIEF CARD (MARKET TICKER + NEWS HEADLINES)
             if ("news_market" in enabledContentCards) {
                 item {
                     StaggeredAnimatedItem(index = 4, hasPlayedAnimation = hasPlayedEntranceAnimation) {
@@ -968,7 +968,7 @@ fun DashboardScreen(
                 }
             }
 
-            // INDEX 5+: CÁC CARD GỢI Ý LỐI SỐNG "SAU ĐÂY LÀ ĐỀ XUẤT CÓ THỂ BẠN SẼ THÍCH" & MINDFULNESS
+            // INDEX 5+: LIFESTYLE SUGGESTION CARDS & MINDFULNESS
             item {
                 StaggeredAnimatedItem(
                     index = 5,
@@ -986,7 +986,7 @@ fun DashboardScreen(
                 }
             }
 
-            // BOTTOM SPACER: TRÁNH CẤN THANH ĐIỀU HƯỚNG NAVIGATION BARS
+            // BOTTOM SPACER: AVOID OVERLAPPING NAVIGATION BARS
             item {
                 Spacer(modifier = Modifier.navigationBarsPadding().height(28.dp))
             }
@@ -1035,7 +1035,7 @@ private fun VoiceWaveIconButton(
     ) {
         Icon(
             imageVector = Icons.Default.GraphicEq,
-            contentDescription = "Nghe tóm tắt",
+            contentDescription = "Listen to brief",
             tint = if (isPlaying) Color(0xFF3B82F6).copy(alpha = pulseAlpha) else if (isDark) Color(0xFF94A3B8) else Color(
                 0xFF64748B
             ),
@@ -1043,7 +1043,7 @@ private fun VoiceWaveIconButton(
         )
         if (isPlaying) {
             Text(
-                text = "Đang đọc...",
+                text = "Reading...",
                 color = Color(0xFF3B82F6),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold
@@ -1053,7 +1053,7 @@ private fun VoiceWaveIconButton(
 }
 
 // -------------------------------------------------------------
-// THẺ 1: THỜI TIẾT THẬT (Open-Meteo Real Data Source)
+// CARD 1: REAL WEATHER (Open-Meteo Real Data Source)
 // -------------------------------------------------------------
 @Composable
 private fun WeatherNowBriefCard(
@@ -1073,16 +1073,16 @@ private fun WeatherNowBriefCard(
     val currentTempStr =
         if (weatherData != null) "${Math.round(weatherData.currentTempC).toInt()}°" else if (isNight) "29°" else "32°"
     val feelsLikeStr =
-        if (weatherData != null) "Cảm giác ${Math.round(weatherData.apparentTempC).toInt()}°" else ""
-    val conditionText = weatherData?.conditionDescription ?: if (isNight) "Đêm dịu mát" else "Bình minh trong lành"
-    val locationLabel = weatherData?.locationName ?: "Vị trí hiện tại"
+        if (weatherData != null) "Feels like ${Math.round(weatherData.apparentTempC).toInt()}°" else ""
+    val conditionText = weatherData?.conditionDescription ?: if (isNight) "Cool night" else "Fresh morning"
+    val locationLabel = weatherData?.locationName ?: "Current location"
 
-    // Badge "Lưu lúc HH:mm" khi hiển thị data từ cache
+    // "Saved at HH:mm" badge when displaying cached data
     val cacheLabel = if (weatherData?.isFromCache == true && weatherData.cacheTimestampMs > 0L) {
         val cal = java.util.Calendar.getInstance().also { it.timeInMillis = weatherData.cacheTimestampMs }
         val h = cal.get(java.util.Calendar.HOUR_OF_DAY).toString().padStart(2, '0')
         val m = cal.get(java.util.Calendar.MINUTE).toString().padStart(2, '0')
-        "Lưu lúc $h:$m"
+        "Saved at $h:$m"
     } else null
 
     val weatherIcon = when (weatherData?.weatherCode) {
@@ -1266,7 +1266,7 @@ private fun WeatherNowBriefCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (!hasLocationPermission) "Cấp quyền vị trí để lấy thời tiết thực" else "Đang cập nhật thời tiết từ Open-Meteo...",
+                            text = if (!hasLocationPermission) "Grant location permission for live weather" else "Updating weather from Open-Meteo...",
                             color = Color.White,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -1283,21 +1283,21 @@ private fun WeatherNowBriefCard(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("Cấp quyền", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("Grant", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     } else {
                         IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Tải lại", tint = Color.White)
+                            Icon(Icons.Default.Refresh, contentDescription = "Reload", tint = Color.White)
                         }
                     }
                 }
             }
 
-            // Weekly Forecast Row (7 ngày - One UI 9 Style)
+            // Weekly Forecast Row (7-day - One UI 9 Style)
             if (weatherData != null && weatherData.dailyForecast.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Divider mỏng
+                // Thin divider
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1308,7 +1308,7 @@ private fun WeatherNowBriefCard(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Dự báo 7 ngày",
+                    text = "7-day forecast",
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
@@ -1340,7 +1340,7 @@ private fun WeatherNowBriefCard(
                                 text = day.dayLabel,
                                 color = Color.White.copy(alpha = 0.85f),
                                 fontSize = 11.sp,
-                                fontWeight = if (day.dayLabel == "Hôm nay") FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (day.dayLabel == "Today") FontWeight.Bold else FontWeight.Normal
                             )
                             Icon(
                                 imageVector = dayIcon,
@@ -1372,47 +1372,47 @@ private fun WeatherNowBriefCard(
             val wCode = weatherData?.weatherCode ?: 0
 
             val adviceText = when {
-                // Mưa giông, sấm sét
+                // Thunderstorm, lightning
                 wCode in listOf(95, 96, 99) ->
-                    "Có giông sấm sét! Hạn chế ra ngoài và tránh xa vùng trống."
+                    "Thunderstorms expected! Limit outdoor activities and stay away from open areas."
 
-                // Mưa (nhẹ đến nặng)
+                // Rain (light to heavy)
                 wCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82) ->
-                    "Trời đang mưa, nhớ mang ô hoặc áo mưa khi ra ngoài."
+                    "It's raining. Remember to bring an umbrella or raincoat when heading out."
 
-                // Sương mù
+                // Fog
                 wCode in listOf(45, 48) ->
-                    "Sương mù dày, tầm nhìn hạn chế. Lái xe cẩn thận."
+                    "Dense fog with low visibility. Drive carefully."
 
-                // Nắng nóng gay gắt (cảm giác >= 40°C hoặc nhiệt độ >= 38°C)
+                // Extreme heat (feels like >= 40°C or temp >= 38°C)
                 feelsC >= 40.0 || tempC >= 38.0 ->
-                    "Nắng nóng gay gắt, cảm giác ${Math.round(feelsC).toInt()}°C! Hạn chế ra ngoài trời, uống đủ nước."
+                    "Extreme heat, feels like ${Math.round(feelsC).toInt()}°C! Limit time outdoors and stay hydrated."
 
-                // Nóng / Oi bức (cảm giác >= 34°C hoặc nhiệt độ >= 31°C)
+                // Hot / Muggy (feels like >= 34°C or temp >= 31°C)
                 feelsC >= 34.0 || tempC >= 31.0 ->
-                    "Trời nóng oi bức, cảm giác ${
+                    "Hot and muggy, feels like ${
                         Math.round(feelsC).toInt()
-                    }°C. Hãy che nắng và bổ sung nước thường xuyên."
+                    }°C. Seek shade and drink water regularly."
 
-                // Nắng ấm quang đãng
+                // Warm & clear
                 tempC >= 28.0 && wCode in listOf(0, 1) ->
-                    "Nắng ấm ${Math.round(tempC).toInt()}°C, trời quang đãng. Nhớ bôi kem chống nắng nếu ra ngoài."
+                    "Warm and sunny ${Math.round(tempC).toInt()}°C, clear skies. Remember sunscreen if going outside."
 
-                // Mây nhiều dịu mát
+                // Mostly cloudy & mild
                 wCode in listOf(2, 3) ->
-                    "Trời nhiều mây ${Math.round(tempC).toInt()}°C, thời tiết dịu mát dễ chịu."
+                    "Mostly cloudy ${Math.round(tempC).toInt()}°C, mild and pleasant weather."
 
-                // Lạnh (< 20°C)
+                // Cool / Chilly (< 20°C)
                 tempC < 20.0 ->
-                    "Trời se lạnh ${Math.round(tempC).toInt()}°C. Nhớ mặc áo ấm khi ra ngoài."
+                    "Chilly ${Math.round(tempC).toInt()}°C. Remember to wear a warm jacket when going out."
 
-                // Đêm mát mẻ
+                // Cool night
                 isNight ->
-                    "Đêm nay ${Math.round(tempC).toInt()}°C, thời tiết dễ chịu. Hãy nghỉ ngơi trọn vẹn!"
+                    "Tonight is ${Math.round(tempC).toInt()}°C with pleasant weather. Have a restful night!"
 
-                // Mặc định
+                // Default
                 else ->
-                    "Thời tiết hiện tại ${Math.round(tempC).toInt()}°C. Thuận tiện cho di chuyển và hoạt động."
+                    "Current temperature is ${Math.round(tempC).toInt()}°C. Great conditions for commuting and activities."
             }
 
             Box(
@@ -1435,7 +1435,7 @@ private fun WeatherNowBriefCard(
                     }
                     Icon(
                         imageVector = adviceIcon,
-                        contentDescription = "Lời khuyên",
+                        contentDescription = "Advice",
                         tint = Color(0xFFFEF08A),
                         modifier = Modifier.size(20.dp)
                     )
@@ -1453,7 +1453,7 @@ private fun WeatherNowBriefCard(
 }
 
 // -------------------------------------------------------------
-// THẺ 2: LỊCH TRÌNH THẬT (Calendar Contract & Room Database)
+// CARD 2: REAL SCHEDULE (Calendar Contract & Room Database)
 // -------------------------------------------------------------
 @Composable
 private fun ScheduleNowBriefCard(
@@ -1492,7 +1492,7 @@ private fun ScheduleNowBriefCard(
                 val now = System.currentTimeMillis()
                 val remaining = calendarEvents.filter { it.endTimeMillis > now || it.startTimeMillis >= now }
                 if (remaining.isNotEmpty()) {
-                    Pair("Lịch trình hôm nay", remaining)
+                    Pair("Today's Schedule", remaining)
                 } else {
                     val tomorrow = try {
                         calendarRepo.getTomorrowEvents()
@@ -1500,9 +1500,9 @@ private fun ScheduleNowBriefCard(
                         emptyList()
                     }
                     if (tomorrow.isNotEmpty()) {
-                        Pair("Lịch trình ngày mai", tomorrow)
+                        Pair("Tomorrow's Schedule", tomorrow)
                     } else {
-                        Pair("Lịch trình hôm nay", emptyList())
+                        Pair("Today's Schedule", emptyList())
                     }
                 }
             }
@@ -1537,7 +1537,7 @@ private fun ScheduleNowBriefCard(
                             ScheduleItemData(
                                 time = timeStr,
                                 title = t.title,
-                                subtitle = "Nguồn: ${t.sourceApp}",
+                                subtitle = "Source: ${t.sourceApp}",
                                 rawTime = t.datetime
                             )
                         )
@@ -1568,7 +1568,7 @@ private fun ScheduleNowBriefCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.NorthEast,
-                        contentDescription = "Xem lịch",
+                        contentDescription = "View calendar",
                         tint = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                         modifier = Modifier.size(18.dp)
                     )
@@ -1576,18 +1576,18 @@ private fun ScheduleNowBriefCard(
             }
 
             Text(
-                text = "Tự động đọc lịch trình từ Samsung Calendar, Google Calendar và các tài khoản đã liên kết trên máy.",
+                text = "Automatically syncs events from Samsung Calendar, Google Calendar, and linked accounts on your device.",
                 color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 2.dp, bottom = 10.dp)
             )
 
-            // Tóm tắt thông minh cho sự kiện sắp tới (AI Event Summary Banner)
+            // Smart summary banner for upcoming events (AI Event Summary Banner)
             if (realItems.isNotEmpty()) {
                 val nextEvent = realItems.first()
                 val totalCount = realItems.size
-                val summaryText = "Sắp tới ${nextEvent.time}: ${nextEvent.title}" +
-                        if (totalCount > 1) " (tổng ${totalCount} sự kiện & đầu việc sắp diễn ra)" else ""
+                val summaryText = "Up next ${nextEvent.time}: ${nextEvent.title}" +
+                        if (totalCount > 1) " ($totalCount upcoming events & tasks in total)" else ""
 
                 Box(
                     modifier = Modifier
@@ -1630,7 +1630,7 @@ private fun ScheduleNowBriefCard(
                                 .padding(horizontal = 7.dp, vertical = 3.dp)
                         ) {
                             Text(
-                                text = "⚡ Giờ vàng: 09:00 - 11:30",
+                                text = "⚡ Peak hours: 09:00 - 11:30",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isNight) Color(0xFFFCD34D) else Color(0xFFB45309)
@@ -1660,13 +1660,13 @@ private fun ScheduleNowBriefCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Đồng bộ Lịch thiết bị",
+                                text = "Sync Device Calendar",
                                 color = if (isNight) Color.White else Color(0xFF0F172A),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "Tự động đọc lịch trình từ Samsung Calendar, Google Calendar và các tài khoản đã liên kết trên máy.",
+                                text = "Automatically syncs events from Samsung Calendar, Google Calendar, and linked accounts on your device.",
                                 color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                                 fontSize = 11.sp
                             )
@@ -1678,7 +1678,7 @@ private fun ScheduleNowBriefCard(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("Cấp quyền", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Grant", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -1708,13 +1708,13 @@ private fun ScheduleNowBriefCard(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Không có lịch trình hay đầu việc nào sắp tới",
+                            text = "No upcoming events or tasks",
                             color = if (isNight) Color.White else Color(0xFF0F172A),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "Khi có lịch sự kiện hoặc tin nhắn nhắc việc, AI sẽ tự động đồng bộ tại đây.",
+                            text = "When calendar events or task reminders arrive, AI will automatically sync them here.",
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                             fontSize = 11.sp
                         )
@@ -1912,7 +1912,7 @@ private fun ScheduleNowBriefCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Button 1: Thêm việc mới
+                // Button 1: Add new task
                 OutlinedButton(
                     onClick = onNavigateToTasks,
                     modifier = Modifier
@@ -1935,10 +1935,10 @@ private fun ScheduleNowBriefCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Thêm việc", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Add Task", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
 
-                // Button 2: Mở Lịch thiết bị
+                // Button 2: Open Device Calendar
                 OutlinedButton(
                     onClick = { com.example.core.repository.CalendarRepository.openCalendarApp(context) },
                     modifier = Modifier
@@ -1961,7 +1961,7 @@ private fun ScheduleNowBriefCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Mở Lịch", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Open Calendar", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -1977,7 +1977,7 @@ private data class ScheduleItemData(
 )
 
 // -------------------------------------------------------------
-// 3D CLAY MASCOT (Đất sét 3D Vàng với Animation thở & nhún nhảy)
+// 3D CLAY MASCOT (3D Yellow Clay with Breathing & Bouncing Animation)
 // -------------------------------------------------------------
 @Composable
 private fun ClayMascot3D(
@@ -1985,7 +1985,7 @@ private fun ClayMascot3D(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "clay_mascot_transition")
 
-    // Hiệu ứng thở (Breathing Scale: 0.95f -> 1.05f)
+    // Breathing Effect (Breathing Scale: 0.95f -> 1.05f)
     val scaleY by infiniteTransition.animateFloat(
         initialValue = 0.95f,
         targetValue = 1.05f,
@@ -2006,7 +2006,7 @@ private fun ClayMascot3D(
         label = "clay_scale_x"
     )
 
-    // Nhún nhảy lên xuống (Floating Y: -6f -> 6f)
+    // Floating up and down (Floating Y: -6f -> 6f)
     val bounceY by infiniteTransition.animateFloat(
         initialValue = -6f,
         targetValue = 6f,
@@ -2027,25 +2027,25 @@ private fun ClayMascot3D(
         val centerX = width / 2f
         val centerY = (height / 2f) + bounceY
 
-        // 1. Bóng đổ đất sét mềm (Soft Clay Drop Shadow)
+        // 1. Soft Clay Drop Shadow
         drawOval(
             color = Color(0x2E000000),
             topLeft = Offset(centerX - 30f, height - 12f),
             size = androidx.compose.ui.geometry.Size(60f, 12f)
         )
 
-        // Mascot vàng 52dp thân tròn
+        // 52dp round yellow mascot
         val bodyRx = 35f * scaleX
         val bodyRy = 34f * scaleY
 
-        // 2. Thân đất sét tròn 3D với Gradient vàng ấm & viền ánh sáng
+        // 2. 3D round clay body with warm yellow gradient & rim lighting
         drawOval(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0xFFFEF08A), // Ánh sáng đỉnh
-                    Color(0xFFFBBF24), // Thân vàng đất sét tươi
-                    Color(0xFFF59E0B), // Vàng hổ phách
-                    Color(0xFFD97706)  // Bóng tối đáy đất sét
+                    Color(0xFFFEF08A), // Top highlight
+                    Color(0xFFFBBF24), // Bright yellow clay body
+                    Color(0xFFF59E0B), // Amber gold
+                    Color(0xFFD97706)  // Bottom clay shadow
                 ),
                 center = Offset(centerX - 9f, centerY - 10f),
                 radius = 48f
@@ -2054,7 +2054,7 @@ private fun ClayMascot3D(
             size = androidx.compose.ui.geometry.Size(bodyRx * 2, bodyRy * 2)
         )
 
-        // 3. Tai đất sét tròn nhỏ trên đỉnh (Cute Clay Ears)
+        // 3. Cute Clay Ears on top
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(Color(0xFFFEF08A), Color(0xFFF59E0B)),
@@ -2074,7 +2074,7 @@ private fun ClayMascot3D(
             center = Offset(centerX + 19f, centerY - bodyRy + 5f)
         )
 
-        // 4. Má hồng đất sét Pastel (Rosy Blush Cheeks)
+        // 4. Pastel Rosy Blush Cheeks
         drawCircle(
             color = Color(0xFFFB7185).copy(alpha = 0.62f),
             radius = 6f,
@@ -2086,8 +2086,8 @@ private fun ClayMascot3D(
             center = Offset(centerX + 17f, centerY + 4f)
         )
 
-        // 5. Mắt đất sét đen bóng với đốm sáng trắng (Clay Eyes)
-        // Mắt trái
+        // 5. Glossy Black Clay Eyes with white catchlight
+        // Left eye
         drawCircle(
             color = Color(0xFF1E293B),
             radius = 4f,
@@ -2098,7 +2098,7 @@ private fun ClayMascot3D(
             radius = 1.6f,
             center = Offset(centerX - 11.2f, centerY - 3.6f)
         )
-        // Mắt phải
+        // Right eye
         drawCircle(
             color = Color(0xFF1E293B),
             radius = 4f,
@@ -2110,7 +2110,7 @@ private fun ClayMascot3D(
             center = Offset(centerX + 8.8f, centerY - 3.6f)
         )
 
-        // 6. Miệng cười đất sét đáng yêu (Happy Smile)
+        // 6. Cute Clay Happy Smile
         val mouthPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(centerX - 6f, centerY + 6f)
             quadraticTo(centerX, centerY + 11.5f, centerX + 6f, centerY + 6f)
@@ -2124,7 +2124,7 @@ private fun ClayMascot3D(
             )
         )
 
-        // 7. Ngôi sao/Điểm sáng lấp lánh (Sparkle)
+        // 7. Sparkle highlight
         drawCircle(
             color = Color.White.copy(alpha = 0.92f),
             radius = 3f,
@@ -2134,7 +2134,7 @@ private fun ClayMascot3D(
 }
 
 // -------------------------------------------------------------
-// THẺ 3: ĐIỂM NĂNG LƯỢNG (Energy Score Card - 61 • -9)
+// CARD 3: ENERGY SCORE (Energy Score Card - 61 • -9)
 // -------------------------------------------------------------
 @Composable
 private fun EnergyScoreCard(
@@ -2174,7 +2174,7 @@ private fun EnergyScoreCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Header Row: Tiêu đề + Điểm + Linh vật Đất sét 3D
+            // Header Row: Title + Score + 3D Clay Mascot
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -2195,13 +2195,13 @@ private fun EnergyScoreCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Bolt,
-                                contentDescription = "Điểm năng lượng",
+                                contentDescription = "Energy score",
                                 tint = Color(0xFFF59E0B),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
                         Text(
-                            text = "Điểm năng lượng",
+                            text = "Energy score",
                             color = if (isNight) Color.White else Color(0xFF0F172A),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
@@ -2212,7 +2212,7 @@ private fun EnergyScoreCard(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Điểm số 61 • -9
+                    // Score 61 • -9
                     Row(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -2245,7 +2245,7 @@ private fun EnergyScoreCard(
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = if (scoreDelta.startsWith("-")) "Giảm so với hôm qua" else "Tăng so với hôm qua",
+                                text = if (scoreDelta.startsWith("-")) "Down from yesterday" else "Up from yesterday",
                                 color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium
@@ -2254,7 +2254,7 @@ private fun EnergyScoreCard(
                     }
                 }
 
-                // 3D Yellow Clay Mascot Canvas với animation thở & nhún nhảy
+                // 3D Yellow Clay Mascot Canvas with breathing & bouncing animation
                 ClayMascot3D(
                     modifier = Modifier.padding(start = 6.dp)
                 )
@@ -2263,7 +2263,7 @@ private fun EnergyScoreCard(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = if (energyScore < 70) "Mức năng lượng hôm nay ở mức trung bình. Hãy nghỉ ngơi hợp lý và tránh làm việc quá sức." else "Năng lượng dồi dào, sẵn sàng cho các mục tiêu trọng tâm hôm nay!",
+                text = if (energyScore < 70) "Your energy level is moderate today. Pace yourself and avoid overworking." else "Abundant energy—ready to tackle your key goals today!",
                 color = if (isNight) Color(0xFFCBD5E1) else Color(0xFF475569),
                 fontSize = 12.sp,
                 lineHeight = 17.sp
@@ -2271,12 +2271,12 @@ private fun EnergyScoreCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 3 Hàng chỉ số gọn gàng (Giấc ngủ • Nhịp tim • Phục hồi)
+            // 3 Compact Metric Pills (Sleep • Heart Rate • Recovery)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Metric 1: Giấc ngủ
+                // Metric 1: Sleep
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -2291,7 +2291,7 @@ private fun EnergyScoreCard(
                 ) {
                     Column {
                         Text(
-                            text = "🌙 Giấc ngủ",
+                            text = "🌙 Sleep",
                             fontSize = 10.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                             fontWeight = FontWeight.Medium
@@ -2306,7 +2306,7 @@ private fun EnergyScoreCard(
                     }
                 }
 
-                // Metric 2: Nhịp tim
+                // Metric 2: Heart Rate
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -2321,7 +2321,7 @@ private fun EnergyScoreCard(
                 ) {
                     Column {
                         Text(
-                            text = "❤️ Nhịp tim",
+                            text = "❤️ Heart rate",
                             fontSize = 10.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                             fontWeight = FontWeight.Medium
@@ -2336,7 +2336,7 @@ private fun EnergyScoreCard(
                     }
                 }
 
-                // Metric 3: Phục hồi
+                // Metric 3: Recovery
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -2351,14 +2351,14 @@ private fun EnergyScoreCard(
                 ) {
                     Column {
                         Text(
-                            text = "⚡ Phục hồi",
+                            text = "⚡ Recovery",
                             fontSize = 10.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "82% (Tốt)",
+                            text = "82% (Good)",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF10B981)
@@ -2369,7 +2369,7 @@ private fun EnergyScoreCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Footer kết nối Health Connect
+            // Health Connect sync footer
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -2384,7 +2384,7 @@ private fun EnergyScoreCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (hasHealthPermission) "Samsung Health • Đã kết nối" else "Chạm để đồng bộ Health Connect",
+                        text = if (hasHealthPermission) "Samsung Health • Connected" else "Tap to sync Health Connect",
                         color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
@@ -2403,21 +2403,21 @@ private fun EnergyScoreCard(
 }
 
 // -------------------------------------------------------------
-// LOCAL AI SUGGESTION ENGINE (Đa ngữ cảnh: Thể thao, Ẩm thực, Du lịch)
+// LOCAL AI SUGGESTION ENGINE (Multi-context: Sports, Food & Dining, Travel)
 // -------------------------------------------------------------
 enum class SuggestionVisualType {
-    COFFEE_CUP,      // 3D Peach / Amber Clay Coffee Cup với hơi nước bốc lên
-    TEA_POT,         // 3D Chamomile Teapot / Cup vàng mật ong ấm cúng
-    BICYCLE,         // 3D Mint Green / Emerald Clay Bicycle nổi khối
-    TENT_CAMPING,    // 3D Coral / Pastel Yellow Camping Tent có ánh đèn ấm
-    HOTPOT_BOWL,     // 3D Hotpot / Ramen bowl với nước dùng bốc khói
-    YOGA_MEDITATION, // 3D Lotus / Giãn cơ Yoga với vòng hào quang êm dịu
-    ROOFTOP_CHILL    // 3D Sunset Cocktail ngắm hoàng hôn thành phố
+    COFFEE_CUP,      // 3D Peach / Amber Clay Coffee Cup with rising steam
+    TEA_POT,         // 3D Warm Honey Chamomile Teapot / Cup
+    BICYCLE,         // 3D Mint Green / Emerald Clay Bicycle
+    TENT_CAMPING,    // 3D Coral / Pastel Yellow Camping Tent with warm light
+    HOTPOT_BOWL,     // 3D Hotpot / Ramen bowl with steaming broth
+    YOGA_MEDITATION, // 3D Lotus / Yoga stretch with soothing aura ring
+    ROOFTOP_CHILL    // 3D Sunset Cocktail overlooking the city skyline
 }
 
 data class LocalAiSuggestion(
     val id: String,
-    val category: String, // "Thể thao", "Ẩm thực", "Du lịch"
+    val category: String, // "Sports", "Food & Dining", "Travel"
     val categoryBadgeColor: Color,
     val categoryTextColor: Color,
     val title: String,
@@ -2436,123 +2436,123 @@ fun generateLocalAiSuggestions(
     val temp = weatherData?.currentTempC?.let { Math.round(it).toInt() } ?: if (currentHour in 6..17) 29 else 24
     val condition = weatherData?.conditionDescription?.lowercase() ?: ""
     val isRaining = weatherData?.weatherCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) ||
-            condition.contains("mưa") || condition.contains("dông")
+            condition.contains("rain", ignoreCase = true) || condition.contains("storm", ignoreCase = true) || condition.contains("thunder", ignoreCase = true)
 
     val suggestions = mutableListOf<LocalAiSuggestion>()
 
-    // 1. THỂ THAO: Chạy bộ / Đạp xe (Sáng sớm 5h-7h hoặc Chiều tà 17h-18h30 khi trời mát < 30°C không mưa)
+    // 1. SPORTS: Running / Cycling (Early morning 5:00-7:00 or Late afternoon 17:00-18:30 when cool < 30°C and not raining)
     val isCoolSportTime = (currentHour in 5..7 || currentHour in 17..18) && !isRaining && temp <= 29
     if (isCoolSportTime) {
         suggestions.add(
             LocalAiSuggestion(
                 id = "sport_run_bike",
-                category = "Thể thao",
+                category = "Sports",
                 categoryBadgeColor = Color(0xFF10B981).copy(alpha = 0.20f),
                 categoryTextColor = Color(0xFF10B981),
-                title = if (currentHour in 5..7) "Chạy bộ sáng sớm & Hít thở" else "Đạp xe dạo quanh công viên",
-                description = "Thời tiết $temp°C mát mẻ lý tưởng cho buổi chạy bộ 5km hoặc đạp xe hít thở không khí trong lành.",
-                tag = "Trời mát $temp°C",
+                title = if (currentHour in 5..7) "Early Morning Run & Breathwork" else "Evening Park Cycling",
+                description = "Cool $temp°C weather is ideal for a 5km run or a refreshing bike ride outdoors.",
+                tag = "Cool $temp°C",
                 visualType = SuggestionVisualType.BICYCLE
             )
         )
     }
 
-    // 2. ẨM THỰC: Món ngon theo buổi
+    // 2. FOOD & DINING: Time-of-day culinary picks
     val foodSuggestion = when {
         isRaining -> LocalAiSuggestion(
             id = "food_rain_hotpot",
-            category = "Ẩm thực",
+            category = "Food & Dining",
             categoryBadgeColor = Color(0xFFEA580C).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFFEA580C),
-            title = "Lẩu ấm nồng & Món nướng",
-            description = "Trời mưa lành lạnh ($temp°C), quây quần bên nồi lẩu nóng hổi, thịt nướng hoặc bát cháo sườn ấm bụng.",
-            tag = "Chiều mưa $temp°C",
+            title = "Warm Hotpot & Grilled Dishes",
+            description = "Cool rainy weather ($temp°C)—gather around a steaming hotpot, BBQ, or a warm bowl of rib porridge.",
+            tag = "Rainy $temp°C",
             visualType = SuggestionVisualType.HOTPOT_BOWL
         )
 
         currentHour in 5..10 -> LocalAiSuggestion(
             id = "food_morning_coffee",
-            category = "Ẩm thực",
+            category = "Food & Dining",
             categoryBadgeColor = Color(0xFFD97706).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFFD97706),
-            title = "Cà phê sữa đá & Bánh mì giòn",
-            description = "Khởi đầu ngày mới tỉnh táo với ly cà phê rang xay đậm đà kèm bánh mì nóng giòn hoặc phở bò tái thơm lừng.",
-            tag = "Bữa sáng",
+            title = "Iced Milk Coffee & Crispy Banh Mi",
+            description = "Kickstart your morning with rich roasted coffee and a warm crispy baguette or fragrant beef pho.",
+            tag = "Breakfast",
             visualType = SuggestionVisualType.COFFEE_CUP
         )
 
         currentHour in 11..14 && temp >= 30 -> LocalAiSuggestion(
             id = "food_noon_refresh",
-            category = "Ẩm thực",
+            category = "Food & Dining",
             categoryBadgeColor = Color(0xFF06B6D4).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFF06B6D4),
-            title = "Nước dừa tươi & Bữa trưa thanh nhiệt",
-            description = "Trưa nắng oi bức ($temp°C), bổ sung nước dừa xiêm, trà trái cây và cơm trưa thanh đạm giải nhiệt cơ thể.",
-            tag = "Giải nhiệt",
+            title = "Fresh Coconut Water & Light Lunch",
+            description = "Sunny midday heat ($temp°C)—recharge with fresh coconut water, fruit tea, and a light cooling lunch.",
+            tag = "Cooling",
             visualType = SuggestionVisualType.ROOFTOP_CHILL
         )
 
         currentHour in 11..14 -> LocalAiSuggestion(
             id = "food_noon_lunch",
-            category = "Ẩm thực",
+            category = "Food & Dining",
             categoryBadgeColor = Color(0xFF059669).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFF059669),
-            title = "Bữa trưa dinh dưỡng & Salad",
-            description = "Duy trì năng lượng bền bỉ cho ca chiều với thực đơn giàu protein nạc và nhiều rau củ tươi.",
-            tag = "Bữa trưa",
+            title = "Nutritious Lunch & Fresh Salad",
+            description = "Sustain your afternoon energy with lean protein and plenty of fresh greens.",
+            tag = "Lunch",
             visualType = SuggestionVisualType.HOTPOT_BOWL
         )
 
         else -> LocalAiSuggestion(
             id = "food_evening_dinner",
-            category = "Ẩm thực",
+            category = "Food & Dining",
             categoryBadgeColor = Color(0xFF8B5CF6).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFF8B5CF6),
-            title = "Bữa tối nhẹ bụng & Trà hoa cúc",
-            description = "Tránh đồ nhiều dầu mỡ sau 19h30, nhâm nhi một tách trà hoa cúc ấm giúp dễ dàng đi vào giấc ngủ sâu.",
-            tag = "Thư giãn tối",
+            title = "Light Dinner & Chamomile Tea",
+            description = "Avoid heavy meals after 19:30 and sip warm chamomile tea to ease into deep sleep.",
+            tag = "Evening Wind-down",
             visualType = SuggestionVisualType.TEA_POT
         )
     }
     suggestions.add(foodSuggestion)
 
-    // 3. DU LỊCH & WEEKEND TRIP (Kích hoạt T6 - Chủ Nhật hoặc khi trời đẹp)
+    // 3. TRAVEL & WEEKEND TRIP (Triggered Fri - Sun or in nice weather)
     val travelSuggestion = if (isWeekend) {
         LocalAiSuggestion(
             id = "travel_weekend_picnic",
-            category = "Du lịch",
+            category = "Travel",
             categoryBadgeColor = Color(0xFF3B82F6).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFF3B82F6),
-            title = "Picnic công viên & Cắm trại cuối tuần",
-            description = "Cuối tuần thời tiết đẹp, lên lịch dã ngoại công viên, cắm trại ngoại ô hoặc hẹn hò cà phê chill cùng bạn bè.",
-            tag = "Cuối tuần",
+            title = "Park Picnic & Weekend Camping",
+            description = "Great weekend weather—plan a park picnic, suburban camping trip, or a chill cafe outing with friends.",
+            tag = "Weekend",
             visualType = SuggestionVisualType.TENT_CAMPING
         )
     } else {
         LocalAiSuggestion(
             id = "travel_chill_spot",
-            category = "Du lịch",
+            category = "Travel",
             categoryBadgeColor = Color(0xFFEC4899).copy(alpha = 0.20f),
             categoryTextColor = Color(0xFFEC4899),
-            title = "Cà phê Rooftop ngắm hoàng hôn",
-            description = "Thư giãn sau giờ làm việc với không gian mở thoáng đãng, ngắm nhìn nhịp sống thành phố lên đèn.",
-            tag = "Khám phá",
+            title = "Sunset Rooftop Lounge",
+            description = "Unwind after work in an open-air rooftop space and watch the city lights come alive.",
+            tag = "Explore",
             visualType = SuggestionVisualType.ROOFTOP_CHILL
         )
     }
     suggestions.add(travelSuggestion)
 
-    // 4. Nếu chưa có thẻ Thể thao (trưa/tối), thêm gợi ý Thể thao giãn cơ trong nhà
-    if (suggestions.none { it.category == "Thể thao" }) {
+    // 4. If no Sports card yet (noon/evening), add indoor stretching suggestion
+    if (suggestions.none { it.category == "Sports" }) {
         suggestions.add(
             LocalAiSuggestion(
                 id = "sport_indoor_stretch",
-                category = "Thể thao",
+                category = "Sports",
                 categoryBadgeColor = Color(0xFF10B981).copy(alpha = 0.20f),
                 categoryTextColor = Color(0xFF10B981),
-                title = "Giãn cơ 15 phút & Yoga nhẹ",
-                description = "Thực hiện các động tác xoay khớp, duỗi cơ cột sống để giải tỏa nhức mỏi sau thời gian dài ngồi bàn máy tính.",
-                tag = "Phục hồi",
+                title = "15-Min Stretching & Light Yoga",
+                description = "Do joint rotations and spinal stretches to relieve tension after sitting at your desk.",
+                tag = "Recovery",
                 visualType = SuggestionVisualType.YOGA_MEDITATION
             )
         )
@@ -2562,7 +2562,7 @@ fun generateLocalAiSuggestions(
 }
 
 // -------------------------------------------------------------
-// 3D CLAYMORPHISM STICKER VISUALS (52dp Nổi bật trên Dark Glass)
+// 3D CLAYMORPHISM STICKER VISUALS (52dp Prominent on Dark Glass)
 // -------------------------------------------------------------
 
 @Composable
@@ -2585,7 +2585,7 @@ fun ClayCoffeeCupSticker(
             size = androidx.compose.ui.geometry.Size(40f, 8f)
         )
 
-        // 2. Cup Handle (Quai ly đất sét nổi 3D)
+        // 2. Cup Handle (3D Clay Cup Handle)
         val handleBrush = Brush.radialGradient(
             colors = if (isTea) listOf(Color(0xFFFDE047), Color(0xFFD97706)) else listOf(
                 Color(0xFFFFB74D),
@@ -2607,7 +2607,7 @@ fun ClayCoffeeCupSticker(
             )
         )
 
-        // 3. Cup Body (Thân ly đất sét tròn bầu bĩnh)
+        // 3. Cup Body (Rounded 3D Clay Cup Body)
         val cupPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx - 18f, cy - 12f)
             lineTo(cx + 18f, cy - 12f)
@@ -2627,7 +2627,7 @@ fun ClayCoffeeCupSticker(
         )
         drawPath(path = cupPath, brush = cupBrush)
 
-        // Specular highlight trên thân ly
+        // Specular highlight on cup body
         drawArc(
             color = Color.White.copy(alpha = 0.55f),
             startAngle = 160f,
@@ -2641,7 +2641,7 @@ fun ClayCoffeeCupSticker(
             )
         )
 
-        // 4. Liquid Surface (Mặt nước cà phê thơm / trà hoa cúc)
+        // 4. Liquid Surface (Coffee / Chamomile Tea surface)
         drawOval(
             brush = Brush.radialGradient(
                 colors = if (isTea) listOf(Color(0xFFFDE68A), Color(0xFFD97706)) else listOf(
@@ -2680,7 +2680,7 @@ fun ClayCoffeeCupSticker(
             )
         }
 
-        // 5. Static Steam Puffs (Hơi nước tĩnh mềm mại)
+        // 5. Static Steam Puffs
         drawCircle(
             color = Color.White.copy(alpha = 0.60f),
             radius = 3f,
@@ -2715,7 +2715,7 @@ fun ClayBicycleSticker(modifier: Modifier = Modifier) {
         val mintMid = Color(0xFF10B981)
         val mintDark = Color(0xFF047857)
 
-        // 2. Rear Wheel (Bánh sau)
+        // 2. Rear Wheel
         val rearWheelCenter = androidx.compose.ui.geometry.Offset(cx - 14f, cy + 6f)
         drawCircle(
             brush = Brush.radialGradient(
@@ -2733,7 +2733,7 @@ fun ClayBicycleSticker(modifier: Modifier = Modifier) {
         )
         drawCircle(color = Color.White, radius = 1.8f, center = rearWheelCenter)
 
-        // 3. Front Wheel (Bánh trước)
+        // 3. Front Wheel
         val frontWheelCenter = androidx.compose.ui.geometry.Offset(cx + 14f, cy + 6f)
         drawCircle(
             brush = Brush.radialGradient(
@@ -2751,7 +2751,7 @@ fun ClayBicycleSticker(modifier: Modifier = Modifier) {
         )
         drawCircle(color = Color.White, radius = 1.8f, center = frontWheelCenter)
 
-        // 4. Bike Frame (Khung xe đạp 3D Mint Claymorphism)
+        // 4. Bike Frame (3D Mint Claymorphism)
         val framePath = androidx.compose.ui.graphics.Path().apply {
             moveTo(rearWheelCenter.x, rearWheelCenter.y)
             lineTo(cx - 2f, cy + 6f) // Pedal crank
@@ -2772,14 +2772,14 @@ fun ClayBicycleSticker(modifier: Modifier = Modifier) {
             )
         )
 
-        // 5. Saddle (Yên xe)
+        // 5. Saddle
         drawOval(
             color = Color(0xFF1E293B),
             topLeft = androidx.compose.ui.geometry.Offset(cx - 10f, cy - 10f),
             size = androidx.compose.ui.geometry.Size(9f, 4.5f)
         )
 
-        // 6. Handlebar (Ghi đông)
+        // 6. Handlebar
         drawArc(
             color = Color(0xFF047857),
             startAngle = 180f,
@@ -2812,7 +2812,7 @@ fun ClayTentSticker(modifier: Modifier = Modifier) {
             size = androidx.compose.ui.geometry.Size(44f, 8f)
         )
 
-        // 2. Main Tent Canopy (Thân lều cắm trại 3D Coral/Salmon)
+        // 2. Main Tent Canopy (3D Coral/Salmon)
         val tentPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx, cy - 18f)
             lineTo(cx - 20f, cy + 14f)
@@ -2826,7 +2826,7 @@ fun ClayTentSticker(modifier: Modifier = Modifier) {
         )
         drawPath(path = tentPath, brush = tentBrush)
 
-        // 3. Side Fabric Flap (Viền phối màu vàng đất sét)
+        // 3. Side Fabric Flap (Yellow clay accent)
         val flapPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx, cy - 18f)
             lineTo(cx + 20f, cy + 14f)
@@ -2838,7 +2838,7 @@ fun ClayTentSticker(modifier: Modifier = Modifier) {
             brush = Brush.linearGradient(listOf(Color(0xFFFDE047), Color(0xFFF59E0B)))
         )
 
-        // 4. Open Door with Warm Glowing Light (Cửa lều mở có ánh đèn ấm vàng)
+        // 4. Open Door with Warm Glowing Light
         val doorPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx - 2f, cy - 4f)
             lineTo(cx - 10f, cy + 15f)
@@ -2854,7 +2854,7 @@ fun ClayTentSticker(modifier: Modifier = Modifier) {
             )
         )
 
-        // 5. Mini Flagpole & Pennant on Top (Cờ cắm trại trên đỉnh)
+        // 5. Mini Flagpole & Pennant on Top
         drawLine(
             color = Color(0xFFE2E8F0),
             start = androidx.compose.ui.geometry.Offset(cx, cy - 18f),
@@ -2963,7 +2963,7 @@ fun ClayYogaSticker(modifier: Modifier = Modifier) {
             center = androidx.compose.ui.geometry.Offset(cx, cy)
         )
 
-        // Center Lotus Petal (Cánh sen đất sét tím Pastel)
+        // Center Lotus Petal (Pastel Purple Clay)
         val lotusPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx, cy - 16f)
             quadraticTo(cx + 12f, cy - 2f, cx + 8f, cy + 12f)
@@ -3016,7 +3016,7 @@ fun ClayRooftopSticker(modifier: Modifier = Modifier) {
             size = androidx.compose.ui.geometry.Size(32f, 8f)
         )
 
-        // Cocktail Glass Body (Ly cocktail Sunset)
+        // Cocktail Glass Body (Sunset Cocktail)
         val glassPath = androidx.compose.ui.graphics.Path().apply {
             moveTo(cx - 14f, cy - 10f)
             lineTo(cx + 14f, cy - 10f)
@@ -3082,7 +3082,7 @@ fun ClaymorphismSuggestionVisual(
 }
 
 // -------------------------------------------------------------
-// GIAO DIỆN GỢI Ý PHONG CÁCH SỐNG DẠNG THẺ DỌC ONE UI (Vertical Smart Lifestyle Cards)
+// ONE UI VERTICAL SMART LIFESTYLE SUGGESTION CARDS
 // -------------------------------------------------------------
 @Composable
 private fun VerticalLifestyleSuggestionStack(
@@ -3102,7 +3102,7 @@ private fun VerticalLifestyleSuggestionStack(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Header Row: Tiêu đề + Nút Đổi Gợi Ý (Shuffle)
+        // Header Row: Title + Shuffle Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -3121,7 +3121,7 @@ private fun VerticalLifestyleSuggestionStack(
                     modifier = Modifier.size(17.dp)
                 )
                 Text(
-                    text = "Gợi ý phong cách sống",
+                    text = "Lifestyle suggestions",
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -3130,7 +3130,7 @@ private fun VerticalLifestyleSuggestionStack(
                 )
             }
 
-            // Nút Đổi Gợi Ý (Shuffle)
+            // Shuffle Suggestions Button
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -3147,12 +3147,12 @@ private fun VerticalLifestyleSuggestionStack(
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
-                    contentDescription = "Đổi gợi ý",
+                    contentDescription = "Shuffle suggestions",
                     tint = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
                     modifier = Modifier.size(13.dp)
                 )
                 Text(
-                    text = "Đổi gợi ý",
+                    text = "Shuffle",
                     color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.Medium
@@ -3161,7 +3161,7 @@ private fun VerticalLifestyleSuggestionStack(
         }
 
         if (isAiInferring) {
-            // Shimmer loading trên Card dọc
+            // Shimmer loading on vertical cards
             ShimmerLifestyleTipCard(isDark = isDark)
             ShimmerLifestyleTipCard(isDark = isDark)
         } else if (lifestyleTips.isNotEmpty()) {
@@ -3303,23 +3303,23 @@ private fun LifestyleTipCard(
     onToggleDone: () -> Unit
 ) {
     val badgeBg = when (tip.category) {
-        "Ẩm thực" -> Color(0xFFFEF3C7)
-        "Thức uống" -> Color(0xFFE0E7FF)
-        "Thể thao", "Vận động" -> Color(0xFFDCFCE7)
-        "Du lịch" -> Color(0xFFDBEAFE)
-        "Thư giãn" -> Color(0xFFF3E8FF)
-        "Sức khỏe" -> Color(0xFFCCFBF1)
-        "Năng suất" -> Color(0xFFFEE2E2)
+        "Food & Dining" -> Color(0xFFFEF3C7)
+        "Beverages" -> Color(0xFFE0E7FF)
+        "Sports", "Fitness" -> Color(0xFFDCFCE7)
+        "Travel" -> Color(0xFFDBEAFE)
+        "Relaxation" -> Color(0xFFF3E8FF)
+        "Wellness" -> Color(0xFFCCFBF1)
+        "Productivity" -> Color(0xFFFEE2E2)
         else -> Color(0xFFE0F2FE)
     }
     val badgeTxt = when (tip.category) {
-        "Ẩm thực" -> Color(0xFFD97706)
-        "Thức uống" -> Color(0xFF4F46E5)
-        "Thể thao", "Vận động" -> Color(0xFF16A34A)
-        "Du lịch" -> Color(0xFF2563EB)
-        "Thư giãn" -> Color(0xFF9333EA)
-        "Sức khỏe" -> Color(0xFF0F766E)
-        "Năng suất" -> Color(0xFFDC2626)
+        "Food & Dining" -> Color(0xFFD97706)
+        "Beverages" -> Color(0xFF4F46E5)
+        "Sports", "Fitness" -> Color(0xFF16A34A)
+        "Travel" -> Color(0xFF2563EB)
+        "Relaxation" -> Color(0xFF9333EA)
+        "Wellness" -> Color(0xFF0F766E)
+        "Productivity" -> Color(0xFFDC2626)
         else -> Color(0xFF0284C7)
     }
 
@@ -3400,7 +3400,7 @@ private fun LifestyleTipCard(
                 )
             }
 
-            // Quả cầu kính mờ 3D chứa Icon/Emoji
+            // 3D frosted glass sphere containing Icon/Emoji
             Box(
                 modifier = Modifier
                     .size(46.dp)
@@ -3419,7 +3419,7 @@ private fun LifestyleTipCard(
                 if (tip.isDone) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Đã làm",
+                        contentDescription = "Done",
                         tint = Color(0xFF10B981),
                         modifier = Modifier.size(26.dp)
                     )
@@ -3459,14 +3459,14 @@ private fun SuggestionCarouselCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Bên trái: Category Badge + Tag + Tiêu đề + Nội dung
+            // Left: Category Badge + Tag + Title + Content
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Header Row: Category Badge + Tag + Nút đóng X nhỏ
+                // Header Row: Category Badge + Tag + Small close X button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -3509,7 +3509,7 @@ private fun SuggestionCarouselCard(
                         }
                     }
 
-                    // Nút X nhỏ ẩn gợi ý
+                    // Small X button to dismiss suggestion
                     Box(
                         modifier = Modifier
                             .size(20.dp)
@@ -3520,14 +3520,14 @@ private fun SuggestionCarouselCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Ẩn",
+                            contentDescription = "Dismiss",
                             tint = if (isDark) Color.White.copy(alpha = 0.5f) else Color(0xFF64748B),
                             modifier = Modifier.size(11.dp)
                         )
                     }
                 }
 
-                // Tiêu đề gợi ý
+                // Suggestion title
                 Text(
                     text = suggestion.title,
                     color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -3537,7 +3537,7 @@ private fun SuggestionCarouselCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Câu gợi ý súc tích
+                // Concise suggestion description
                 Text(
                     text = suggestion.description,
                     color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF475569),
@@ -3548,7 +3548,7 @@ private fun SuggestionCarouselCard(
                 )
             }
 
-            // Bên phải: 3D CLAYMORPHISM STICKER / VISUAL LỚN (52dp)
+            // Right: 3D CLAYMORPHISM STICKER / LARGE VISUAL (52dp)
             ClaymorphismSuggestionVisual(
                 visualType = suggestion.visualType,
                 modifier = Modifier.size(52.dp)
@@ -3558,7 +3558,7 @@ private fun SuggestionCarouselCard(
 }
 
 // -------------------------------------------------------------
-// THẺ 4: GỢI Ý THÔNG MINH WIDGETS (Editorial & Adaptive Widgets)
+// CARD 4: SMART SUGGESTION WIDGETS (Editorial & Adaptive Widgets)
 // -------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -3580,12 +3580,12 @@ private fun SmartSuggestionWidgetsSection(
     var shuffleOffset by remember { mutableStateOf(0) }
 
     val tempInt = weatherData?.currentTempC?.toInt() ?: 29
-    val weatherDesc = weatherData?.conditionDescription ?: "mát mẻ"
+    val weatherDesc = weatherData?.conditionDescription ?: "cool"
     val isRainy = weatherData?.conditionDescription?.let {
-        it.contains("mưa", ignoreCase = true) || it.contains("rain", ignoreCase = true)
+        it.contains("rain", ignoreCase = true) || it.contains("drizzle", ignoreCase = true) || it.contains("shower", ignoreCase = true)
     } ?: false
 
-    // Xây dựng LifestyleContext đa chiều cho LinUCB Contextual Bandit kết hợp Persona
+    // Build multidimensional LifestyleContext for LinUCB Contextual Bandit combined with Persona
     val cachedPersona = remember {
         mlEngine.getCachedPersonaProfile()?.personaType ?: com.example.core.ml.UserPersonaType.BALANCED_DEFAULT
     }
@@ -3599,12 +3599,12 @@ private fun SmartSuggestionWidgetsSection(
         )
     }
 
-    // Lead text sinh bởi Contextual Bandit (context-aware: weekend, mưa, streak, nhiệt độ)
+    // Lead text generated by Contextual Bandit (context-aware: weekend, rain, streak, temperature)
     val aiLeadText = remember(lifestyleContext, weatherDesc, leadTextRefreshKey) {
         mlEngine.generateContextualLeadText(lifestyleContext, weatherDesc)
     }
 
-    // Xếp hạng tips bằng LinUCB (context vector 8 chiều)
+    // Rank tips using LinUCB (8-dimensional context vector)
     val rankedLifestyleTips = remember(lifestyleTips, lifestyleContext, leadTextRefreshKey, shuffleOffset) {
         val ranked = mlEngine.rankLifestyleTipsContextual(lifestyleTips, lifestyleContext)
         val offset = shuffleOffset
@@ -3633,7 +3633,7 @@ private fun SmartSuggestionWidgetsSection(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Editorial Lead Text sinh tự động từ LinUCB Contextual Bandit (Clean Typography, strictly no emoji)
+        // Editorial Lead Text auto-generated from LinUCB Contextual Bandit (Clean Typography, strictly no emoji)
         Text(
             text = aiLeadText,
             color = if (isDark) Color(0xFFE2E8F0) else Color(0xFF1E293B),
@@ -3643,7 +3643,7 @@ private fun SmartSuggestionWidgetsSection(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
         )
 
-        // Vertical Lifestyle Suggestion Stack: Danh sách thẻ dọc hiển thị trực tiếp chuẩn One UI
+        // Vertical Lifestyle Suggestion Stack: Vertical card list displayed directly in One UI style
         VerticalLifestyleSuggestionStack(
             modifier = Modifier.fillMaxWidth(),
             lifestyleTips = rankedLifestyleTips,
@@ -3656,7 +3656,7 @@ private fun SmartSuggestionWidgetsSection(
             onToggleDone = { tipId ->
                 val clickedTip = rankedLifestyleTips.firstOrNull { it.id == tipId }
                 if (clickedTip != null) {
-                    // Ghi nhận tương tác qua LinUCB Contextual Bandit (dual-write legacy + LinUCB)
+                    // Record interaction via LinUCB Contextual Bandit (dual-write legacy + LinUCB)
                     mlEngine.recordLifestyleClickContextual(
                         clickedTip.title, clickedTip.category, lifestyleContext
                     )
@@ -3685,7 +3685,7 @@ private fun SmartSuggestionWidgetsSection(
                 onSelect = { selectedMindfulnessType = it }
             )
         } else {
-            // Nighttime: Widget Báo thức sáng mai + Hàng 3 Mini Card Chánh niệm
+            // Nighttime: Tomorrow Morning Alarm Widget + 3 Mindfulness Mini Cards Row
             MorningAlarmWidget(isDark = isDark)
 
             MindfulnessMiniCardsRow(
@@ -3695,7 +3695,7 @@ private fun SmartSuggestionWidgetsSection(
         }
     }
 
-    // Modal BottomSheet khi nhấn vào 3 Mini Card Chánh niệm
+    // Modal BottomSheet when tapping the 3 Mindfulness Mini Cards
     if (selectedMindfulnessType != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         when (selectedMindfulnessType) {
@@ -3725,7 +3725,7 @@ private fun SmartSuggestionWidgetsSection(
 }
 
 // -------------------------------------------------------------
-// WIDGET SPOTIFY / MEDIA CARD (Buổi sáng / Chiều)
+// SPOTIFY / MEDIA CARD WIDGET (Morning / Afternoon)
 // -------------------------------------------------------------
 @Composable
 private fun SpotifyMediaSuggestionCard(
@@ -3736,15 +3736,15 @@ private fun SpotifyMediaSuggestionCard(
 
     val (playlistTitle, playlistDesc, genreTag) = if (currentHour in 6..11) {
         Triple(
-            "Acoustic Buổi Sáng - Tỉnh Táo",
-            "Giai điệu mộc nhẹ nhàng khởi động ngày mới tràn đầy cảm hứng",
-            "Khởi đầu ngày"
+            "Morning Acoustic - Fresh Start",
+            "Gentle acoustic melodies to kick off an inspiring new day",
+            "Morning boost"
         )
     } else {
         Triple(
             "Lofi Beats & Deep Focus",
-            "Nhịp điệu êm dịu giúp duy trì sự tập trung cao độ và không mệt mỏi",
-            "Tập trung sâu"
+            "Soothing beats to maintain peak focus without fatigue",
+            "Deep focus"
         )
     }
 
@@ -3787,7 +3787,7 @@ private fun SpotifyMediaSuggestionCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 3D Vinyl Record Squircle Album Cover Nghệ thuật
+            // Artistic 3D Vinyl Record Squircle Album Cover
             Box(
                 modifier = Modifier
                     .size(54.dp)
@@ -3803,7 +3803,7 @@ private fun SpotifyMediaSuggestionCard(
                     val cx = w / 2f
                     val cy = h / 2f
 
-                    // Rãnh đĩa than Vinyl
+                    // Vinyl record grooves
                     drawCircle(
                         color = Color(0xFF1E293B),
                         radius = 24f,
@@ -3820,7 +3820,7 @@ private fun SpotifyMediaSuggestionCard(
                         center = androidx.compose.ui.geometry.Offset(cx, cy)
                     )
 
-                    // Tâm nhãn đĩa Spotify xanh Emerald
+                    // Emerald green Spotify center label
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(Color(0xFF1ED760), Color(0xFF1DB954), Color(0xFF047857)),
@@ -3831,7 +3831,7 @@ private fun SpotifyMediaSuggestionCard(
                         center = androidx.compose.ui.geometry.Offset(cx, cy)
                     )
 
-                    // Lỗ đĩa tâm
+                    // Center spindle hole
                     drawCircle(
                         color = Color(0xFF0F172A),
                         radius = 2.5f,
@@ -3850,7 +3850,7 @@ private fun SpotifyMediaSuggestionCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nội dung bài hát/playlist
+            // Track/playlist info
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -3924,7 +3924,7 @@ private fun SpotifyMediaSuggestionCard(
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Tạm dừng" else "Phát",
+                        contentDescription = if (isPlaying) "Pause" else "Play",
                         tint = if (isPlaying) Color.White else Color(0xFF1DB954),
                         modifier = Modifier.size(20.dp)
                     )
@@ -3935,7 +3935,7 @@ private fun SpotifyMediaSuggestionCard(
 }
 
 // -------------------------------------------------------------
-// WIDGET BÁO THỨC SÁNG MAI (Buổi tối / Đêm)
+// TOMORROW MORNING ALARM WIDGET (Evening / Night)
 // -------------------------------------------------------------
 @Composable
 private fun MorningAlarmWidget(isDark: Boolean) {
@@ -3975,7 +3975,7 @@ private fun MorningAlarmWidget(isDark: Boolean) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Alarm,
-                        contentDescription = "Báo thức",
+                        contentDescription = "Alarm",
                         tint = Color(0xFF818CF8),
                         modifier = Modifier.size(20.dp)
                     )
@@ -3993,14 +3993,14 @@ private fun MorningAlarmWidget(isDark: Boolean) {
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            text = "Sáng mai",
+                            text = "Tomorrow morning",
                             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
                     Text(
-                        text = "Lịch trình đầu tiên lúc 08:30 • Còn 7h 45m",
+                        text = "First event at 08:30 • In 7h 45m",
                         color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF64748B),
                         fontSize = 11.sp
                     )
@@ -4022,7 +4022,7 @@ private fun MorningAlarmWidget(isDark: Boolean) {
 }
 
 // -------------------------------------------------------------
-// HÀNG 3 MINI CARD CHÁNH NIỆM (Tâm trạng • Bài tập thở • Thiền)
+// 3 MINDFULNESS MINI CARDS ROW (Mood • Breathing • Meditation)
 // -------------------------------------------------------------
 @Composable
 private fun MindfulnessMiniCardsRow(
@@ -4033,10 +4033,10 @@ private fun MindfulnessMiniCardsRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Mini Card 1: [Kiểm tra tâm trạng]
+        // Mini Card 1: [Mood check-in]
         MindfulnessItemCard(
-            title = "Tâm trạng",
-            subtitle = "Ghi nhận",
+            title = "Mood",
+            subtitle = "Check-in",
             icon = Icons.Default.SentimentSatisfiedAlt,
             iconTint = Color(0xFFEC4899),
             iconBg = Color(0xFFFDF2F8),
@@ -4046,10 +4046,10 @@ private fun MindfulnessMiniCardsRow(
             onClick = { onSelect("mood") }
         )
 
-        // Mini Card 2: [Bài tập thở]
+        // Mini Card 2: [Breathing exercise]
         MindfulnessItemCard(
-            title = "Tập thở",
-            subtitle = "4-7-8 Thư giãn",
+            title = "Breathe",
+            subtitle = "4-7-8 Relax",
             icon = Icons.Default.Air,
             iconTint = Color(0xFF06B6D4),
             iconBg = Color(0xFFECFEFF),
@@ -4059,10 +4059,10 @@ private fun MindfulnessMiniCardsRow(
             onClick = { onSelect("breath") }
         )
 
-        // Mini Card 3: [Thiền]
+        // Mini Card 3: [Meditation]
         MindfulnessItemCard(
-            title = "Thiền sâu",
-            subtitle = "5 phút an tĩnh",
+            title = "Meditate",
+            subtitle = "5 min calm",
             icon = Icons.Default.SelfImprovement,
             iconTint = Color(0xFF8B5CF6),
             iconBg = Color(0xFFF5F3FF),
@@ -4088,7 +4088,7 @@ private fun MindfulnessItemCard(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "mindfulness_card_$title")
 
-    // Animation chuyển động nhẹ phù hợp từng loại (thở nhẹ / nhún nhẹ / phát sáng nhẹ)
+    // Subtle motion animation tailored to each type (gentle breathing / pulse / glow)
     val animScale by when (animationType) {
         2 -> infiniteTransition.animateFloat(
             initialValue = 0.92f,
@@ -4143,7 +4143,7 @@ private fun MindfulnessItemCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Icon Badge trong vòng tròn kính mờ Gradient chuẩn One UI
+            // Icon Badge inside One UI Frosted Glass Gradient Circle
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -4191,7 +4191,7 @@ private fun MindfulnessItemCard(
 }
 
 // -------------------------------------------------------------
-// HỘP THOẠI TƯƠNG TÁC CHÁNH NIỆM (Interactive Mindfulness Dialog)
+// INTERACTIVE MINDFULNESS DIALOG (Interactive Mindfulness Dialog)
 // -------------------------------------------------------------
 @Composable
 private fun MindfulnessInteractiveDialog(
@@ -4201,22 +4201,22 @@ private fun MindfulnessInteractiveDialog(
 ) {
     val (title, desc, icon, iconTint) = when (type) {
         "mood" -> Tuple4(
-            "Kiểm tra tâm trạng",
-            "Hôm nay bạn cảm thấy thế nào? Ghi nhận cảm xúc giúp AI cân đối nhịp sinh hoạt ngày mai.",
+            "Mood Check-in",
+            "How are you feeling today? Logging your mood helps AI balance tomorrow's routine.",
             Icons.Default.SentimentSatisfiedAlt,
             Color(0xFFEC4899)
         )
 
         "breath" -> Tuple4(
-            "Bài tập thở 4-7-8",
-            "Hít vào 4 giây • Giữ hơi 7 giây • Thở ra từ từ trong 8 giây để thả lỏng nhịp tim.",
+            "4-7-8 Breathing Exercise",
+            "Inhale for 4s • Hold for 7s • Exhale slowly for 8s to relax your heart rate.",
             Icons.Default.Air,
             Color(0xFF06B6D4)
         )
 
         else -> Tuple4(
-            "Thiền tĩnh lặng 5 phút",
-            "Nhắm mắt, thả lỏng vai và tập trung vào từng hơi thở tự nhiên.",
+            "5-Minute Calm Meditation",
+            "Close your eyes, relax your shoulders, and focus on each natural breath.",
             Icons.Default.SelfImprovement,
             Color(0xFF8B5CF6)
         )
@@ -4257,7 +4257,7 @@ private fun MindfulnessInteractiveDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        listOf("😄 Tuyệt vời", "🙂 Bình thường", "😴 Hơi mệt", "🧘 Thư thái").forEach { mood ->
+                        listOf("😄 Great", "🙂 Okay", "😴 Tired", "🧘 Calm").forEach { mood ->
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
@@ -4278,12 +4278,12 @@ private fun MindfulnessInteractiveDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = iconTint),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Bắt đầu ngay", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Start now", color = Color.White, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Để sau", color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B))
+                Text("Later", color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B))
             }
         },
         containerColor = if (isDark) Color(0xFF1E293B) else Color.White,
@@ -4299,7 +4299,7 @@ private data class Tuple4<A, B, C, D>(
 )
 
 // -------------------------------------------------------------
-// THẺ DỰ ĐOÁN HÀNH VI NGÀY MAI — CHUẨN ONE UI (TƯƠNG TỰ ONE UI CALENDAR CARD)
+// TOMORROW BEHAVIOR PREDICTION CARD — ONE UI STYLE (SIMILAR TO ONE UI CALENDAR CARD)
 // -------------------------------------------------------------
 @Composable
 private fun BehaviorPredictionInsightCard(
@@ -4309,7 +4309,7 @@ private fun BehaviorPredictionInsightCard(
     val context = androidx.compose.ui.platform.LocalContext.current
     val mlEngine = remember { com.example.core.ml.InternalMlEngine.getInstance(context) }
 
-    // Tính toán tỷ lệ vận động hôm nay
+    // Calculate today's activity rate
     val todayActivityRate = if (realHealthData != null && realHealthData.stepGoal > 0) {
         ((realHealthData.currentSteps.toFloat() / realHealthData.stepGoal) * 0.5f +
                 (realHealthData.currentActiveMinutes.toFloat() / realHealthData.activeGoalMinutes.coerceAtLeast(1)) * 0.3f +
@@ -4320,7 +4320,7 @@ private fun BehaviorPredictionInsightCard(
     } else 0f
     val todaySteps = realHealthData?.currentSteps ?: 0
 
-    // Đọc cache trước (synchronous), rồi launch coroutine refresh
+    // Read cache first (synchronous), then launch coroutine refresh
     var prediction by remember {
         mutableStateOf(
             mlEngine.getCachedBehaviorPrediction()
@@ -4332,7 +4332,7 @@ private fun BehaviorPredictionInsightCard(
         prediction = mlEngine.predictTomorrowBehavior(todayActivityRate, todaySteps)
     }
 
-    // Chỉ hiển thị khi đã có >= 3 ngày dữ liệu
+    // Only display when >= 3 days of data are available
     if (prediction.totalDaysSampled < 3) return
 
     val containerBg = if (isDark) {
@@ -4388,7 +4388,7 @@ private fun BehaviorPredictionInsightCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // App Icon trong Squircle Container (36dp, RoundedCornerShape 12dp)
+                    // App Icon inside Squircle Container (36dp, RoundedCornerShape 12dp)
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -4406,7 +4406,7 @@ private fun BehaviorPredictionInsightCard(
 
                     Column {
                         Text(
-                            text = "Dự đoán nhịp sinh hoạt",
+                            text = "Routine prediction",
                             color = appNameColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
@@ -4414,7 +4414,7 @@ private fun BehaviorPredictionInsightCard(
                     }
                 }
 
-                // Trend Badge (Pill Container đồng bộ OneUICalendarCard, sạch sẽ không emoji)
+                // Trend Badge (Pill Container matching OneUICalendarCard, clean without emoji)
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
@@ -4465,12 +4465,12 @@ private fun BehaviorPredictionInsightCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // -------------------------------------------------------------
-            // [CONTENT SECTION]: 2 Item Dự Đoán (Tối nay + Sáng mai)
+            // [CONTENT SECTION]: 2 Prediction Items (Tonight + Tomorrow morning)
             // -------------------------------------------------------------
             Column(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Item 1: Giấc ngủ tối nay
+                // Item 1: Tonight's sleep
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -4478,7 +4478,7 @@ private fun BehaviorPredictionInsightCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Thanh dọc Accent màu sắc
+                    // Colored vertical accent bar
                     Box(
                         modifier = Modifier
                             .width(3.5.dp)
@@ -4487,13 +4487,13 @@ private fun BehaviorPredictionInsightCard(
                             .background(sleepAccentColor)
                     )
 
-                    // Chi tiết dự đoán ngủ
+                    // Sleep prediction details
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "Tối nay: ${prediction.predictedSleepState.label}",
+                            text = "Tonight: ${prediction.predictedSleepState.label}",
                             color = titleColor,
                             fontSize = 15.5.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -4512,7 +4512,7 @@ private fun BehaviorPredictionInsightCard(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = "${(prediction.sleepProbability * 100).toInt()}% xác suất theo Markov Chain",
+                                text = "${(prediction.sleepProbability * 100).toInt()}% probability via Markov Chain",
                                 color = timeTextColor,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Normal
@@ -4521,7 +4521,7 @@ private fun BehaviorPredictionInsightCard(
                     }
                 }
 
-                // Divider mỏng giữa 2 item
+                // Thin divider between the 2 items
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -4529,7 +4529,7 @@ private fun BehaviorPredictionInsightCard(
                         .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFFF1F5F9))
                 )
 
-                // Item 2: Thức dậy sáng mai
+                // Item 2: Tomorrow morning wake-up
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -4537,7 +4537,7 @@ private fun BehaviorPredictionInsightCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Thanh dọc Accent màu sắc
+                    // Colored vertical accent bar
                     Box(
                         modifier = Modifier
                             .width(3.5.dp)
@@ -4546,13 +4546,13 @@ private fun BehaviorPredictionInsightCard(
                             .background(wakeAccentColor)
                     )
 
-                    // Chi tiết dự đoán thức dậy
+                    // Wake-up prediction details
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "Sáng mai: ${prediction.predictedWakeState.label}",
+                            text = "Tomorrow morning: ${prediction.predictedWakeState.label}",
                             color = titleColor,
                             fontSize = 15.5.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -4571,7 +4571,7 @@ private fun BehaviorPredictionInsightCard(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = "${(prediction.wakeProbability * 100).toInt()}% xác suất theo chuỗi thói quen",
+                                text = "${(prediction.wakeProbability * 100).toInt()}% probability from habit chain",
                                 color = timeTextColor,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Normal
@@ -4581,7 +4581,7 @@ private fun BehaviorPredictionInsightCard(
                 }
 
                 // -------------------------------------------------------------
-                // [ACTIVITY IMPACT BANNER]: Tác động vận động đến giấc ngủ & Phục hồi
+                // [ACTIVITY IMPACT BANNER]: Activity impact on sleep & Recovery
                 // -------------------------------------------------------------
                 if (prediction.activityImpactNote != null) {
                     Spacer(modifier = Modifier.height(2.dp))
@@ -4601,7 +4601,7 @@ private fun BehaviorPredictionInsightCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = "${prediction.activityImpactNote} (Dự kiến phục hồi: ${prediction.estimatedRecoveryPercent}%)",
+                            text = "${prediction.activityImpactNote} (Est. recovery: ${prediction.estimatedRecoveryPercent}%)",
                             color = if (isDark) Color(0xFF34D399) else Color(0xFF047857),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -4610,7 +4610,7 @@ private fun BehaviorPredictionInsightCard(
                 }
 
                 // -------------------------------------------------------------
-                // [BOTTOM BANNER]: Gợi ý hành động hoặc Insight
+                // [BOTTOM BANNER]: Action Recommendation or Insight
                 // -------------------------------------------------------------
                 val bottomText = prediction.recommendation.ifBlank { prediction.insight }
                 if (bottomText.isNotBlank()) {

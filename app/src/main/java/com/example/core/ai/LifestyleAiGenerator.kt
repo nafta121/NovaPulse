@@ -13,7 +13,7 @@ data class UserContext(
     val temperature: Double,
     val steps: Long,
     val isWeekend: Boolean = false,
-    val dayOfWeek: String = "Thứ Sáu"
+    val dayOfWeek: String = "Friday"
 )
 
 class LifestyleAiGenerator(
@@ -58,33 +58,33 @@ class LifestyleAiGenerator(
     }
 
     private fun buildPrompt(contextData: UserContext): String {
-        val weekendContext = if (contextData.isWeekend) "Hôm nay là Cuối tuần (${contextData.dayOfWeek}), thích hợp dã ngoại, du lịch ngắn ngày, picnic hoặc cà phê." else "Hôm nay là Ngày làm việc (${contextData.dayOfWeek}), cần giữ tập trung và duy trì năng lượng."
+        val weekendContext = if (contextData.isWeekend) "Today is the Weekend (${contextData.dayOfWeek}), great for outdoor trips, short getaways, picnics, or coffee." else "Today is a Workday (${contextData.dayOfWeek}), stay focused and maintain your energy."
         val weatherType = when {
-            contextData.temperature >= 32.0 -> "Trời oi nóng (${contextData.temperature.toInt()}°C), nên giải nhiệt, bù nước và ở nơi thoáng mát."
-            contextData.temperature <= 22.0 -> "Trời lạnh (${contextData.temperature.toInt()}°C), nên dùng món nóng ấm và giữ ấm cơ thể."
-            else -> "Thời tiết lý tưởng (${contextData.temperature.toInt()}°C, ${contextData.weatherCondition}), rất thích hợp cho vận động ngoài trời."
+            contextData.temperature >= 32.0 -> "Hot weather (${contextData.temperature.toInt()}°C), stay cool, hydrate, and remain in shaded or ventilated areas."
+            contextData.temperature <= 22.0 -> "Cool weather (${contextData.temperature.toInt()}°C), enjoy warm food or drinks and keep your body warm."
+            else -> "Ideal weather (${contextData.temperature.toInt()}°C, ${contextData.weatherCondition}), great for outdoor activities."
         }
 
         return """
-            Dựa vào thông tin:
-            - Thời gian: Buổi ${contextData.timeOfDay}, ${contextData.dayOfWeek} (${if (contextData.isWeekend) "Cuối tuần" else "Ngày thường"}).
-            - Thời tiết: ${contextData.weatherCondition}, ${contextData.temperature}°C ($weatherType).
-            - Ngữ cảnh: $weekendContext
-            - Vận động: ${contextData.steps} bước chân hôm nay.
+            Based on the following context:
+            - Time: ${contextData.timeOfDay}, ${contextData.dayOfWeek} (${if (contextData.isWeekend) "Weekend" else "Weekday"}).
+            - Weather: ${contextData.weatherCondition}, ${contextData.temperature}°C ($weatherType).
+            - Context: $weekendContext
+            - Activity: ${contextData.steps} steps today.
 
-            Hãy sinh ra 3 đến 4 thẻ gợi ý lifestyle/mindfulness phong phú thuộc các nhóm:
-            1. "Vận động & Du lịch" (Tag: "Ngoài trời", "Cuối tuần", "Khám phá"): Dựa vào thời tiết và ngày nghỉ.
-            2. "Ẩm thực & Thưởng thức" (Tag: "Thưởng thức", "Dinh dưỡng", "Giải nhiệt"): Dựa vào buổi và nhiệt độ.
-            3. "Thư giãn & Phục hồi" (Tag: "Phục hồi", "Mindfulness"): Dựa vào số bước và nhịp sinh học.
-            4. "Mẹo sức khỏe" (Tag: "Sức khỏe", "Bảo vệ"): Nhắc uống nước, bôi kem chống nắng, giãn cơ.
+            Recommend 3 to 4 rich lifestyle/mindfulness suggestion cards across these categories:
+            1. "Fitness & Travel" (Tag: "Outdoors", "Weekend", "Explore"): Based on weather and day off.
+            2. "Food & Dining" (Tag: "Treats", "Nutrition", "Cooling"): Based on time of day and temperature.
+            3. "Relaxation & Recovery" (Tag: "Recovery", "Mindfulness"): Based on step count and circadian rhythm.
+            4. "Health Tips" (Tag: "Wellness", "Care"): Reminders to hydrate, apply sunscreen, or stretch.
 
-            Trả về DUY NHẤT định dạng JSON mảng các object với các trường:
+            Return ONLY a JSON array of objects with the following fields:
             [
               {
-                "category": "Ẩm thực",
-                "tag": "Thưởng thức",
-                "title": "Cà phê sương sớm & Phở nóng",
-                "description": "Bắt đầu ngày mới với phở bò thơm lừng kèm tách cà phê phin đậm đà.",
+                "category": "Food & Dining",
+                "tag": "Treats",
+                "title": "Morning Coffee & Warm Noodle Soup",
+                "description": "Start your new day with a fragrant bowl of noodle soup and a rich cup of coffee.",
                 "emoji": "🍜"
               }
             ]
@@ -100,10 +100,10 @@ class LifestyleAiGenerator(
             val jsonArray = JSONArray(cleanJson)
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
-                val category = obj.optString("category", "Lối sống")
-                val tag = obj.optString("tag", "Gợi ý")
-                val title = obj.optString("title", "Lối sống lành mạnh")
-                val description = obj.optString("description", "Dành thời gian chăm sóc bản thân mỗi ngày.")
+                val category = obj.optString("category", "Lifestyle")
+                val tag = obj.optString("tag", "Suggestion")
+                val title = obj.optString("title", "Healthy Lifestyle")
+                val description = obj.optString("description", "Take time to care for yourself every day.")
                 val emoji = obj.optString("emoji", "💡")
 
                 list.add(

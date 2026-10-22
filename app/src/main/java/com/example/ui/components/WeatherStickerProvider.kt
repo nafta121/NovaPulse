@@ -20,18 +20,18 @@ import androidx.compose.ui.unit.dp
 import com.example.R
 
 /**
- * Trả về ID drawable tương ứng với mã thời tiết từ Open-Meteo API
- * - weather_sunny.png (Mã 0, 1 ban ngày)
- * - weather_night.png (Mã 0, 1 ban đêm)
- * - weather_cloudy.png (Mã 2, 3, 45, 48 - Sương mù tự động dùng cloudy)
- * - weather_rainy.png (Mã 51..67, 80..82)
- * - weather_thunder.png (Mã 95..99)
+ * Returns the drawable resource ID corresponding to the Open-Meteo API weather code
+ * - weather_sunny.png (Codes 0, 1 during daytime)
+ * - weather_night.png (Codes 0, 1 during nighttime)
+ * - weather_cloudy.png (Codes 2, 3, 45, 48 - Fog automatically uses cloudy)
+ * - weather_rainy.png (Codes 51..67, 80..82)
+ * - weather_thunder.png (Codes 95..99)
  */
 fun getWeatherStickerRes(weatherCode: Int, isNight: Boolean = false): Int {
     return when (weatherCode) {
         0, 1 -> if (isNight) R.drawable.weather_night else R.drawable.weather_sunny
         2, 3 -> R.drawable.weather_cloudy
-        45, 48 -> R.drawable.weather_cloudy // Sương mù tự động dùng sticker mây
+        45, 48 -> R.drawable.weather_cloudy // Fog automatically uses the cloudy sticker
         51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82 -> R.drawable.weather_rainy
         95, 96, 99 -> R.drawable.weather_thunder
         else -> if (isNight) R.drawable.weather_night else R.drawable.weather_sunny
@@ -39,7 +39,7 @@ fun getWeatherStickerRes(weatherCode: Int, isNight: Boolean = false): Int {
 }
 
 /**
- * Weather Sticker Component hiển thị ảnh PNG sắc nét kèm hiệu ứng nhún nhảy (floating animation) mượt mà
+ * Weather Sticker Component displaying a crisp PNG image with a smooth floating animation
  */
 @Composable
 fun WeatherStickerImage(

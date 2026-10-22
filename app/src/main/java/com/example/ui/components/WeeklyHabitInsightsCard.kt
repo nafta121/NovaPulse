@@ -54,7 +54,7 @@ import com.example.core.engine.HabitCategoryStat
 import com.example.core.engine.WeeklyHabitInsightsData
 
 /**
- * Card Báo cáo Thói quen Tuần chuẩn Samsung One UI 9 Glassmorphism
+ * Weekly Habit Insights Card following Samsung One UI 9 Glassmorphism design
  */
 @Composable
 fun WeeklyHabitInsightsCard(
@@ -109,7 +109,7 @@ fun WeeklyHabitInsightsCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // -------------------------------------------------------------
-            // [1. HEADER ROW]: Title + "Tuần này" + Nút "Chi tiết >"
+            // [1. HEADER ROW]: Title + "This week" + "Details >" Button
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -121,14 +121,14 @@ fun WeeklyHabitInsightsCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Báo cáo thói quen",
+                        text = "Habit Report",
                         color = titleColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
-                        text = "Tuần này",
+                        text = "This week",
                         color = subtitleColor,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal
@@ -144,7 +144,7 @@ fun WeeklyHabitInsightsCard(
                         .padding(horizontal = 6.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "Chi tiết",
+                        text = "Details",
                         color = subtitleColor,
                         fontSize = 12.5.sp,
                         fontWeight = FontWeight.Medium
@@ -159,7 +159,7 @@ fun WeeklyHabitInsightsCard(
             }
 
             // -------------------------------------------------------------
-            // [2. HIGHLIGHT BANNER]: "Tập trung đỉnh cao"
+            // [2. HIGHLIGHT BANNER]: "Peak Focus"
             // -------------------------------------------------------------
             Box(
                 modifier = Modifier
@@ -190,7 +190,7 @@ fun WeeklyHabitInsightsCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Tập trung đỉnh cao: ${data.peakEnergyHoursLabel.ifBlank { "08:30 – 11:30" }}",
+                            text = "Peak Focus: ${data.peakEnergyHoursLabel.ifBlank { "08:30 – 11:30" }}",
                             color = titleColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
@@ -199,7 +199,7 @@ fun WeeklyHabitInsightsCard(
                         Spacer(modifier = Modifier.height(2.dp))
 
                         Text(
-                            text = data.peakEnergyDescription.ifBlank { "Khung giờ hiệu suất làm việc cao nhất trong ngày." },
+                            text = data.peakEnergyDescription.ifBlank { "Highest work productivity window of the day." },
                             color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6C707A),
                             fontSize = 12.sp,
                             lineHeight = 16.sp,
@@ -244,7 +244,7 @@ fun WeeklyHabitInsightsCard(
                     )
 
                     Text(
-                        text = data.aiWeeklySummary.ifBlank { "Tuần này phong độ của bạn ổn định. Hãy tiếp tục duy trì thói quen theo dõi lịch trình cùng NowBrief nhé." },
+                        text = data.aiWeeklySummary.ifBlank { "Your momentum is steady this week. Keep tracking your schedule with NowBrief." },
                         color = aiTextColor,
                         fontSize = 12.5.sp,
                         fontWeight = FontWeight.Normal,
@@ -257,8 +257,8 @@ fun WeeklyHabitInsightsCard(
 }
 
 /**
- * Biểu đồ Vòng tròn Đồng tâm Canvas đã tối ưu kích thước (Size 114dp, stroke 7dp, gap 3.5dp)
- * Nhường chỗ rộng rãi cho Legend văn bản hiển thị trọn vẹn không bị cắt 3 chấm.
+ * Optimized Concentric Rings Canvas Chart (Size 114dp, stroke 7dp, gap 3.5dp)
+ * Leaves ample room for the text legend to display without truncation.
  */
 @Composable
 fun ConcentricActivityChart(
@@ -296,7 +296,7 @@ fun ConcentricActivityChart(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Concentric Rings Canvas + Center Text Visual (Thu gọn nhẹ 114dp để nhường chỗ cho text)
+        // Concentric Rings Canvas + Center Text Visual (Compact 114dp to leave room for text)
         Box(
             modifier = Modifier.size(114.dp),
             contentAlignment = Alignment.Center
@@ -352,7 +352,7 @@ fun ConcentricActivityChart(
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
-                    text = "Năng lượng",
+                    text = "Energy",
                     color = subtitleColor,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
@@ -360,7 +360,7 @@ fun ConcentricActivityChart(
             }
         }
 
-        // Clean Legend Column với Khoảng cách Tối ưu (5dp giữa Chấm & Chữ)
+        // Clean Legend Column with Optimal Spacing (5dp between Dot & Text)
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -408,7 +408,7 @@ fun ConcentricActivityChart(
                         )
                     }
 
-                    // Dòng chi tiết chỉ số thực tế
+                    // Actual metric detail line
                     if (stat.subDetail.isNotBlank()) {
                         Text(
                             text = stat.subDetail,
@@ -424,19 +424,19 @@ fun ConcentricActivityChart(
 }
 
 /**
- * Mẫu dữ liệu mặc định cho Preview & Demo
+ * Default sample data for Preview & Demo
  */
 private fun defaultHabitData(): WeeklyHabitInsightsData {
     return WeeklyHabitInsightsData(
         overallEnergyScore = 52,
         peakEnergyHoursLabel = "08:30 – 11:30",
-        peakEnergyDescription = "Khung giờ hiệu suất làm việc cao nhất trong ngày.",
+        peakEnergyDescription = "Highest work productivity window of the day.",
         habitStats = listOf(
-            HabitCategoryStat("Tương tác Lịch trình", 60, 0xFF5856D6, "Hoàn thành 3/5 công việc"),
-            HabitCategoryStat("Duy trì Sức khỏe", 40, 0xFF34C759, "4,200 / 6,000 bước"),
-            HabitCategoryStat("Nghỉ ngơi & Thư giãn", 55, 0xFFFF9500, "Đạt 7.2h / 8h ngủ")
+            HabitCategoryStat("Schedule Engagement", 60, 0xFF5856D6, "Completed 3/5 tasks"),
+            HabitCategoryStat("Health Consistency", 40, 0xFF34C759, "4,200 / 6,000 steps"),
+            HabitCategoryStat("Rest & Recovery", 55, 0xFFFF9500, "Reached 7.2h / 8h sleep")
         ),
-        aiWeeklySummary = "Tuần này phong độ của bạn ổn định. Hãy tiếp tục duy trì thói quen theo dõi lịch trình cùng NowBrief nhé."
+        aiWeeklySummary = "Your momentum is steady this week. Keep tracking your schedule with NowBrief."
     )
 }
 

@@ -62,20 +62,20 @@ fun MoodTrackerBottomSheet(
 ) {
     val moodOptions = remember {
         listOf(
-            MoodOption("😄", "Rất tốt", Color(0xFF10B981)),
-            MoodOption("🙂", "Tốt", Color(0xFF3B82F6)),
-            MoodOption("😐", "Bình thường", Color(0xFFF59E0B)),
-            MoodOption("🥱", "Mệt mỏi", Color(0xFF8B5CF6)),
-            MoodOption("😫", "Căng thẳng", Color(0xFFEF4444))
+            MoodOption("😄", "Great", Color(0xFF10B981)),
+            MoodOption("🙂", "Good", Color(0xFF3B82F6)),
+            MoodOption("😐", "Okay", Color(0xFFF59E0B)),
+            MoodOption("🥱", "Tired", Color(0xFF8B5CF6)),
+            MoodOption("😫", "Stressed", Color(0xFFEF4444))
         )
     }
 
     val availableTags = remember {
-        listOf("Công việc", "Học tập", "Tình cảm", "Sức khỏe", "Thời tiết")
+        listOf("Work", "Study", "Relationships", "Health", "Weather")
     }
 
     var selectedMood by remember { mutableStateOf(moodOptions[1]) }
-    val selectedTags = remember { mutableStateListOf<String>("Công việc") }
+    val selectedTags = remember { mutableStateListOf<String>("Work") }
     val haptic = LocalHapticFeedback.current
 
     ModalBottomSheet(
@@ -112,13 +112,13 @@ fun MoodTrackerBottomSheet(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Ghi nhận tâm trạng",
+                            text = "Log Your Mood",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isNight) Color.White else Color(0xFF0F172A)
                         )
                         Text(
-                            text = "Bạn cảm thấy thế nào hôm nay?",
+                            text = "How are you feeling today?",
                             fontSize = 12.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                         )
@@ -128,7 +128,7 @@ fun MoodTrackerBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Đóng",
+                        contentDescription = "Close",
                         tint = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                     )
                 }
@@ -190,7 +190,7 @@ fun MoodTrackerBottomSheet(
             Spacer(modifier = Modifier.height(28.dp))
 
             Text(
-                text = "Yếu tố ảnh hưởng chính:",
+                text = "Main influencing factors:",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isNight) Color.White else Color(0xFF0F172A)
@@ -236,7 +236,7 @@ fun MoodTrackerBottomSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Lưu tâm trạng (${selectedMood.emoji} ${selectedMood.label})",
+                    text = "Save mood (${selectedMood.emoji} ${selectedMood.label})",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,

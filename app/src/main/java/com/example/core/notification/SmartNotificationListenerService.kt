@@ -19,15 +19,15 @@ class SmartNotificationListenerService : NotificationListenerService() {
 
     companion object {
         private const val TAG = "SmartNotifService"
-        private const val DEBOUNCE_INTERVAL_MS = 60_000L // Tối đa 1 thông báo mỗi 60 giây
+        private const val DEBOUNCE_INTERVAL_MS = 60_000L // Max 1 notification every 60 seconds
 
         private val _isConnected = MutableStateFlow(false)
         val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-        // Atomic timestamp để đảm bảo thread-safe debounce 60s
+        // Atomic timestamp to ensure thread-safe 60s debounce
         private val lastProcessedTimestamp = AtomicLong(0L)
 
-        // Danh sách các package hệ thống cần lọc bỏ hoàn toàn (như sạc pin, pin yếu, chụp màn hình)
+        // List of system packages to completely ignore (e.g., charging, low battery, screenshots)
         private val SYSTEM_IGNORED_PACKAGES = setOf(
             "com.android.systemui",
             "com.google.android.systemui",
@@ -67,7 +67,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
 
         val packageName = sbn.packageName ?: return
 
-        // 1. FILTER: Loại bỏ hoàn toàn ứng dụng nội bộ và các thông báo hệ thống (com.android.systemui, sạc pin, v.v.)
+        // 1. FILTER: Completely ignore internal app and system notifications (com.android.systemui, charging, etc.)
         if (packageName == applicationContext.packageName ||
             SYSTEM_IGNORED_PACKAGES.contains(packageName.lowercase()) ||
             packageName.lowercase().contains("systemui")
@@ -79,7 +79,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras
 
-        // Bắt thông tin bài hát / ca sĩ thực tế đang phát từ YouTube / Spotify / Zing MP3
+        // Capture real-time song/artist playback info from YouTube / Spotify / Zing MP3
         val isMediaApp = packageName.contains("youtube") ||
                 packageName.contains("spotify") ||
                 packageName.contains("zing") ||
@@ -102,7 +102,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
             }
         }
 
-        // Bỏ qua các thông báo đang diễn ra (Ongoing / Foreground service như sạc pin, nghe nhạc nền, định vị)
+        // Ignore ongoing or foreground service notifications (e.g., charging, background music, navigation)
         if (sbn.isOngoing ||
             (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0 ||
             (notification.flags and Notification.FLAG_FOREGROUND_SERVICE) != 0
@@ -111,7 +111,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
             return
         }
 
-        // Bỏ qua notification thuộc category hệ thống hoặc tiến trình
+        // Ignore notifications belonging to system or progress categories
         val category = notification.category
         if (category == Notification.CATEGORY_SYSTEM ||
             category == Notification.CATEGORY_SERVICE ||
@@ -130,7 +130,7 @@ class SmartNotificationListenerService : NotificationListenerService() {
 
         if (title.isBlank() && text.isBlank()) return
 
-        // 2. DEBOUNCE (Ngưỡng thời gian): Chỉ cho phép xử lý tối đa 1 thông báo mỗi 60 giây
+        // 2. DEBOUNCE (Time threshold): Process at most 1 notification every 60 seconds
         val now = System.currentTimeMillis()
         val lastTime = lastProcessedTimestamp.get()
         if (now - lastTime < DEBOUNCE_INTERVAL_MS) {
@@ -139,9 +139,9 @@ class SmartNotificationListenerService : NotificationListenerService() {
             return
         }
 
-        // Cập nhật timestamp hợp lệ
+        // Update valid timestamp
         if (!lastProcessedTimestamp.compareAndSet(lastTime, now)) {
-            // Trường hợp race condition xảy ra đồng thời
+            // Concurrent race condition occurred
             return
         }
 

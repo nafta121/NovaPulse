@@ -12,8 +12,8 @@ import java.util.Locale
 import kotlin.coroutines.resume
 
 /**
- * Utility class giúp lấy vị trí hiện tại qua FusedLocationProviderClient 
- * và lấy tên thành phố thực tế qua Geocoder.
+ * Utility class for retrieving the current location via FusedLocationProviderClient
+ * and resolving the city name via Geocoder.
  */
 object LocationHelper {
 
@@ -72,7 +72,7 @@ object LocationHelper {
 
     fun getCityName(context: Context, lat: Double, lon: Double): String {
         return try {
-            if (!Geocoder.isPresent()) return formatCityName("TP. Hồ Chí Minh")
+            if (!Geocoder.isPresent()) return formatCityName("Ho Chi Minh City")
             val geocoder = Geocoder(context, Locale.getDefault())
 
             @Suppress("DEPRECATION")
@@ -80,31 +80,31 @@ object LocationHelper {
             val rawName = addresses?.firstOrNull()?.adminArea
                 ?: addresses?.firstOrNull()?.locality
                 ?: addresses?.firstOrNull()?.subAdminArea
-                ?: "Vị trí hiện tại"
+                ?: "Current Location"
             formatCityName(rawName)
         } catch (e: Exception) {
-            "Vị trí hiện tại"
+            "Current Location"
         }
     }
 
     private fun formatCityName(raw: String): String {
         val trimmed = raw.trim()
-        if (trimmed.contains("Hồ Chí Minh", ignoreCase = true)) {
-            return "TP. Hồ Chí Minh"
+        if (trimmed.contains("Ho Chi Minh", ignoreCase = true)) {
+            return "Ho Chi Minh City"
         }
-        if (trimmed.contains("Hà Nội", ignoreCase = true)) {
-            return "Hà Nội"
+        if (trimmed.contains("Ha Noi", ignoreCase = true) || trimmed.contains("Hanoi", ignoreCase = true)) {
+            return "Hanoi"
         }
-        if (trimmed.contains("Đà Nẵng", ignoreCase = true)) {
-            return "Đà Nẵng"
+        if (trimmed.contains("Da Nang", ignoreCase = true)) {
+            return "Da Nang"
         }
         var cleaned = trimmed
-        if (cleaned.startsWith("Thành phố ", ignoreCase = true)) {
-            cleaned = cleaned.removePrefix("Thành phố ").removePrefix("thành phố ")
+        if (cleaned.startsWith("City ", ignoreCase = true)) {
+            cleaned = cleaned.removePrefix("City ").removePrefix("city ")
         }
-        if (cleaned.startsWith("Tỉnh ", ignoreCase = true)) {
-            cleaned = cleaned.removePrefix("Tỉnh ").removePrefix("tỉnh ")
+        if (cleaned.startsWith("Province ", ignoreCase = true)) {
+            cleaned = cleaned.removePrefix("Province ").removePrefix("province ")
         }
-        return if (cleaned.isNotBlank()) cleaned else "Vị trí hiện tại"
+        return if (cleaned.isNotBlank()) cleaned else "Current Location"
     }
 }

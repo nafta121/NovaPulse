@@ -8,8 +8,8 @@ import org.json.JSONArray
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Engine chịu trách nhiệm sinh dữ liệu động cho cụm Carousel "Đề xuất có thể bạn sẽ thích"
- * sử dụng mô hình On-Device AI (Local LLM Inference)
+ * Engine responsible for generating dynamic data for the "Recommendations You Might Like" carousel
+ * using the On-Device AI model (Local LLM Inference).
  */
 object LifestyleRecommendationEngine {
 
@@ -21,7 +21,7 @@ object LifestyleRecommendationEngine {
     }
 
     /**
-     * Hàm gọi trực tiếp Engine suy luận AI Local thật trên thiết bị (On-Device LLM Inference)
+     * Directly invokes the real on-device AI inference engine (On-Device LLM Inference)
      */
     suspend fun generateLifestyleRecommendations(
         temp: Int,
@@ -31,34 +31,34 @@ object LifestyleRecommendationEngine {
     ): List<LifestyleTip> = withContext(Dispatchers.IO) {
         val cacheKey = "lifestyle_${session}_${temp}_${weather}"
 
-        // Kiểm tra Memory Cache
+        // Check Memory Cache
         lifestyleCache[cacheKey]?.let { cachedList ->
             Log.d(TAG, "Cache Hit for Lifestyle Tips key $cacheKey")
             return@withContext cachedList
         }
 
         try {
-            val modelRunner = runner ?: throw IllegalStateException("Model runner chưa được khởi tạo")
+            val modelRunner = runner ?: throw IllegalStateException("Model runner is not initialized")
 
             val prompt = """
                 <|im_start|>system
-                Bạn là Galaxy AI on-device. Trả về đúng 1 mảng JSON gồm 2 gợi ý phong cách sống theo ngữ cảnh: nhiệt độ ${temp}°C, thời tiết ${weather}, buổi ${session}.
-                Không viết markdown, không giải thích.
+                You are on-device Galaxy AI. Return strictly 1 JSON array containing 2 contextual lifestyle recommendations for: temperature ${temp}°C, weather ${weather}, session ${session}.
+                Do not write markdown, do not explain.
                 Format:
                 [
-                  {"category": "Ẩm thực", "tag": "Món ngon", "subTag": "Hấp dẫn", "title": "...", "desc": "...", "emoji": "🍜"},
-                  {"category": "Hoạt động", "tag": "Sức khỏe", "subTag": "Thư giãn", "title": "...", "desc": "...", "emoji": "🌿"}
+                  {"category": "Food & Dining", "tag": "Delicious", "subTag": "Treats", "title": "...", "desc": "...", "emoji": "🍜"},
+                  {"category": "Activity", "tag": "Health", "subTag": "Relaxation", "title": "...", "desc": "...", "emoji": "🌿"}
                 ]
                 <|im_end|>
                 <|im_start|>user
-                Gợi ý ngay<|im_end|>
+                Recommend now<|im_end|>
                 <|im_start|>assistant
             """.trimIndent()
 
-            // GỌI MODEL RUNNER LOCAL THẬT
+            // CALL REAL LOCAL MODEL RUNNER
             val rawOutput = modelRunner.generateResponse(prompt)
 
-            // Parse kết quả trả về từ token của model
+            // Parse output tokens from model
             val jsonString = rawOutput.substringAfter("[").substringBeforeLast("]").let { "[$it]" }
             val tips = parseTipsFromJson(jsonString)
 
@@ -68,7 +68,7 @@ object LifestyleRecommendationEngine {
             val resolvedSession = BriefingSession.values().firstOrNull { it.sessionTag == session } ?: BriefingSession.NOON
             return@withContext if (tips.isNotEmpty()) tips else BriefingContentProvider.getLifestyleTips(resolvedSession, temp, weather, 6)
         } catch (e: Exception) {
-            Log.e("LOCAL_AI", "Lỗi sinh text: ${e.message}")
+            Log.e("LOCAL_AI", "Text generation error: ${e.message}")
             val resolvedSession = BriefingSession.values().firstOrNull { it.sessionTag == session } ?: BriefingSession.NOON
             return@withContext BriefingContentProvider.getLifestyleTips(resolvedSession, temp, weather, 6)
         }
@@ -107,17 +107,17 @@ object LifestyleRecommendationEngine {
 
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
-                val category = obj.optString("category", "Lối sống")
+                val category = obj.optString("category", "Lifestyle")
                 val tag = if (obj.has("subTag") && obj.optString("subTag").isNotBlank()) {
                     obj.optString("subTag")
                 } else {
-                    obj.optString("tag", "Gợi ý")
+                    obj.optString("tag", "Suggestion")
                 }
-                val title = obj.optString("title", "Gợi ý lối sống")
+                val title = obj.optString("title", "Lifestyle Suggestion")
                 val desc = if (obj.has("desc") && obj.optString("desc").isNotBlank()) {
                     obj.optString("desc")
                 } else {
-                    obj.optString("description", "Dành thời gian chăm sóc sức khỏe mỗi ngày.")
+                    obj.optString("description", "Take time to care for your health every day.")
                 }
                 val emoji = obj.optString("emoji", "✨")
 
@@ -132,7 +132,7 @@ object LifestyleRecommendationEngine {
                 )
             }
         } catch (e: Exception) {
-            Log.e("LOCAL_AI", "Lỗi parse JSON tips: ${e.message}")
+            Log.e("LOCAL_AI", "Error parsing JSON tips: ${e.message}")
         }
         return list
     }

@@ -17,11 +17,11 @@ import kotlinx.coroutines.delay
 private val OneUiCubicEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
 
 /**
- * Hiệu ứng Animation 2 PHA chuẩn 120Hz One UI 7 cho màn hình Briefing (Kèm cơ chế One-Shot)
- * @param index Thứ tự item (0 cho Dynamic Header, 1..N cho danh sách Card)
- * @param hasPlayedAnimation Cờ trạng thái đã chạy animation trước đó hay chưa
- * @param onAnimationFinished Callback báo hoàn tất sau khi item chạy xong
- * @param isHeader Đánh dấu item là cụm Header (Pha 1) hay Card con (Pha 2)
+ * 2-Phase 120Hz One UI 7 Entrance Animation for the Briefing screen (with One-Shot mechanism)
+ * @param index Item index (0 for Dynamic Header, 1..N for the Card list)
+ * @param hasPlayedAnimation Flag indicating whether the animation has already played
+ * @param onAnimationFinished Callback invoked when the item animation finishes
+ * @param isHeader Marks whether the item is the Header cluster (Phase 1) or a child Card (Phase 2)
  */
 @Composable
 fun StaggeredAnimatedItem(
@@ -34,7 +34,7 @@ fun StaggeredAnimatedItem(
     content: @Composable () -> Unit
 ) {
     if (hasPlayedAnimation) {
-        // TRƯỜNG HỢP 1: Đã chạy trước đó -> Render tĩnh 100% trên GPU, không recalculate khi cuộn
+        // CASE 1: Already played -> Render 100% static on GPU, no recalculation on scroll
         Box(
             modifier = modifier.graphicsLayer {
                 alpha = 1f
@@ -48,7 +48,7 @@ fun StaggeredAnimatedItem(
         return
     }
 
-    // TRƯỜNG HỢP 2: Chạy lần đầu khi mở app (One-Shot Entrance Animation)
+    // CASE 2: First run on app launch (One-Shot Entrance Animation)
     val density = LocalDensity.current
     val initialOffsetYPx = remember(initialOffsetY, density) {
         with(density) { initialOffsetY.toPx() }
@@ -60,13 +60,13 @@ fun StaggeredAnimatedItem(
 
     LaunchedEffect(index, isHeader) {
         if (isHeader) {
-            // PHA 1: Header Focus Entrance (0ms -> 1000ms, alpha 0f -> 1f, scale 0.96f -> 1.0f, translationY = 0dp)
+            // PHASE 1: Header Focus Entrance (0ms -> 1000ms, alpha 0f -> 1f, scale 0.96f -> 1.0f, translationY = 0dp)
             alphaAnim.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(durationMillis = 1000, easing = OneUiCubicEasing)
             )
         } else {
-            // PHA 2: Cards Slide-up So Le (Start delay = 400ms, stagger = 80ms/card, duration = 650ms)
+            // PHASE 2: Staggered Cards Slide-up (Start delay = 400ms, stagger = 80ms/card, duration = 650ms)
             val cardDelay = 400L + ((index - 1).coerceAtLeast(0) * 80L)
             delay(cardDelay)
             alphaAnim.animateTo(

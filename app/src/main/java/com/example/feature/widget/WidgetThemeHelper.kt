@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import java.util.Calendar
 
 /**
- * Data class chứa cấu hình Theme động của Widget theo 7 khung giờ trong ngày
+ * Data class holding dynamic Widget theme configuration across 7 daily time sessions
  */
 data class WidgetTimeThemeData(
     val phaseKey: String,
@@ -27,7 +27,7 @@ data class WidgetTimeThemeData(
 }
 
 /**
- * Helper tập trung quản lý Màu sắc & Tiêu đề Widget đồng bộ theo Thời gian thực
+ * Centralized helper managing Widget colors & titles synchronized in real time
  */
 object WidgetThemeHelper {
 

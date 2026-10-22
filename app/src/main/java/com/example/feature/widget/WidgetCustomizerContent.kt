@@ -159,7 +159,7 @@ fun WidgetCustomizerContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // -------------------------------------------------------------
-        // 1. LIVE PREVIEW CARD (Mô phỏng chân thực Home Screen Wallpaper)
+        // 1. LIVE PREVIEW CARD (Realistic Home Screen Wallpaper Simulation)
         // -------------------------------------------------------------
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -216,7 +216,7 @@ fun WidgetCustomizerContent(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Mô phỏng Widget trên màn hình chính",
+                            text = "Home Screen Widget Simulation",
                             color = Color.White.copy(alpha = 0.9f),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium
@@ -252,7 +252,7 @@ fun WidgetCustomizerContent(
                         modifier = Modifier.fillMaxSize(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Icon tròn 32dp phủ Gradient từ top đến bottom
+                        // 32dp circular icon with top-to-bottom gradient
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
@@ -346,7 +346,7 @@ fun WidgetCustomizerContent(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "Độ trong suốt nền (Transparency)",
+                                text = "Background Transparency",
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF0F172A),
@@ -354,7 +354,7 @@ fun WidgetCustomizerContent(
                                 )
                             )
                             Text(
-                                text = "Mức độ xuyên thấu hình nền (15% trong suốt - 100% đặc)",
+                                text = "Wallpaper see-through level (15% transparent - 100% solid)",
                                 fontSize = 11.5.sp,
                                 color = Color(0xFF64748B)
                             )
@@ -428,7 +428,7 @@ fun WidgetCustomizerContent(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Chủ đề màu nền (Color Presets)",
+                            text = "Background Color Presets",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF0F172A),
@@ -436,7 +436,7 @@ fun WidgetCustomizerContent(
                             )
                         )
                         Text(
-                            text = "Bộ phối màu gradient tự động hoặc kính đơn sắc",
+                            text = "Dynamic time-based gradients or minimal monochrome glass",
                             fontSize = 11.5.sp,
                             color = Color(0xFF64748B)
                         )
@@ -444,9 +444,9 @@ fun WidgetCustomizerContent(
                 }
 
                 val gridPresets = listOf(
-                    GridPresetOption("AUTO", "Tự động theo giờ", "🕒", listOf(Color(0xFF00C6FF), Color(0xFFDA22FF))),
-                    GridPresetOption("DARK_GLASS", "Kính tối Minimal", "🌑", listOf(Color(0xFF0F172A), Color(0xFF1E293B))),
-                    GridPresetOption("LIGHT_GLASS", "Kính sáng Minimal", "⚪", listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0))),
+                    GridPresetOption("AUTO", "Time-Based Auto", "🕒", listOf(Color(0xFF00C6FF), Color(0xFFDA22FF))),
+                    GridPresetOption("DARK_GLASS", "Minimal Dark Glass", "🌑", listOf(Color(0xFF0F172A), Color(0xFF1E293B))),
+                    GridPresetOption("LIGHT_GLASS", "Minimal Light Glass", "⚪", listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0))),
                     GridPresetOption("MATERIAL_YOU", "Material You", "🎨", listOf(Color(0xFF1E3A8A), Color(0xFF3B82F6)))
                 )
 
@@ -548,7 +548,7 @@ fun WidgetCustomizerContent(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Kiểu dáng & Bo góc (Widget Shape)",
+                            text = "Widget Shape & Corners",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF0F172A),
@@ -556,7 +556,7 @@ fun WidgetCustomizerContent(
                             )
                         )
                         Text(
-                            text = "Viên thuốc bo tròn hoàn toàn hoặc Bo góc mềm",
+                            text = "Fully rounded capsule pill or soft squircle corners",
                             fontSize = 11.5.sp,
                             color = Color(0xFF64748B)
                         )
@@ -601,12 +601,12 @@ fun WidgetCustomizerContent(
                                     .background(if (isCapsule) Color(0xFF2563EB) else Color(0xFF94A3B8))
                             )
                             Text(
-                                text = "Viên thuốc (Capsule)",
+                                text = "Capsule Pill",
                                 fontSize = 12.sp,
                                 fontWeight = if (isCapsule) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isCapsule) Color(0xFF1E40AF) else Color(0xFF475569)
                             )
-                            Text("Bo tròn 100dp", fontSize = 10.sp, color = Color(0xFF64748B))
+                            Text("100dp Round", fontSize = 10.sp, color = Color(0xFF64748B))
                         }
                     }
 
@@ -644,12 +644,12 @@ fun WidgetCustomizerContent(
                                     .background(if (isSquircle) Color(0xFF2563EB) else Color(0xFF94A3B8))
                             )
                             Text(
-                                text = "Bo góc nhẹ (Squircle)",
+                                text = "Soft Squircle",
                                 fontSize = 12.sp,
                                 fontWeight = if (isSquircle) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSquircle) Color(0xFF1E40AF) else Color(0xFF475569)
                             )
-                            Text("Bo góc 24dp", fontSize = 10.sp, color = Color(0xFF64748B))
+                            Text("24dp Corner", fontSize = 10.sp, color = Color(0xFF64748B))
                         }
                     }
                 }
@@ -694,7 +694,7 @@ fun WidgetCustomizerContent(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Hiển thị dòng phụ (Sub-text)",
+                            text = "Show Sub-text",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF0F172A),
@@ -702,7 +702,7 @@ fun WidgetCustomizerContent(
                             )
                         )
                         Text(
-                            text = if (showSubtext) "2 dòng: Tiêu đề + Nội dung tóm tắt" else "1 dòng: Thanh siêu mỏng tối giản",
+                            text = if (showSubtext) "2 lines: Title + Summary content" else "1 line: Minimal ultra-slim bar",
                             fontSize = 11.5.sp,
                             color = Color(0xFF64748B)
                         )
@@ -748,7 +748,7 @@ fun WidgetCustomizerContent(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = if (isSavedSuccess) "Đã lưu & Cập nhật Widget ra Home Screen" else "Lưu & Áp dụng cấu hình Widget",
+                text = if (isSavedSuccess) "Saved & Updated Home Screen Widget" else "Save & Apply Widget Configuration",
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold

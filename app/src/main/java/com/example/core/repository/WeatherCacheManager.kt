@@ -5,16 +5,16 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Cache thời tiết vào SharedPreferences dưới dạng JSON.
- * Tự động fallback khi không có mạng hoặc API fail.
- * Cache hết hạn sau 30 phút.
+ * Caches weather data in SharedPreferences as JSON.
+ * Automatically falls back to cache when offline or if the API fails.
+ * Cache expires after 30 minutes.
  */
 object WeatherCacheManager {
 
     private const val PREFS_NAME = "weather_cache"
     private const val KEY_DATA = "cached_weather_json"
     private const val KEY_TIMESTAMP = "cached_at_ms"
-    private const val CACHE_TTL_MS = 30 * 60 * 1000L // 30 phút
+    private const val CACHE_TTL_MS = 30 * 60 * 1000L // 30 minutes
 
     fun save(context: Context, data: RealWeatherData) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

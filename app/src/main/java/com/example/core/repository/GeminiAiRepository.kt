@@ -20,7 +20,7 @@ class GeminiAiRepository(private val context: Context) {
             Firebase.ai(backend = GenerativeBackend.googleAI())
                 .generativeModel("gemini-1.5-flash")
         } catch (e: Exception) {
-            Log.e("LOCAL_AI", "Lỗi sinh text: ${e.message}")
+            Log.e("LOCAL_AI", "Text generation error: ${e.message}")
             null
         }
     }
@@ -35,7 +35,7 @@ class GeminiAiRepository(private val context: Context) {
         val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
         val cacheKey = "recap_${today}_$sessionName"
 
-        // 1. Đọc Cache trước nếu không bấm Refresh thủ công (tiết kiệm quota)
+        // 1. Read cache first unless manually refreshed (to save quota)
         if (!forceRefresh) {
             val cachedText = sharedPrefs.getString(cacheKey, null)
             if (!cachedText.isNullOrBlank()) {
@@ -43,17 +43,17 @@ class GeminiAiRepository(private val context: Context) {
             }
         }
 
-        // 2. Prompt ngắn gọn cho One UI 9 Briefing
+        // 2. Concise prompt for One UI 9 Briefing
         val prompt = """
-            Bạn là trợ lý ảo One UI 9 Briefing. Hãy tạo một câu tóm tắt ngày mới thật ngắn gọn, ấm áp và truyền cảm hứng (tối đa 20 từ).
-            Ngữ cảnh hiện tại:
-            - Phiên: $sessionName
-            - Thời tiết: $temp°C, $weatherDesc
-            - Vận động: Đã đi được $steps bước.
-            Chỉ trả về đúng 1 câu text tóm tắt, không thêm lời chào, dấu ngoặc kép hay định dạng markdown rườm rà.
+            You are the One UI 9 Briefing virtual assistant. Create a very concise, warm, and inspiring daily recap sentence (maximum 20 words).
+            Current context:
+            - Session: $sessionName
+            - Weather: $temp°C, $weatherDesc
+            - Activity: Walked $steps steps.
+            Return only a single summary sentence, without greetings, quotation marks, or markdown formatting.
         """.trimIndent()
 
-        // 3. Gọi Gemini API qua Firebase AI và lưu lại cache
+        // 3. Call Gemini API via Firebase AI and cache the result
         try {
             val model = generativeModel
             if (model != null) {
@@ -65,10 +65,10 @@ class GeminiAiRepository(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("LOCAL_AI", "Lỗi sinh text: ${e.message}")
+            Log.e("LOCAL_AI", "Text generation error: ${e.message}")
         }
 
-        // 4. Fallback mượt mà nếu offline / lỗi mạng / hết quota
+        // 4. Smooth fallback when offline, on network error, or out of quota
         return@withContext BriefingContentProvider.getFallbackRecap(sessionName, temp, weatherDesc)
     }
 }

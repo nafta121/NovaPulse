@@ -380,7 +380,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         ?: com.example.core.repository.RealHealthData(
                             sleepDurationMinutes = 0L,
                             sleepDurationFormatted = "",
-                            sleepStageSummary = "Chưa đồng bộ giấc ngủ",
+                            sleepStageSummary = "Sleep not synced yet",
                             averageHeartRateBpm = 68,
                             minHeartRateBpm = 58,
                             maxHeartRateBpm = 86
@@ -402,7 +402,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             tts = TextToSpeech(application) { status ->
                 if (status == TextToSpeech.SUCCESS) {
-                    val langResult = tts?.setLanguage(Locale("vi", "VN"))
+                    val langResult = tts?.setLanguage(Locale.US)
                     if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
                         tts?.language = Locale.ENGLISH
                     }
@@ -498,7 +498,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 val weather = _realWeatherData.value
                 val tempC = weather?.currentTempC ?: 28.0
-                val condition = weather?.conditionDescription ?: "mát mẻ"
+                val condition = weather?.conditionDescription ?: "cool"
 
                 val health = _realHealthData.value
                 val steps = health?.currentSteps ?: 34
@@ -513,7 +513,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 _briefingAiSummaryText.value = summary
 
-                // 2. Gợi ý Lifestyle Tips
+                // 2. Lifestyle Tips Recommendations
                 val runner = com.example.core.ai.OnDeviceModelRunner(getApplication())
                 val dynamicTips = com.example.core.ai.LifestyleRecommendationEngine.generateLifestyleRecommendations(
                     temp = tempRounded,
@@ -529,11 +529,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         6
                     )
 
-                // 3. Đồng bộ dữ liệu ra Glance Widget
+                // 3. Sync data to Glance Widget
                 com.example.feature.widget.WidgetUpdateWorker.enqueueImmediateUpdate(getApplication())
             } catch (e: Exception) {
-                android.util.Log.e("LOCAL_AI", "Lỗi sinh text: ${e.message}")
-                _aiInferenceError.value = "Lỗi AI: ${e.message}"
+                android.util.Log.e("LOCAL_AI", "Text generation error: ${e.message}")
+                _aiInferenceError.value = "AI Error: ${e.message}"
             } finally {
                 _isAiInferring.value = false
             }
@@ -569,7 +569,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val baseHealth = health ?: com.example.core.repository.RealHealthData(
                 sleepDurationMinutes = 0L,
                 sleepDurationFormatted = "",
-                sleepStageSummary = "Chưa đồng bộ giấc ngủ",
+                sleepStageSummary = "Sleep not synced yet",
                 averageHeartRateBpm = 68,
                 minHeartRateBpm = 58,
                 maxHeartRateBpm = 86
@@ -597,13 +597,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun fetchRealWeather(lat: Double? = null, lon: Double? = null) {
         viewModelScope.launch {
-            // Hiện cache ngay lập tức nếu có, tránh blank state khi chờ API
+            // Show cached data immediately if available to avoid blank state while waiting for API
             val cached = com.example.core.repository.WeatherCacheManager.load(getApplication())
             if (cached != null && _realWeatherData.value == null) {
                 _realWeatherData.value = cached
             }
 
-            // Kiểm tra nếu cache còn mới (<30 phút) và không ép refresh → bỏ qua API call
+            // Check if cache is still fresh (<30 mins) and not forced to refresh -> skip API call
             val isStale = com.example.core.repository.WeatherCacheManager.isStale(getApplication())
             if (!isStale && lat == null && lon == null && cached != null) {
                 _isWeatherLoading.value = false
@@ -722,13 +722,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val weatherSnippet = if (weather != null) {
                 "${weather.conditionDescription}, ${
                     Math.round(weather.currentTempC).toInt()
-                }°C (cảm giác như ${Math.round(weather.apparentTempC).toInt()}°C) tại ${weather.locationName}."
+                }°C (feels like ${Math.round(weather.apparentTempC).toInt()}°C) in ${weather.locationName}."
             } else {
                 when (hour) {
-                    in 5..10 -> "Trời sáng trong lành, nhiệt độ 26°C - 31°C, không khí thoáng đãng."
-                    in 11..16 -> "Nắng ráo và ấm áp, nhiệt độ 33°C, thích hợp làm việc tập trung."
-                    in 17..21 -> "Gió mát hoàng hôn, nhiệt độ 28°C, thời tiết rất dễ chịu."
-                    else -> "Đêm mát mẻ và yên tĩnh, nhiệt độ 24°C, thích hợp nghỉ ngơi."
+                    in 5..10 -> "Clear morning sky, 26°C - 31°C, fresh and airy."
+                    in 11..16 -> "Sunny and warm, 33°C, great for focused work."
+                    in 17..21 -> "Cool evening breeze, 28°C, very pleasant weather."
+                    else -> "Cool and quiet night, 24°C, ideal for resting."
                 }
             }
 
@@ -736,34 +736,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val calEvents = _todayCalendarEvents.value
             val scheduleSnippet = when {
                 calEvents.isNotEmpty() && pendingTasks.isNotEmpty() ->
-                    "Có ${calEvents.size} cuộc hẹn lịch trình và ${pendingTasks.size} việc cần xử lý. Điểm nhấn: \"${calEvents.first().title}\"."
+                    "You have ${calEvents.size} calendar events and ${pendingTasks.size} pending tasks. Highlight: \"${calEvents.first().title}\"."
 
                 calEvents.isNotEmpty() ->
-                    "Lịch trình hôm nay: ${calEvents.size} sự kiện. Sắp tới: \"${calEvents.first().title}\"."
+                    "Today's schedule: ${calEvents.size} events. Up next: \"${calEvents.first().title}\"."
 
                 pendingTasks.isNotEmpty() ->
-                    "Bạn còn ${pendingTasks.size} công việc chưa hoàn thành. Ưu tiên: \"${pendingTasks.first().title}\"."
+                    "You have ${pendingTasks.size} unfinished tasks. Priority: \"${pendingTasks.first().title}\"."
 
-                else -> "Không có lịch trình xung đột hay công việc tồn đọng. Bạn đang có thời gian rảnh."
+                else -> "No conflicting schedules or pending tasks. You have free time."
             }
 
             val health = _realHealthData.value
             val healthSnippet = if (health != null && health.isDataAvailable) {
-                "Ngủ đạt ${health.sleepDurationFormatted}, nhịp tim trung bình ${health.averageHeartRateBpm} BPM (${health.sleepStageSummary})."
+                "Sleep reached ${health.sleepDurationFormatted}, average heart rate ${health.averageHeartRateBpm} BPM (${health.sleepStageSummary})."
             } else {
                 when (hour) {
-                    in 5..10 -> "Cơ thể đã sẵn sàng cho ngày mới. Năng lượng ước tính 92%."
-                    in 11..16 -> "Năng lượng duy trì ở mức 78%. Nhớ uống đủ nước và nghỉ mắt."
-                    in 17..21 -> "Đã tiêu hao phần lớn năng lượng (65%). Thích hợp đi dạo hoặc giãn cơ."
-                    else -> "Nhịp sinh học đang chuyển về trạng thái nghỉ. Đã đến lúc thả lỏng toàn thân."
+                    in 5..10 -> "Your body is ready for a new day. Estimated energy: 92%."
+                    in 11..16 -> "Energy maintained at 78%. Remember to stay hydrated and rest your eyes."
+                    in 17..21 -> "Most energy has been spent (65%). Good time for a walk or stretching."
+                    else -> "Circadian rhythm is shifting to rest mode. Time to unwind completely."
                 }
             }
 
             val advice = when (hour) {
-                in 5..10 -> "Uống 1 ly nước ấm và ưu tiên giải quyết nhiệm vụ khó nhất trước 10h30."
-                in 11..16 -> "Ăn trưa điều độ, duy trì tư thế ngồi thẳng và chợp mắt 15 phút nếu cần."
-                in 17..21 -> "Tổng kết kết quả ngày làm việc, đi dạo nhẹ nhàng và dành thời gian cho bữa tối."
-                else -> "Tắt thông báo công việc, kích hoạt chế độ ban đêm để có giấc ngủ sâu trọn vẹn."
+                in 5..10 -> "Drink a glass of warm water and prioritize your hardest task before 10:30."
+                in 11..16 -> "Have a balanced lunch, maintain good posture, and take a 15-minute power nap if needed."
+                in 17..21 -> "Wrap up your workday, take a light walk, and enjoy your dinner."
+                else -> "Mute work notifications and enable night mode for a deep, restful sleep."
             }
 
             val briefingGenerator = com.example.core.ai.BriefingAiGenerator(app, llmManager)
@@ -791,7 +791,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val oneLiner = aiResult.dynamicBriefing
             val title = aiResult.greetingHeadline
 
-            val fullText = "$title. $weatherSnippet $scheduleSnippet $healthSnippet Lời khuyên cho bạn: $advice"
+            val fullText = "$title. $weatherSnippet $scheduleSnippet $healthSnippet Advice for you: $advice"
 
             val activeModelName = when (activeModelId.value) {
                 "qwen2.5_0.5b" -> "Qwen2.5-0.5B (Local SLM)"
@@ -847,7 +847,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun confirmExpenseFromCatchUp(log: NotificationLogEntity) {
         viewModelScope.launch {
-            val regex = Regex("""(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(?:k|vnd|đ|dong)?""", RegexOption.IGNORE_CASE)
+            val regex = Regex("""(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(?:k|vnd|usd|\$)?""", RegexOption.IGNORE_CASE)
             val match = regex.find(log.content)
             val rawNum = match?.groupValues?.get(1)?.replace(".", "")?.replace(",", "")?.toDoubleOrNull() ?: 50000.0
             repository.insertExpense(
@@ -973,14 +973,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         simulateIncomingNotification(
             sourceApp = "Zalo",
             packageName = "com.zing.zalo",
-            title = "Anh Tuấn (Project Lead)",
-            content = "Mai 9h sáng họp chốt sprint và nộp deadline báo cáo quý nhé mọi người!"
+            title = "Tuan (Project Lead)",
+            content = "Tomorrow at 9 AM we have a sprint review meeting and quarterly report deadline, everyone!"
         )
         simulateIncomingNotification(
             sourceApp = "Vietcombank",
             packageName = "com.vcb.digibank",
-            title = "Biến động số dư tài khoản",
-            content = "TK 1029384758: -250,000 VND lúc 14:30. ND: Thanh toan tien an trua ShopeeFood. So du: 15,240,000 VND."
+            title = "Account Balance Update",
+            content = "Acct 1029384758: -250,000 VND at 14:30. Note: Lunch payment ShopeeFood. Balance: 15,240,000 VND."
         )
     }
 

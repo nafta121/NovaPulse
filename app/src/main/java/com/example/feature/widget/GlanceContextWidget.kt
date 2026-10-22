@@ -49,7 +49,7 @@ class GlanceContextWidget : GlanceAppWidget() {
         val calendarRepo = CalendarRepository(context)
         val calendarEvents = try { calendarRepo.getRemainingTodayEvents() } catch (e: Exception) { emptyList() }
 
-        // Evaluation context qua CrossContextEngine & Priority Scoring Pipeline
+        // Evaluate context via CrossContextEngine & Priority Scoring Pipeline
         val crossContextEngine = CrossContextEngine(context)
         val scoredCards = try { crossContextEngine.evaluateContextCards() } catch (e: Exception) { emptyList() }
         val topScoredCard = scoredCards.firstOrNull()
@@ -60,7 +60,7 @@ class GlanceContextWidget : GlanceAppWidget() {
         val minute = cal.get(Calendar.MINUTE)
         val now = System.currentTimeMillis()
 
-        // 1. Phân loại Session trực tiếp từ BriefingSession enum (Chuẩn hóa DRY)
+        // 1. Classify Session directly from BriefingSession enum (DRY standardization)
         val session = BriefingSession.fromHourAndMinute(hour, minute)
         val primaryColor = session.iconGradient.firstOrNull() ?: Color(0xFF38BDF8)
         val secondaryColor = session.iconGradient.getOrNull(1) ?: Color(0xFF0284C7)
@@ -76,10 +76,10 @@ class GlanceContextWidget : GlanceAppWidget() {
             BriefingSession.LATE_NIGHT -> Color(0xFF0D0010)
         }
 
-        // 2. Tổng hợp & lọc lịch trình/đầu việc SẮP TỚI
+        // 2. Aggregate & filter UPCOMING schedule/tasks
         val combinedItems = mutableListOf<WidgetScheduleItem>()
 
-        // Neu co Cross-Context Alert dung dau voi score cao (>7.0), uu tien hien thi
+        // Prioritize displaying the top Cross-Context Alert if it has a high score (>7.0)
         if (topScoredCard != null && topScoredCard.calculatedScore >= 7.0f) {
             combinedItems.add(
                 WidgetScheduleItem(
@@ -116,7 +116,7 @@ class GlanceContextWidget : GlanceAppWidget() {
                     WidgetScheduleItem(
                         time = timeStr,
                         title = t.title,
-                        subtitle = "Nguồn: ${t.sourceApp}",
+                        subtitle = "Source: ${t.sourceApp}",
                         rawTime = t.datetime,
                         isCalendar = false,
                         priority = t.priority
@@ -125,12 +125,12 @@ class GlanceContextWidget : GlanceAppWidget() {
             }
         }
 
-        // 3. Tóm tắt nhanh sự kiện sắp tới hoac Cross-Context Alert
+        // 3. Quick summary of upcoming events or Cross-Context Alert
         val summaryLine = if (topScoredCard != null && topScoredCard.calculatedScore >= 7.0f) {
             "⚡ ${topScoredCard.title}"
         } else if (combinedItems.isNotEmpty()) {
             val first = combinedItems.first()
-            "✨ Sắp tới ${first.time}: ${first.title}"
+            "✨ Upcoming ${first.time}: ${first.title}"
         } else {
             session.subtitle
         }
@@ -258,7 +258,7 @@ class GlanceContextWidget : GlanceAppWidget() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "✨ Không có lịch trình sắp tới.",
+                            text = "✨ No upcoming schedule.",
                             style = TextStyle(
                                 color = ColorProvider(textSecondary),
                                 fontSize = 12.sp

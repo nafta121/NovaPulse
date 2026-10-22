@@ -355,7 +355,7 @@ private fun ExpensesListTab(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "$formattedTotal đ",
+                    text = "$formattedTotal VND",
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = PolishAmber

@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Model biểu diễn 1 sự kiện lịch trình trong OneUICalendarCard.
+ * Model representing a single schedule event in OneUICalendarCard.
  */
 data class OneUICalendarEventItem(
     val title: String,
@@ -52,14 +52,14 @@ data class OneUICalendarEventItem(
 )
 
 /**
- * Thẻ Lịch trình đa sự kiện chuẩn ngôn ngữ thiết kế Samsung One UI 9.
- * Hỗ trợ hiển thị 1 sự kiện đơn hoặc danh sách nhiều sự kiện xếp tầng với thanh màu chỉ báo.
+ * Multi-event Schedule Card following Samsung One UI 9 design language.
+ * Supports displaying a single event or a stacked list of multiple events with colored indicator bars.
  */
 @Composable
 fun OneUICalendarCard(
     modifier: Modifier = Modifier,
     events: List<OneUICalendarEventItem> = emptyList(),
-    // Backward compatibility cho single event
+    // Backward compatibility for single event
     eventTitle: String? = null,
     timeSubtitle: String? = null,
     calendarSource: String = "Google Calendar",
@@ -69,13 +69,13 @@ fun OneUICalendarCard(
     onMoreClick: (() -> Unit)? = null,
     maxDisplayCount: Int = 3
 ) {
-    // Tổng hợp danh sách sự kiện từ parameters
+    // Aggregate event list from parameters
     val eventList = when {
         events.isNotEmpty() -> events
         !eventTitle.isNullOrBlank() -> listOf(
             OneUICalendarEventItem(
                 title = eventTitle,
-                timeSubtitle = timeSubtitle ?: "Cả ngày",
+                timeSubtitle = timeSubtitle ?: "All day",
                 source = calendarSource
             )
         )
@@ -146,7 +146,7 @@ fun OneUICalendarCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // App Icon trong Squircle Container (36dp, RoundedCornerShape 12dp)
+                    // App Icon inside Squircle Container (36dp, RoundedCornerShape 12dp)
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -164,7 +164,7 @@ fun OneUICalendarCard(
 
                     Column {
                         Text(
-                            text = if (eventList.size > 1) "Lịch trình hôm nay" else (eventList.firstOrNull()?.source ?: calendarSource),
+                            text = if (eventList.size > 1) "Today's Schedule" else (eventList.firstOrNull()?.source ?: calendarSource),
                             color = appNameColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
@@ -184,7 +184,7 @@ fun OneUICalendarCard(
                                 .padding(horizontal = 9.dp, vertical = 3.5.dp)
                         ) {
                             Text(
-                                text = "${eventList.size} sự kiện",
+                                text = "${eventList.size} events",
                                 color = iconTintColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
@@ -212,10 +212,10 @@ fun OneUICalendarCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // -------------------------------------------------------------
-            // [BODY]: Danh sách sự kiện (Empty / Single Hero / Multi-List)
+            // [BODY]: Event list (Empty / Single Hero / Multi-List)
             // -------------------------------------------------------------
             if (eventList.isEmpty()) {
-                // Trạng thái trống
+                // Empty state
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -229,22 +229,22 @@ fun OneUICalendarCard(
                     )
                     Column {
                         Text(
-                            text = "Không có lịch trình sắp tới",
+                            text = "No upcoming events",
                             color = titleColor,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "Tất cả kế hoạch trong ngày đã hoàn thành",
+                            text = "All scheduled plans for today are completed",
                             color = timeTextColor,
                             fontSize = 13.sp
                         )
                     }
                 }
             } else if (eventList.size == 1) {
-                // Hiển thị 1 sự kiện duy nhất (Hero Single View)
+                // Display a single event (Hero Single View)
                 val singleEvent = eventList.first()
-                val cleanTime = singleEvent.timeSubtitle.replace("🕒", "").trim().ifBlank { "Cả ngày" }
+                val cleanTime = singleEvent.timeSubtitle.replace("🕒", "").trim().ifBlank { "All day" }
 
                 Text(
                     text = singleEvent.title,
@@ -277,10 +277,10 @@ fun OneUICalendarCard(
                     )
                 }
             } else {
-                // Hiển thị nhiều sự kiện dạng danh sách tầng One UI (Multi-Event Stack View)
+                // Display multiple events as a One UI stacked list (Multi-Event Stack View)
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     displayedItems.forEachIndexed { index, item ->
-                        val cleanTime = item.timeSubtitle.replace("🕒", "").trim().ifBlank { "Cả ngày" }
+                        val cleanTime = item.timeSubtitle.replace("🕒", "").trim().ifBlank { "All day" }
                         val accentBarColor = accentColors[index % accentColors.size]
 
                         Row(
@@ -295,7 +295,7 @@ fun OneUICalendarCard(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Thanh dọc Accent màu sắc
+                            // Colored vertical accent bar
                             Box(
                                 modifier = Modifier
                                     .width(3.5.dp)
@@ -304,7 +304,7 @@ fun OneUICalendarCard(
                                     .background(accentBarColor)
                             )
 
-                            // Chi tiết sự kiện
+                            // Event details
                             Column(
                                 modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -338,7 +338,7 @@ fun OneUICalendarCard(
                             }
                         }
 
-                        // Divider mỏng giữa các sự kiện
+                        // Thin divider between events
                         if (index < displayedItems.size - 1) {
                             Box(
                                 modifier = Modifier
@@ -349,7 +349,7 @@ fun OneUICalendarCard(
                         }
                     }
 
-                    // Nút mở rộng nếu có thêm sự kiện
+                    // Expand button if there are more events
                     if (remainingCount > 0) {
                         Spacer(modifier = Modifier.height(2.dp))
                         Row(
@@ -363,7 +363,7 @@ fun OneUICalendarCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "+$remainingCount sự kiện khác hôm nay",
+                                text = "+$remainingCount more events today",
                                 color = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
                                 fontSize = 12.5.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -388,7 +388,7 @@ private fun OneUICalendarCardSinglePreview() {
     Surface(color = Color(0xFF0F172A)) {
         Box(modifier = Modifier.padding(16.dp)) {
             OneUICalendarCard(
-                eventTitle = "Họp chiến lược sản phẩm Q3",
+                eventTitle = "Q3 Product Strategy Meeting",
                 timeSubtitle = "08:30 - 11:30 AM",
                 calendarSource = "Google Calendar",
                 isDark = true
@@ -404,10 +404,10 @@ private fun OneUICalendarCardMultiPreview() {
         Box(modifier = Modifier.padding(16.dp)) {
             OneUICalendarCard(
                 events = listOf(
-                    OneUICalendarEventItem("Họp chiến lược sản phẩm Q3", "08:30 - 10:00 AM", location = "Phòng họp A"),
-                    OneUICalendarEventItem("Review thiết kế One UI 9", "10:30 - 11:30 AM", location = "Google Meet"),
-                    OneUICalendarEventItem("Học bài mới trên Duolingo 💚", "14:00 - 14:30 PM"),
-                    OneUICalendarEventItem("Tập gym & chạy bộ buổi tối", "18:00 - 19:00 PM")
+                    OneUICalendarEventItem("Q3 Product Strategy Meeting", "08:30 - 10:00 AM", location = "Meeting Room A"),
+                    OneUICalendarEventItem("One UI 9 Design Review", "10:30 - 11:30 AM", location = "Google Meet"),
+                    OneUICalendarEventItem("Learn a new lesson on Duolingo 💚", "14:00 - 14:30 PM"),
+                    OneUICalendarEventItem("Evening gym & run", "18:00 - 19:00 PM")
                 ),
                 isDark = true
             )

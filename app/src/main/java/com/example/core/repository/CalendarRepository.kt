@@ -31,7 +31,7 @@ data class RealCalendarEvent(
                     accountType.contains("sec", ignoreCase = true) -> "Samsung Calendar"
             calendarDisplayName.isNotBlank() -> calendarDisplayName
             accountName.isNotBlank() -> accountName
-            else -> "Lịch thiết bị"
+            else -> "Device Calendar"
         }
 }
 
@@ -79,7 +79,7 @@ class CalendarRepository(private val context: Context) {
     }
 
     /**
-     * Lấy các sự kiện CÒN LẠI hoặc ĐANG DIỄN RA của HÔM NAY
+     * Get REMAINING or ONGOING events for TODAY
      */
     fun getRemainingTodayEvents(): List<RealCalendarEvent> {
         if (!isPermissionGranted()) return emptyList()
@@ -108,7 +108,7 @@ class CalendarRepository(private val context: Context) {
     }
 
     /**
-     * Lấy các sự kiện của NGÀY MAI (từ 00:00:00 ngày mai đến 23:59:59 ngày mai)
+     * Get TOMORROW'S events (from 00:00:00 to 23:59:59 tomorrow)
      */
     fun getTomorrowEvents(): List<RealCalendarEvent> {
         if (!isPermissionGranted()) return emptyList()
@@ -132,18 +132,18 @@ class CalendarRepository(private val context: Context) {
     }
 
     /**
-     * Truy vấn thông minh: Lấy sự kiện còn lại hôm nay, nếu hết thì lấy sự kiện ngày mai
+     * Smart query: Get remaining events for today, or tomorrow's events if none remain today
      */
     fun getUpcomingEvents(): Pair<String, List<RealCalendarEvent>> {
         val remainingToday = getRemainingTodayEvents()
         if (remainingToday.isNotEmpty()) {
-            return Pair("Lịch trình hôm nay", remainingToday)
+            return Pair("Today's Schedule", remainingToday)
         }
         val tomorrow = getTomorrowEvents()
         if (tomorrow.isNotEmpty()) {
-            return Pair("Lịch trình ngày mai", tomorrow)
+            return Pair("Tomorrow's Schedule", tomorrow)
         }
-        return Pair("Lịch trình hôm nay", emptyList())
+        return Pair("Today's Schedule", emptyList())
     }
 
     fun getTodayEvents(): List<RealCalendarEvent> {
@@ -151,7 +151,7 @@ class CalendarRepository(private val context: Context) {
     }
 
     /**
-     * Sử dụng CalendarContract.Instances.CONTENT_URI để đọc chính xác Samsung Calendar & Google Calendar
+     * Use CalendarContract.Instances.CONTENT_URI to accurately read Samsung Calendar & Google Calendar
      */
     private fun queryInstances(startMs: Long, endMs: Long): List<RealCalendarEvent> {
         val events = mutableListOf<RealCalendarEvent>()
@@ -191,7 +191,7 @@ class CalendarRepository(private val context: Context) {
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idCol)
-                    val title = cursor.getString(titleCol) ?: "(Không có tiêu đề)"
+                    val title = cursor.getString(titleCol) ?: "(No title)"
                     val dtStart = cursor.getLong(beginCol)
                     val dtEnd = cursor.getLong(endCol)
                     val location = cursor.getString(locCol) ?: ""
@@ -271,7 +271,7 @@ class CalendarRepository(private val context: Context) {
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idCol)
-                    val title = cursor.getString(titleCol) ?: "(Không có tiêu đề)"
+                    val title = cursor.getString(titleCol) ?: "(No title)"
                     val dtStart = cursor.getLong(startCol)
                     val dtEnd = cursor.getLong(endCol)
                     val location = cursor.getString(locCol) ?: ""

@@ -36,10 +36,10 @@ data class YouTubeVideoRecommendation(
 }
 
 enum class YouTubeCategoryType(val label: String) {
-    ALL("Tất cả"),
-    VPOP_ARTISTS("🌟 V-Pop & Nghệ sĩ"),
+    ALL("All"),
+    VPOP_ARTISTS("🌟 V-Pop & Artists"),
     GENRE_MIX("🎸 Pop • Ballad • Rap"),
-    PODCAST_KNOWLEDGE("🎙️ Podcast & Kỹ năng"),
+    PODCAST_KNOWLEDGE("🎙️ Podcasts & Skills"),
     LOFI_CHILL("☕ Acoustic & Lofi")
 }
 
@@ -60,69 +60,69 @@ object YouTubeRecommendationHelper {
         .readTimeout(6, TimeUnit.SECONDS)
         .build()
 
-    // Danh sách các nghệ sĩ thịnh hành & gợi ý tìm kiếm nhanh
+    // List of trending artists & quick search suggestions
     val POPULAR_ARTISTS = listOf(
-        "Sơn Tùng M-TP",
-        "Đen Vâu",
-        "Vũ.",
+        "Son Tung M-TP",
+        "Den Vau",
+        "Vu.",
         "HIEUTHUHAI",
-        "Soobin Hoàng Sơn",
-        "Vũ Cát Tường",
+        "Soobin Hoang Son",
+        "Vu Cat Tuong",
         "GREY D",
-        "Trung Quân Idol",
+        "Trung Quan Idol",
         "Taylor Swift",
-        "Rap Việt Tuyển Chọn"
+        "Best of Rap Viet"
     )
 
-    // Nguồn YouTube RSS đa dạng: V-Pop, Nghệ sĩ hàng đầu, Podcast & Acoustic
+    // Diverse YouTube RSS sources: V-Pop, top artists, podcasts & acoustic
     private val LIVE_SOURCES = listOf(
-        // 1. Kênh Sơn Tùng M-TP Official
+        // 1. Son Tung M-TP Official Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCKaTC4hX2dE5g_pU5N7K08Q",
-            defaultChannelName = "Sơn Tùng M-TP Official",
+            defaultChannelName = "Son Tung M-TP Official",
             categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-            categoryTag = "V-Pop Thịnh hành",
-            aiReason = "Âm nhạc sôi động từ nghệ sĩ hàng đầu Việt Nam."
+            categoryTag = "Trending V-Pop",
+            aiReason = "Upbeat music from Vietnam's top artist."
         ),
-        // 2. Kênh Đen Vâu Official
+        // 2. Den Vau Official Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCa4g2qQc7b1qF5_e2W5Qxkg",
-            defaultChannelName = "Đen Vâu Official",
+            defaultChannelName = "Den Vau Official",
             categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-            categoryTag = "Rap Triết lý",
-            aiReason = "Lời ca mộc mạc và suy ngẫm giúp thư giãn tâm trí."
+            categoryTag = "Conscious Rap",
+            aiReason = "Thoughtful and authentic lyrics to relax your mind."
         ),
-        // 3. Kênh Vietcetera Podcast
+        // 3. Vietcetera Podcast Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCEm_b62Y4IisWj6S0gq4dvw",
             defaultChannelName = "Vietcetera",
             categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
-            categoryTag = "Podcast trò chuyện",
-            aiReason = "Podcast sâu sắc về cuộc sống, sự nghiệp và phong cách sống."
+            categoryTag = "Talk Podcast",
+            aiReason = "Insightful podcasts on life, career, and lifestyle."
         ),
-        // 4. Kênh Web5Ngay
+        // 4. Web5Ngay Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC20h6p4f0UjU8Xo1jA8Jc2w",
             defaultChannelName = "Web5Ngay",
             categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
-            categoryTag = "Kỹ năng sống",
-            aiReason = "Bài học quản lý năng lượng và tư duy làm việc hiệu quả."
+            categoryTag = "Life Skills",
+            aiReason = "Lessons on energy management and productive mindset."
         ),
-        // 5. Kênh Cafe Music BGM
+        // 5. Cafe Music BGM Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCH4g5C_yYv_7F_c1kQeA1aA",
             defaultChannelName = "Cafe Music BGM",
             categoryType = YouTubeCategoryType.LOFI_CHILL,
             categoryTag = "Acoustic Cafe",
-            aiReason = "Âm nhạc nhẹ nhàng hỗ trợ nghỉ ngơi và nạp lại năng lượng."
+            aiReason = "Gentle music for resting and recharging your energy."
         ),
-        // 6. Kênh Lofi Girl
+        // 6. Lofi Girl Channel
         YouTubeFeedSource(
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSJ4gkVC6NrvII8umztf0Ow",
             defaultChannelName = "Lofi Girl",
             categoryType = YouTubeCategoryType.LOFI_CHILL,
-            categoryTag = "Lofi Tập trung",
-            aiReason = "Giai điệu không lời êm dịu hỗ trợ tập trung."
+            categoryTag = "Focus Lofi",
+            aiReason = "Soothing instrumental beats to help you stay focused."
         )
     )
 
@@ -158,7 +158,7 @@ object YouTubeRecommendationHelper {
             getFallbackVideos()
         }
 
-        // Sắp xếp video theo điểm ưu tiên học được từ mô hình máy học
+        // Sort videos by priority score learned from the ML model
         val sortedResults = if (context != null) {
             val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
             finalResults.distinctBy { it.videoId.ifBlank { it.title } }.sortedByDescending {
@@ -251,19 +251,19 @@ object YouTubeRecommendationHelper {
 
     private fun formatRelativeTime(isoDate: String): String {
         return try {
-            if (isoDate.isBlank()) return "Mới phát hành"
+            if (isoDate.isBlank()) return "New release"
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-            val date = parser.parse(isoDate.substring(0, minOf(19, isoDate.length))) ?: return "Mới"
+            val date = parser.parse(isoDate.substring(0, minOf(19, isoDate.length))) ?: return "New"
             val diffMs = System.currentTimeMillis() - date.time
             val diffDays = (diffMs / (24 * 3600 * 1000L)).toInt()
             when {
-                diffDays <= 0 -> "Hôm nay"
-                diffDays == 1 -> "Hôm qua"
-                diffDays < 7 -> "$diffDays ngày trước"
-                else -> "${diffDays / 7} tuần trước"
+                diffDays <= 0 -> "Today"
+                diffDays == 1 -> "Yesterday"
+                diffDays < 7 -> "$diffDays days ago"
+                else -> "${diffDays / 7} weeks ago"
             }
         } catch (e: Exception) {
-            "Mới cập nhật"
+            "Recently updated"
         }
     }
 
@@ -272,55 +272,55 @@ object YouTubeRecommendationHelper {
             YouTubeVideoRecommendation(
                 id = "yt_vpop_1",
                 videoId = "abPmZCZZrFA",
-                title = "Đừng Làm Trái Tim Anh Đau - Sơn Tùng M-TP | Official Music Video",
-                channelTitle = "Sơn Tùng M-TP Official",
+                title = "Dung Lam Trai Tim Anh Dau - Son Tung M-TP | Official Music Video",
+                channelTitle = "Son Tung M-TP Official",
                 durationText = "05:18",
-                aiReason = "Bản hit V-Pop năng lượng cho ngày mới tươi vui.",
-                categoryTag = "V-Pop Thịnh hành",
+                aiReason = "An energetic V-Pop hit for a bright new day.",
+                categoryTag = "Trending V-Pop",
                 categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-                searchFallbackQuery = "Đừng Làm Trái Tim Anh Đau Sơn Tùng M-TP"
+                searchFallbackQuery = "Dung Lam Trai Tim Anh Dau Son Tung M-TP"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_vpop_2",
                 videoId = "Z3q1j3rM3cE",
-                title = "Nấu Ăn Cho Em - Đen ft. PiaLinh | Official Music Video",
-                channelTitle = "Đen Vâu Official",
+                title = "Cooking for You - Den ft. PiaLinh | Official Music Video",
+                channelTitle = "Den Vau Official",
                 durationText = "04:45",
-                aiReason = "Âm nhạc truyền cảm hứng tích cực và yêu thương.",
-                categoryTag = "Rap Triết lý",
+                aiReason = "Inspiring music filled with positivity and warmth.",
+                categoryTag = "Conscious Rap",
                 categoryType = YouTubeCategoryType.VPOP_ARTISTS,
-                searchFallbackQuery = "Nấu Ăn Cho Em Đen Vâu"
+                searchFallbackQuery = "Nau An Cho Em Den Vau"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_genre_1",
                 videoId = "K1B_442_gP4",
-                title = "Những Bản Ballad & Indie Hay Nhất Việt Nam 2026",
+                title = "Best Vietnamese Ballad & Indie Songs 2026",
                 channelTitle = "V-Pop Ballad Station",
                 durationText = "01:15:30",
-                aiReason = "Tổng hợp các bản Ballad cảm xúc sâu lắng.",
-                categoryTag = "Ballad Tuyển chọn",
+                aiReason = "A curated collection of deeply emotional ballads.",
+                categoryTag = "Curated Ballads",
                 categoryType = YouTubeCategoryType.GENRE_MIX,
-                searchFallbackQuery = "Nhạc Ballad Việt Nam hay nhất"
+                searchFallbackQuery = "Best Vietnamese Ballad Songs"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_fallback_1",
                 videoId = "jfKfPfyJRdk",
                 title = "Lofi Hip Hop Radio - Beats to Relax/Study/Deep Work",
                 channelTitle = "Lofi Girl",
-                durationText = "TRỰC TIẾP",
-                aiReason = "Khung giờ vàng tập trung (Deep Work) theo nhịp sinh học.",
-                categoryTag = "Lofi Tập trung",
+                durationText = "LIVE",
+                aiReason = "Peak focus hours (Deep Work) aligned with your circadian rhythm.",
+                categoryTag = "Focus Lofi",
                 categoryType = YouTubeCategoryType.LOFI_CHILL,
                 searchFallbackQuery = "Lofi girl radio beats to relax study"
             ),
             YouTubeVideoRecommendation(
                 id = "yt_fallback_2",
                 videoId = "1ZYbU82GVz4",
-                title = "Have A Sip - Trò chuyện về cuộc sống & Hành trình trưởng thành",
+                title = "Have A Sip - Conversations on Life & Personal Growth",
                 channelTitle = "Vietcetera",
                 durationText = "45:10",
-                aiReason = "Nội dung sâu sắc giúp thả lỏng tâm trí sau ngày bận rộn.",
-                categoryTag = "Podcast trò chuyện",
+                aiReason = "Thoughtful content to help unwind your mind after a busy day.",
+                categoryTag = "Talk Podcast",
                 categoryType = YouTubeCategoryType.PODCAST_KNOWLEDGE,
                 searchFallbackQuery = "Have A Sip Vietcetera podcast"
             )
@@ -328,7 +328,7 @@ object YouTubeRecommendationHelper {
     }
 
     /**
-     * Tìm kiếm nghệ sĩ / ca khúc trực tiếp trên YouTube
+     * Search for an artist or song directly on YouTube
      */
     fun openSearchQuery(context: Context, query: String) {
         try {
@@ -351,7 +351,7 @@ object YouTubeRecommendationHelper {
     }
 
     /**
-     * Mở ứng dụng YouTube chính thức
+     * Open the official YouTube app
      */
     fun openYouTubeApp(context: Context) {
         try {
@@ -371,7 +371,7 @@ object YouTubeRecommendationHelper {
     }
 
     /**
-     * Mở trực tiếp video trong YouTube App hoặc Deep Link
+     * Open the video directly in the YouTube app or via Deep Link
      */
     fun openYouTubeVideo(context: Context, rec: YouTubeVideoRecommendation) {
         try {

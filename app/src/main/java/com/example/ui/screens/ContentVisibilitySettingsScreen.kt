@@ -70,55 +70,55 @@ fun ContentVisibilitySettingsScreen(
     val categories = listOf(
         ContentCategoryItem(
             id = "health_energy",
-            title = "Sức khỏe thể chất và tinh thần",
+            title = "Physical & mental wellness",
             icon = Icons.Default.Favorite,
             iconBgColor = Color(0xFF22C55E) // Vibrant Green
         ),
         ContentCategoryItem(
             id = "calendar_schedule",
-            title = "Sự kiện và nhiệm vụ",
+            title = "Events & tasks",
             icon = Icons.Default.CalendarMonth,
             iconBgColor = Color(0xFF0284C7) // Vibrant Blue
         ),
         ContentCategoryItem(
             id = "now_nudge",
-            title = "Now Nudge & Gợi ý AI",
+            title = "Now Nudge & AI suggestions",
             icon = Icons.Default.AutoAwesome,
             iconBgColor = Color(0xFF6366F1) // Indigo Purple
         ),
         ContentCategoryItem(
             id = "weather",
-            title = "Thời tiết & Môi trường",
+            title = "Weather & environment",
             icon = Icons.Default.WbSunny,
             iconBgColor = Color(0xFF0EA5E9) // Sky Blue
         ),
         ContentCategoryItem(
             id = "habit_insights",
-            title = "Báo cáo thói quen & Hiệu suất",
+            title = "Habit reports & productivity",
             icon = Icons.Default.Bolt,
             iconBgColor = Color(0xFFF59E0B) // Warm Amber
         ),
         ContentCategoryItem(
             id = "sleep_recovery",
-            title = "Giấc ngủ & Phục hồi",
+            title = "Sleep & recovery",
             icon = Icons.Default.NightlightRound,
             iconBgColor = Color(0xFF8B5CF6) // Neon Violet
         ),
         ContentCategoryItem(
             id = "smart_music",
-            title = "Âm nhạc & Giải trí",
+            title = "Music & entertainment",
             icon = Icons.Default.MusicNote,
             iconBgColor = Color(0xFFEC4899) // Rose Pink
         ),
         ContentCategoryItem(
             id = "digital_wellbeing",
-            title = "Tiện ích số & Thời gian sử dụng",
+            title = "Digital wellbeing & screen time",
             icon = Icons.Default.PhoneAndroid,
             iconBgColor = Color(0xFF10B981) // Emerald Green
         ),
         ContentCategoryItem(
             id = "news_market",
-            title = "Tin tức & Thị trường",
+            title = "News & markets",
             icon = Icons.Default.Article,
             iconBgColor = Color(0xFFEF4444) // Coral Red
         )
@@ -140,13 +140,13 @@ fun ContentVisibilitySettingsScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Quay lại",
+                    contentDescription = "Back",
                     tint = Color(0xFF0F172A),
                     modifier = Modifier.size(24.dp)
                 )
             }
             Text(
-                text = "Nội dung muốn đưa vào",
+                text = "Content to include",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF0F172A),
@@ -162,7 +162,7 @@ fun ContentVisibilitySettingsScreen(
         ) {
             // Explanation Description
             Text(
-                text = "Chọn loại nội dung sẽ xuất hiện trong Now brief của bạn. Nội dung từ các danh mục bạn chọn sẽ xuất hiện khi có nội dung liên quan. Đối với các danh mục bạn không chọn, nội dung sẽ không được hiển thị.",
+                text = "Choose the types of content that appear in your Now brief. Content from selected categories will be shown when relevant. Unselected categories will not be displayed.",
                 fontSize = 13.5.sp,
                 color = Color(0xFF64748B),
                 lineHeight = 19.sp,
@@ -277,7 +277,7 @@ fun ContentVisibilitySettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Khôi phục cấu hình mặc định",
+                        text = "Restore default settings",
                         color = Color(0xFF64748B),
                         fontSize = 13.5.sp,
                         fontWeight = FontWeight.Medium

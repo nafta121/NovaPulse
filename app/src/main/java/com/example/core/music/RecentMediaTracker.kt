@@ -19,7 +19,7 @@ data class ActiveMediaPlayback(
 }
 
 /**
- * Quản lý và lưu trữ thông tin bài hát / nghệ sĩ người dùng vừa nghe thực tế từ YouTube, Spotify, Zing MP3... trên máy.
+ * Manages and stores information about songs and artists recently played by the user on the device from YouTube, Spotify, Zing MP3, etc.
  */
 object RecentMediaTracker {
 
@@ -69,7 +69,7 @@ object RecentMediaTracker {
             packageName.contains("zing") -> "Zing MP3"
             packageName.contains("apple") -> "Apple Music"
             packageName.contains("soundcloud") -> "SoundCloud"
-            else -> "Trình phát nhạc"
+            else -> "Media Player"
         }
 
         val playback = ActiveMediaPlayback(

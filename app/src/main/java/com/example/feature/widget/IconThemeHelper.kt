@@ -3,7 +3,7 @@ package com.example.feature.widget
 import androidx.compose.ui.graphics.Color
 
 /**
- * Helper quản lý dải màu Gradient chuẩn cho Vòng tròn Icon bên trái thanh Now Bar
+ * Helper managing standard gradient colors for the circular icon on the left of the Now Bar
  */
 object IconThemeHelper {
 

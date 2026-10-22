@@ -43,8 +43,8 @@ data class HourlyForecastDisplayItem(
 )
 
 /**
- * Card Thời tiết Kính mờ Siêu Trong suốt (Ultra-Translucent Clear Glass Weather Card) chuẩn One UI 9 / iOS 18
- * Hiển thị dự báo thời tiết từng giờ, Sticker icon, biểu đồ đường cong nhiệt độ mượt mà Canvas Bezier và tỷ lệ mưa (💧 2%).
+ * Ultra-Translucent Clear Glass Weather Card following One UI 9 / iOS 18 design
+ * Displays hourly weather forecast, sticker icons, smooth Canvas Bezier temperature curve, and rain probability (💧 2%).
  */
 @Composable
 fun WeatherHourlyForecastCard(
@@ -54,7 +54,7 @@ fun WeatherHourlyForecastCard(
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
 
-    // Glass Colors: Nền kính mờ SIÊU TRONG SUỐT xuyên thấu (Ultra Clear Liquid Glass)
+    // Glass Colors: Ultra-translucent clear frosted glass background (Ultra Clear Liquid Glass)
     val glassColors = if (isDark) {
         listOf(
             Color(0xFF1E3A8A).copy(alpha = 0.25f),
@@ -71,12 +71,12 @@ fun WeatherHourlyForecastCard(
     val textColor = Color.White
     val subTextColor = Color.White.copy(alpha = 0.88f)
 
-    // Parse hoặc tạo Mock dữ liệu dự báo 8 giờ nếu trống
+    // Parse or create mock 8-hour forecast data if empty
     val forecastItems = rememberHourlyItems(weatherData, currentHour)
 
-    val conditionText = weatherData?.conditionDescription?.ifBlank { "Phần nào có mây" } ?: "Phần nào có mây"
+    val conditionText = weatherData?.conditionDescription?.ifBlank { "Partly cloudy" } ?: "Partly cloudy"
     val lowestTemp = forecastItems.minOfOrNull { it.tempC } ?: 27
-    val headerStatus = "$conditionText. Thấp $lowestTemp°C."
+    val headerStatus = "$conditionText. Low $lowestTemp°C."
 
     Card(
         modifier = modifier
@@ -105,7 +105,7 @@ fun WeatherHourlyForecastCard(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Dãy cuộn ngang các mốc giờ
+                // Horizontal scrollable row of hourly slots
                 val scrollState = rememberScrollState()
                 Row(
                     modifier = Modifier
@@ -221,7 +221,7 @@ private fun rememberHourlyItems(
     if (weatherData != null && weatherData.hourlyForecast.isNotEmpty()) {
         return weatherData.hourlyForecast.take(8).mapIndexed { index, item ->
             val hourInt = try {
-                val clean = item.timeLabel.replace("Bây giờ", "").trim()
+                val clean = item.timeLabel.replace("Now", "").trim()
                 if (clean.contains(":")) clean.split(":")[0].toInt() else (currentHour + index) % 24
             } catch (e: Exception) {
                 (currentHour + index) % 24
@@ -250,7 +250,7 @@ private fun rememberHourlyItems(
 
     return (0..7).map { index ->
         val hour = (currentHour + index) % 24
-        val formattedHour = if (index == 0) "Bây giờ" else String.format("%02d:00", hour)
+        val formattedHour = if (index == 0) "Now" else String.format("%02d:00", hour)
         val isNight = hour in 19..23 || hour in 0..5
         val tempDrop = when {
             isNight -> index / 2

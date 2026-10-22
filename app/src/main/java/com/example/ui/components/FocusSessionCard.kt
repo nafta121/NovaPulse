@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Card Khung Giờ Tập Trung chuẩn Liquid Glassmorphism One UI 9 kích hoạt Pomodoro Deep Work 25 phút một chạm
+ * Focus Session Card following One UI 9 Liquid Glassmorphism for one-tap 25-minute Pomodoro Deep Work
  */
 @Composable
 fun FocusSessionCard(
@@ -78,7 +78,7 @@ fun FocusSessionCard(
         cal.add(java.util.Calendar.MINUTE, 25)
         val endStr = String.format(java.util.Locale.US, "%02d:%02d", cal.get(java.util.Calendar.HOUR_OF_DAY), cal.get(java.util.Calendar.MINUTE))
 
-        "Khuyên dùng 25 phút tập trung không thông báo từ $startStr - $endStr"
+        "Recommended 25-min distraction-free focus from $startStr - $endStr"
     }
 
     val purpleGlassBrush = if (isDark) {
@@ -109,7 +109,7 @@ fun FocusSessionCard(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Đồng hồ cát / Tập trung Tím Neon trong quả cầu Glass 3D (44x44dp)
+            // Neon Purple Focus Hourglass Icon inside a 3D Glass Orb (44x44dp)
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -136,10 +136,10 @@ fun FocusSessionCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nội dung Thông tin Chế độ Tập trung
+            // Focus Mode Information Content
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Khung giờ tập trung",
+                    text = "Focus session",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -148,7 +148,7 @@ fun FocusSessionCard(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = if (isFocusing) "Đang bật phiên tập trung 25 phút • Tắt thông báo" else dynamicFocusSubtext,
+                    text = if (isFocusing) "25-min focus session active • Notifications muted" else dynamicFocusSubtext,
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = if (isDark) Color(0xFFCBD5E1) else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -165,7 +165,7 @@ fun FocusSessionCard(
                 Brush.horizontalGradient(listOf(Color(0xFF7C3AED), Color(0xFFA855F7)))
             }
 
-            // Nút Bật Chế độ Tập trung Pill Shape với Gradient bóng bẩy và viền Specular
+            // Pill-shaped Focus Mode Toggle Button with glossy gradient and specular border
             Box(
                 modifier = Modifier
                     .graphicsLayer {
@@ -204,7 +204,7 @@ fun FocusSessionCard(
                         Spacer(modifier = Modifier.width(3.dp))
                     }
                     Text(
-                        text = if (isFocusing) "Đang bật" else "25 phút",
+                        text = if (isFocusing) "Active" else "25 mins",
                         color = Color.White,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold

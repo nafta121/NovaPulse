@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Delegator cho 3 Vòng Tròn Đồng Tâm Samsung Health (Concentric Activity Rings)
+ * Delegator for Samsung Health 3 Concentric Activity Rings
  */
 @Composable
 fun SamsungHeartRingCanvas(

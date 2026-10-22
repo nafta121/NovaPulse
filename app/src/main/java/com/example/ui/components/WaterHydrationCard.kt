@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Card Nhắc Uống Nước Tiện Ích chuẩn Liquid Glassmorphism One UI 9 với Nút Pill "+ 250ml"
+ * Water Hydration Reminder Card following One UI 9 Liquid Glassmorphism with "+ 250ml" Pill Button
  */
 @Composable
 fun WaterHydrationCard(
@@ -102,12 +102,12 @@ fun WaterHydrationCard(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header Row: Icon Giọt nước + Tiêu đề + Nút Pill "+ 250ml"
+            // Header Row: Water Drop Icon + Title + "+ 250ml" Pill Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon giọt nước Xanh Cyan trong quả cầu Glassmorphism 3D (44x44dp)
+                // Cyan Water Drop Icon inside a 3D Glassmorphism Orb (44x44dp)
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -137,7 +137,7 @@ fun WaterHydrationCard(
                 // Text Column
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Cân bằng nước & Năng lượng",
+                        text = "Water & Energy Balance",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -156,7 +156,7 @@ fun WaterHydrationCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Nút bấm nhanh "+ 250ml" chuẩn Pill Shape có Gradient bóng bẩy và viền Specular
+                // Quick "+ 250ml" Pill Button with glossy gradient and specular border
                 Box(
                     modifier = Modifier
                         .graphicsLayer {
@@ -206,7 +206,7 @@ fun WaterHydrationCard(
                 }
             }
 
-            // Thanh tiến độ nước Bo tròn 2 đầu với Gradient Xanh Cyan tươi sáng
+            // Rounded Water Progress Bar with vibrant Cyan Gradient
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

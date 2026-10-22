@@ -59,8 +59,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Card Lịch trình Ngữ cảnh Thông minh chuẩn Samsung One UI & Glassmorphism
- * Đã tinh chỉnh phối màu mờ nhạt, độ tương phản mượt mà & cụm Feedback dạng Nút tròn/Menu
+ * Smart Contextual Schedule Card following Samsung One UI & Glassmorphism design
+ * Fine-tuned with soft muted colors, smooth contrast & circular button/menu feedback cluster
  */
 @Composable
 fun CrossContextAlertCard(
@@ -91,7 +91,7 @@ fun CrossContextAlertCard(
     val titleColor = if (isDark) Color.White else Color(0xFF0F172A)
     val subtitleColor = if (isDark) Color.White.copy(alpha = 0.6f) else Color(0xFF64748B)
 
-    // Tag mờ nhạt dịu mắt (rgba 0.08 opacity)
+    // Soft muted eye-friendly tag (rgba 0.08 opacity)
     val mutedTagBg = if (isDark) Color.White.copy(alpha = 0.08f) else Color(0xFFF1F5F9)
     val mutedTagText = if (isDark) Color.White.copy(alpha = 0.85f) else Color(0xFF334155)
     val scoreText = "★ ${String.format("%.1f", card.calculatedScore)}"
@@ -116,7 +116,7 @@ fun CrossContextAlertCard(
         Column(modifier = Modifier.fillMaxWidth()) {
 
             // -------------------------------------------------------------
-            // [HEADER HÀNG TRÊN]: Icon Lịch + Nguồn/Tag + Score Tối giản + Feedback Nút Tròn
+            // [TOP HEADER ROW]: Calendar Icon + Source/Tag + Minimal Score + Circular Feedback Buttons
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -134,7 +134,7 @@ fun CrossContextAlertCard(
                         modifier = Modifier.size(17.dp)
                     )
 
-                    // Tag mờ nhạt tối giản: "Ngữ cảnh thông minh" / Nguồn
+                    // Minimal muted tag: "Smart Context" / Source
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
@@ -142,7 +142,7 @@ fun CrossContextAlertCard(
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = card.subtitle.ifBlank { "Ngữ cảnh thông minh" },
+                            text = card.subtitle.ifBlank { "Smart Context" },
                             color = mutedTagText,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
@@ -152,7 +152,7 @@ fun CrossContextAlertCard(
                     }
                 }
 
-                // Cụm Feedback Nút Tròn Nhỏ gọn (Circular Surface)
+                // Compact Circular Feedback Button Cluster (Circular Surface)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -166,14 +166,14 @@ fun CrossContextAlertCard(
                                 isLiked = !isLiked
                                 if (isLiked) {
                                     feedbackTracker.recordPositiveFeedback(card.category)
-                                    Toast.makeText(context, "Đã ghi nhận gợi ý hữu ích ✨", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Helpful suggestion recorded ✨", Toast.LENGTH_SHORT).show()
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.ThumbUp,
-                            contentDescription = "Thích",
+                            contentDescription = "Like",
                             tint = if (isLiked) Color(0xFF10B981) else subtitleColor,
                             modifier = Modifier.size(14.dp)
                         )
@@ -193,7 +193,7 @@ fun CrossContextAlertCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Ẩn",
+                            contentDescription = "Dismiss",
                             tint = subtitleColor,
                             modifier = Modifier.size(14.dp)
                         )
@@ -204,7 +204,7 @@ fun CrossContextAlertCard(
             Spacer(modifier = Modifier.height(10.dp))
 
             // -------------------------------------------------------------
-            // [BODY Ở GIỮA]: Tiêu đề + Thời gian/Trạng thái + Địa điểm
+            // [MIDDLE BODY]: Title + Time/Status + Location
             // -------------------------------------------------------------
             Text(
                 text = card.title,
@@ -217,14 +217,14 @@ fun CrossContextAlertCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Dòng Thời gian & Trạng thái (Text mờ rgba 0.6)
+            // Time & Status Row (Muted text rgba 0.6)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Schedule,
-                    contentDescription = "Thời gian",
+                    contentDescription = "Time",
                     tint = subtitleColor,
                     modifier = Modifier.size(14.dp)
                 )
@@ -236,7 +236,7 @@ fun CrossContextAlertCard(
                     fontWeight = FontWeight.Medium
                 )
 
-                // Chấm cam khẩn cấp nếu có
+                // Urgent orange dot if applicable
                 if (isUrgentDot) {
                     Box(
                         modifier = Modifier
@@ -246,7 +246,7 @@ fun CrossContextAlertCard(
                     )
                 }
 
-                // Địa điểm (nếu có)
+                // Location (if available)
                 if (card.location.isNotBlank()) {
                     Text(
                         text = "•",
@@ -256,7 +256,7 @@ fun CrossContextAlertCard(
 
                     Icon(
                         imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Địa điểm",
+                        contentDescription = "Location",
                         tint = subtitleColor,
                         modifier = Modifier.size(14.dp)
                     )
@@ -272,7 +272,7 @@ fun CrossContextAlertCard(
             }
 
             // -------------------------------------------------------------
-            // [FOOTER HÀNG DƯỚI - ACTION SHORTCUT]: Nút bấm Pill (16dp)
+            // [BOTTOM FOOTER - ACTION SHORTCUT]: Pill Button (16dp)
             // -------------------------------------------------------------
             if (hasAction) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -281,9 +281,9 @@ fun CrossContextAlertCard(
                 val isMaps = card.actionType == ActionType.OPEN_MAPS || card.location.isNotBlank()
 
                 val buttonLabel = card.actionLabel ?: when {
-                    isMeet -> "Tham gia Google Meet"
-                    isMaps -> "Chỉ đường Maps"
-                    else -> "Mở chi tiết"
+                    isMeet -> "Join Google Meet"
+                    isMaps -> "Directions on Maps"
+                    else -> "View details"
                 }
 
                 val buttonIcon = when {
@@ -339,7 +339,7 @@ fun CrossContextAlertCard(
 
 private fun formatCardTimeStatus(card: ContextActionCard): Pair<String, Boolean> {
     if (card.isAllDay) {
-        return Pair("Cả ngày", false)
+        return Pair("All day", false)
     }
 
     val now = System.currentTimeMillis()
@@ -358,20 +358,20 @@ private fun formatCardTimeStatus(card: ContextActionCard): Pair<String, Boolean>
     val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startMs))
 
     return when {
-        now in startMs..endMs -> Pair("Đang diễn ra ($timeStr)", true)
+        now in startMs..endMs -> Pair("Happening now ($timeStr)", true)
         isSameDay -> {
             val deltaMin = (startMs - now) / (60 * 1000)
             if (deltaMin in 0..60) {
-                Pair("$timeStr (Còn $deltaMin phút)", true)
+                Pair("$timeStr (In $deltaMin mins)", true)
             } else if (deltaMin > 60) {
                 val hours = deltaMin / 60
                 val mins = deltaMin % 60
-                Pair("$timeStr (Còn ${hours}h${mins}p)", false)
+                Pair("$timeStr (In ${hours}h ${mins}m)", false)
             } else {
-                Pair("Hôm nay, $timeStr", false)
+                Pair("Today, $timeStr", false)
             }
         }
-        isTomorrow -> Pair("Ngày mai, $timeStr", false)
+        isTomorrow -> Pair("Tomorrow, $timeStr", false)
         else -> {
             val dateStr = SimpleDateFormat("dd/MM · HH:mm", Locale.getDefault()).format(Date(startMs))
             Pair(dateStr, false)
@@ -388,10 +388,10 @@ private fun executeAction(context: Context, card: ContextActionCard) {
         } else if (card.location.isNotBlank()) {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${Uri.encode(card.location)}")))
         } else {
-            Toast.makeText(context, "Mở chi tiết: ${card.title}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Opening details: ${card.title}", Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
-        Log.e("CrossContextAlertCard", "Lỗi thực thi action: ${e.message}")
-        Toast.makeText(context, "Không thể mở ứng dụng tương ứng", Toast.LENGTH_SHORT).show()
+        Log.e("CrossContextAlertCard", "Failed to execute action: ${e.message}")
+        Toast.makeText(context, "Unable to open the corresponding app", Toast.LENGTH_SHORT).show()
     }
 }

@@ -44,18 +44,18 @@ class PreferencesManager(private val context: Context) {
         val KEY_DYNAMIC_ISLAND_POSITION = stringPreferencesKey("dynamic_island_position")
         val KEY_DYNAMIC_ISLAND_COLOR_PRESET = stringPreferencesKey("dynamic_island_color_preset")
 
-        // Content Display (Nội dung muốn đưa vào)
+        // Content Display (Cards to include)
         val KEY_ENABLED_CONTENT_CARDS = stringSetPreferencesKey("enabled_content_cards")
         val DEFAULT_ENABLED_CARDS = setOf(
-            "health_energy",     // Sức khỏe thể chất và tinh thần
-            "calendar_schedule", // Sự kiện và nhiệm vụ / Lịch trình
-            "now_nudge",         // Now Nudge AI & Gợi ý thông minh
-            "weather",           // Thời tiết & Môi trường
-            "habit_insights",    // Báo cáo thói quen & Khung giờ vàng
-            "sleep_recovery",    // Giấc ngủ & Phục hồi
-            "smart_music",       // Đề xuất Âm nhạc (Spotify)
-            "digital_wellbeing", // Tiện ích số & Screen Time
-            "news_market"        // Tin tức & Thị trường
+            "health_energy",     // Physical and mental health
+            "calendar_schedule", // Events, tasks & schedule
+            "now_nudge",         // Now Nudge AI & smart suggestions
+            "weather",           // Weather & environment
+            "habit_insights",    // Habit reports & peak hours
+            "sleep_recovery",    // Sleep & recovery
+            "smart_music",       // Music recommendations (Spotify)
+            "digital_wellbeing", // Digital wellbeing & screen time
+            "news_market"        // News & market
         )
     }
 

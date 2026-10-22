@@ -54,8 +54,8 @@ object NewsMarketRepository {
     fun getMarketTickers(): List<MarketTickerItem> {
         return listOf(
             MarketTickerItem(symbol = "VN-INDEX", value = "1,288.5", changePercent = 0.65),
-            MarketTickerItem(symbol = "Vàng SJC", value = "89.5M", changePercent = 0.34, unit = "₫/lượng"),
-            MarketTickerItem(symbol = "USD/VND", value = "25,460", changePercent = -0.08, unit = "₫"),
+            MarketTickerItem(symbol = "SJC Gold", value = "89.5M", changePercent = 0.34, unit = "VND/tael"),
+            MarketTickerItem(symbol = "USD/VND", value = "25,460", changePercent = -0.08, unit = "VND"),
             MarketTickerItem(symbol = "BTC", value = "$96,850", changePercent = 2.45)
         )
     }
@@ -64,29 +64,29 @@ object NewsMarketRepository {
         return listOf(
             NewsBriefArticle(
                 id = "vnexpress_top_1",
-                title = "Samsung nâng cấp trải nghiệm AI Galaxy trên nền tảng di động mới",
-                summary = "Các tính năng tóm tắt thông minh và tối ưu hóa thời lượng pin được tích hợp sâu vào hệ thống.",
+                title = "Samsung upgrades Galaxy AI experience on new mobile platform",
+                summary = "Smart summarization features and battery life optimizations are deeply integrated into the system.",
                 source = "VnExpress",
-                category = "Công nghệ",
-                timeAgo = "15 phút trước",
+                category = "Technology",
+                timeAgo = "15m ago",
                 url = "https://vnexpress.net/so-hoa"
             ),
             NewsBriefArticle(
                 id = "vnexpress_top_2",
-                title = "Thị trường tài chính và cổ phiếu công nghệ bứt phá ấn tượng",
-                summary = "Dòng tiền dịch chuyển mạnh mẽ vào các nhóm ngành chủ chốt đón sóng tăng trưởng.",
+                title = "Financial markets and tech stocks make an impressive breakout",
+                summary = "Capital flows strongly into key sectors ahead of the new growth wave.",
                 source = "VnExpress",
-                category = "Kinh doanh",
-                timeAgo = "45 phút trước",
+                category = "Business",
+                timeAgo = "45m ago",
                 url = "https://vnexpress.net/kinh-doanh"
             ),
             NewsBriefArticle(
                 id = "vnexpress_top_3",
-                title = "Bí quyết duy trì năng lượng và tập trung làm việc hiệu quả",
-                summary = "Thực hiện các phiên làm việc ngắt quãng giúp não bộ luôn duy trì trạng thái tỉnh táo.",
+                title = "Secrets to maintaining energy and staying focused at work",
+                summary = "Practicing interval work sessions helps the brain stay sharp and alert throughout the day.",
                 source = "VnExpress",
-                category = "Đời sống",
-                timeAgo = "1 giờ trước",
+                category = "Lifestyle",
+                timeAgo = "1h ago",
                 url = "https://vnexpress.net/doi-song"
             )
         )
@@ -94,9 +94,9 @@ object NewsMarketRepository {
 
     suspend fun fetchLiveNews(): List<NewsBriefArticle> = withContext(Dispatchers.IO) {
         val rssUrls = listOf(
-            "https://vnexpress.net/rss/tin-moi-nhat.rss" to "Tin mới",
-            "https://vnexpress.net/rss/so-hoa.rss" to "Công nghệ",
-            "https://vnexpress.net/rss/kinh-doanh.rss" to "Kinh doanh"
+            "https://vnexpress.net/rss/tin-moi-nhat.rss" to "Latest News",
+            "https://vnexpress.net/rss/so-hoa.rss" to "Technology",
+            "https://vnexpress.net/rss/kinh-doanh.rss" to "Business"
         )
 
         for ((rssUrl, defaultCategory) in rssUrls) {
@@ -171,14 +171,14 @@ object NewsMarketRepository {
 
                                 val timeAgo = formatPubDate(curPubDate)
                                 val category = when {
-                                    curLink.contains("/so-hoa/") -> "Công nghệ"
-                                    curLink.contains("/kinh-doanh/") -> "Kinh doanh"
-                                    curLink.contains("/the-thao/") -> "Thể thao"
-                                    curLink.contains("/giai-tri/") -> "Giải trí"
-                                    curLink.contains("/suc-khoe/") -> "Sức khỏe"
-                                    curLink.contains("/khoa-hoc/") -> "Khoa học"
-                                    curLink.contains("/thoi-su/") -> "Thời sự"
-                                    curLink.contains("/the-gioi/") -> "Thế giới"
+                                    curLink.contains("/so-hoa/") -> "Technology"
+                                    curLink.contains("/kinh-doanh/") -> "Business"
+                                    curLink.contains("/the-thao/") -> "Sports"
+                                    curLink.contains("/giai-tri/") -> "Entertainment"
+                                    curLink.contains("/suc-khoe/") -> "Health"
+                                    curLink.contains("/khoa-hoc/") -> "Science"
+                                    curLink.contains("/thoi-su/") -> "News"
+                                    curLink.contains("/the-gioi/") -> "World"
                                     else -> defaultCategory
                                 }
 
@@ -208,16 +208,17 @@ object NewsMarketRepository {
     private fun formatPubDate(pubDateStr: String): String {
         return try {
             val sdf = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US)
-            val date = sdf.parse(pubDateStr) ?: return "Vừa xong"
+            val date = sdf.parse(pubDateStr) ?: return "Just now"
             val diffMinutes = (System.currentTimeMillis() - date.time) / (1000 * 60)
             when {
-                diffMinutes < 1 -> "Vừa xong"
-                diffMinutes < 60 -> "$diffMinutes phút trước"
-                diffMinutes < 1440 -> "${diffMinutes / 60} giờ trước"
-                else -> "${diffMinutes / 1440} ngày trước"
+                diffMinutes < 1 -> "Just now"
+                diffMinutes < 60 -> "${diffMinutes}m ago"
+                diffMinutes < 1440 -> "${diffMinutes / 60}h ago"
+                diffMinutes < 2880 -> "Yesterday"
+                else -> "${diffMinutes / 1440}d ago"
             }
         } catch (e: Exception) {
-            "Mới cập nhật"
+            "Recently updated"
         }
     }
 

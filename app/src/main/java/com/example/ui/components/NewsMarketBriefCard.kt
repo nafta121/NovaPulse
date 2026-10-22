@@ -54,8 +54,8 @@ import com.example.core.repository.NewsMarketRepository
 import kotlinx.coroutines.launch
 
 /**
- * Thẻ Tin tức & Thị trường chuẩn ngôn ngữ thiết kế Samsung One UI 9.
- * Tích hợp chỉ số tài chính thời gian thực (Market Tickers) và tin tức mới nhất từ RSS báo chính thống.
+ * News & Market Card following the Samsung One UI 9 design language.
+ * Integrates real-time financial indicators (Market Tickers) and breaking news from mainstream RSS feeds.
  */
 @Composable
 fun NewsMarketBriefCard(
@@ -140,7 +140,7 @@ fun NewsMarketBriefCard(
 
                     Column {
                         Text(
-                            text = "Tin tức & Thị trường",
+                            text = "News & Market",
                             color = appNameColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
@@ -170,7 +170,7 @@ fun NewsMarketBriefCard(
                                     .background(Color(0xFF10B981))
                             )
                             Text(
-                                text = "Trực tiếp",
+                                text = "Live",
                                 color = if (isDark) Color(0xFF34D399) else Color(0xFF059669),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
@@ -194,7 +194,7 @@ fun NewsMarketBriefCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Làm mới tin",
+                            contentDescription = "Refresh news",
                             tint = appNameColor,
                             modifier = Modifier.size(17.dp)
                         )
@@ -356,7 +356,7 @@ fun NewsMarketBriefCard(
                         // Open External Icon
                         Icon(
                             imageVector = Icons.Default.NorthEast,
-                            contentDescription = "Mở bài viết",
+                            contentDescription = "Open article",
                             tint = timeTextColor,
                             modifier = Modifier.size(16.dp)
                         )

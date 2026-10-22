@@ -585,8 +585,8 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
             }
 
             if (desc.contains("Quick settings", ignoreCase = true) ||
-                desc.contains("Cài đặt nhanh", ignoreCase = true) ||
-                desc.contains("Bảng thông báo", ignoreCase = true) ||
+                desc.contains("Quick Settings", ignoreCase = true) ||
+                desc.contains("Notification panel", ignoreCase = true) ||
                 desc.contains("Notification shade", ignoreCase = true) ||
                 desc.contains("Now bar", ignoreCase = true) ||
                 desc.contains("Now Bar", ignoreCase = true)
@@ -594,10 +594,10 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                 return true
             }
 
-            if (textStr.contains("mã PIN", ignoreCase = true) ||
-                textStr.contains("mật mã", ignoreCase = true) ||
-                textStr.contains("mật khẩu", ignoreCase = true) ||
-                textStr.contains("hình mẫu", ignoreCase = true) ||
+            if (textStr.contains("PIN code", ignoreCase = true) ||
+                textStr.contains("Passcode", ignoreCase = true) ||
+                textStr.contains("Password", ignoreCase = true) ||
+                textStr.contains("Pattern", ignoreCase = true) ||
                 textStr.contains("Enter PIN", ignoreCase = true) ||
                 textStr.contains("Draw pattern", ignoreCase = true)
             ) {

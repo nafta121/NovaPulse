@@ -53,9 +53,9 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 enum class BreathingPhase(val label: String, val seconds: Int, val targetScale: Float, val color: Color) {
-    INHALE("Hít vào từ từ (4s)", 4, 1.0f, Color(0xFF06B6D4)),
-    HOLD("Giữ nín hơi (7s)", 7, 1.0f, Color(0xFF3B82F6)),
-    EXHALE("Thở ra chậm rãi (8s)", 8, 0.45f, Color(0xFF8B5CF6))
+    INHALE("Inhale slowly (4s)", 4, 1.0f, Color(0xFF06B6D4)),
+    HOLD("Hold breath (7s)", 7, 1.0f, Color(0xFF3B82F6)),
+    EXHALE("Exhale gently (8s)", 8, 0.45f, Color(0xFF8B5CF6))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -154,13 +154,13 @@ fun BreathingBottomSheet(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Tập thở 4-7-8",
+                            text = "4-7-8 Breathing",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isNight) Color.White else Color(0xFF0F172A)
                         )
                         Text(
-                            text = "Thả lỏng nhịp tim & xua tan căng thẳng",
+                            text = "Relax your heart rate & melt away stress",
                             fontSize = 12.sp,
                             color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                         )
@@ -170,7 +170,7 @@ fun BreathingBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Đóng",
+                        contentDescription = "Close",
                         tint = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
                     )
                 }
@@ -178,7 +178,7 @@ fun BreathingBottomSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Canvas Animation Vòng Tròn Thở 4-7-8 (Size 220dp)
+            // 4-7-8 Breathing Circle Canvas Animation (Size 220dp)
             Box(
                 modifier = Modifier.size(220.dp),
                 contentAlignment = Alignment.Center
@@ -205,7 +205,7 @@ fun BreathingBottomSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (isFinished) "Hoàn thành!" else "${secondsLeftInPhase}s",
+                        text = if (isFinished) "Completed!" else "${secondsLeftInPhase}s",
                         fontSize = if (isFinished) 16.sp else 32.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White
@@ -217,7 +217,7 @@ fun BreathingBottomSheet(
 
             // Subtitle phase & Cycle counter
             Text(
-                text = if (isFinished) "Bạn đã hoàn thành 4 chu kỳ thở thả lỏng 🌟" else currentPhase.label,
+                text = if (isFinished) "You completed 4 relaxing breathing cycles 🌟" else currentPhase.label,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = ringColor
@@ -226,7 +226,7 @@ fun BreathingBottomSheet(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = if (isFinished) "Tâm trí bạn đã dịu lại và nhịp tim ổn định hơn." else "Chu kỳ $currentCycle/$totalCycles",
+                text = if (isFinished) "Your mind is calmer and your heart rate is steadier." else "Cycle $currentCycle/$totalCycles",
                 fontSize = 13.sp,
                 color = if (isNight) Color(0xFF94A3B8) else Color(0xFF64748B)
             )
@@ -253,7 +253,7 @@ fun BreathingBottomSheet(
                     ) {
                         Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Tập lại", fontWeight = FontWeight.Bold)
+                        Text("Practice again", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Button(
@@ -271,7 +271,7 @@ fun BreathingBottomSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isRunning) "Tạm dừng" else "Bắt đầu",
+                            text = if (isRunning) "Pause" else "Start",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )

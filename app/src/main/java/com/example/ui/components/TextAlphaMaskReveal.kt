@@ -39,19 +39,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Custom Modifier cho Jetpack Compose tạo hiệu ứng "Text Alpha Mask Reveal / Wipe"
- * Chữ mờ từ từ hiện ra theo hướng quét chéo 45 độ từ Top-Left xuống Bottom-Right.
+ * Custom Modifier for Jetpack Compose creating a "Text Alpha Mask Reveal / Wipe" effect.
+ * Text gradually fades in along a 45-degree diagonal sweep from Top-Left to Bottom-Right.
  *
- * @param durationMillis Thời gian một chu kỳ xuất hiện hoàn chỉnh (Mặc định: 5000ms = 5 giây)
- * @param featherPx Độ mờ mềm cạnh viền quét (Feathering Edge, Mặc định: 180f px, khoảng 150px - 200px)
- * @param repeatMode Chế độ lặp: true -> lặp vô tận (Infinite loop), false -> chỉ quét 1 lần khi mở màn hình
+ * @param durationMillis Duration of one complete reveal cycle (Default: 5000ms = 5 seconds)
+ * @param featherPx Soft edge feathering width along the sweep line (Default: 180f px, ~150px - 200px)
+ * @param repeatMode Repeat mode: true -> infinite loop, false -> single sweep when opening the screen
  */
 fun Modifier.textAlphaMaskReveal(
     durationMillis: Int = 5000,
     featherPx: Float = 180f,
     repeatMode: Boolean = false
 ): Modifier = composed {
-    // Animation Progress từ 0.0f (Ẩn toàn bộ, Alpha=0) -> 1.0f (Hiện hoàn toàn, Alpha=1)
+    // Animation Progress from 0.0f (Fully hidden, Alpha=0) -> 1.0f (Fully revealed, Alpha=1)
     val progress: Float = if (repeatMode) {
         val infiniteTransition = rememberInfiniteTransition(label = "TextAlphaMaskTransition")
         infiniteTransition.animateFloat(
@@ -78,17 +78,17 @@ fun Modifier.textAlphaMaskReveal(
     }
 
     if (progress >= 1f) {
-        // Khi animation 1 lần đã hoàn tất (progress = 1.0f), không dùng Offscreen Layer nữa để tối ưu tuyệt đối
+        // Once the one-shot animation completes (progress = 1.0f), skip Offscreen Layer for optimal performance
         this
     } else {
         this
-            // BƯỚC 1: Sử dụng CompositingStrategy.Offscreen để render chữ lên offscreen buffer độc lập
+            // STEP 1: Use CompositingStrategy.Offscreen to render text onto an isolated offscreen buffer
             .graphicsLayer {
                 compositingStrategy = CompositingStrategy.Offscreen
             }
-            // BƯỚC 2: Nhân Alpha Mask dạng LinearGradient vào chữ bằng BlendMode.DstIn
+            // STEP 2: Multiply LinearGradient Alpha Mask onto the text using BlendMode.DstIn
             .drawWithContent {
-                // Vẽ nội dung gốc (Text, Column, ...) lên offscreen layer
+                // Draw original content (Text, Column, etc.) onto the offscreen layer
                 drawContent()
 
                 val canvasWidth = size.width
@@ -104,8 +104,8 @@ fun Modifier.textAlphaMaskReveal(
 
                     val maskBrush = Brush.linearGradient(
                         colors = listOf(
-                            Color.Black,       // Alpha = 1.0 (Hiện chữ)
-                            Color.Transparent  // Alpha = 0.0 (Ẩn chữ)
+                            Color.Black,       // Alpha = 1.0 (Show text)
+                            Color.Transparent  // Alpha = 0.0 (Hide text)
                         ),
                         start = startOffset,
                         end = endOffset
@@ -121,8 +121,8 @@ fun Modifier.textAlphaMaskReveal(
 }
 
 /**
- * Custom TextView dành cho Android View / XML Layout thực hiện hiệu ứng Text Alpha Mask Reveal / Wipe.
- * Sử dụng android.graphics.LinearGradient Shader kết hợp ValueAnimator (5000ms).
+ * Custom TextView for Android View / XML Layout performing the Text Alpha Mask Reveal / Wipe effect.
+ * Uses android.graphics.LinearGradient Shader combined with ValueAnimator (5000ms).
  */
 open class TextAlphaMaskRevealTextView @JvmOverloads constructor(
     context: Context,
@@ -140,7 +140,7 @@ open class TextAlphaMaskRevealTextView @JvmOverloads constructor(
     }
 
     /**
-     * Khởi chạy animation quét chữ từ Top-Left đến Bottom-Right
+     * Starts the text sweep animation from Top-Left to Bottom-Right
      */
     fun startMaskRevealAnimation(
         durationMs: Long = 5000L,
@@ -176,7 +176,7 @@ open class TextAlphaMaskRevealTextView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
-        // Đường quét chéo góc 45°
+        // 45° diagonal sweep line
         val totalSpan = w + h + featherPx * 2f
         val edgeStart = -featherPx + progress * totalSpan
         val edgeEnd = edgeStart + featherPx
@@ -207,7 +207,7 @@ open class TextAlphaMaskRevealTextView @JvmOverloads constructor(
 }
 
 /**
- * Extension function tiện ích cho bất kỳ TextView nào trong XML / Android View
+ * Convenience extension function for any TextView in XML / Android View
  */
 fun TextView.animateAlphaMaskReveal(
     durationMillis: Long = 5000L,
@@ -246,7 +246,7 @@ fun TextView.animateAlphaMaskReveal(
 }
 
 /**
- * Demo Component hiển thị cụm văn bản Header Now Brief tích hợp hiệu ứng Text Alpha Mask Reveal
+ * Demo Component displaying the Now Brief Header text cluster with the Text Alpha Mask Reveal effect
  */
 @Composable
 fun NowBriefHeaderDemoContent(
@@ -271,9 +271,9 @@ fun NowBriefHeaderDemoContent(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Subtitle 1: "Khung giờ bứt phá hiệu suất! Nhiệt độ 31°C trời có mây. Tự tin chinh phục các nhiệm vụ thử thách nhất."
+        // Subtitle 1: "Peak productivity window! 31°C and partly cloudy. Confidently tackle your most challenging tasks."
         Text(
-            text = "Khung giờ bứt phá hiệu suất! Nhiệt độ 31°C trời có mây. Tự tin chinh phục các nhiệm vụ thử thách nhất.",
+            text = "Peak productivity window! 31°C and partly cloudy. Confidently tackle your most challenging tasks.",
             color = if (isDark) Color(0xFFCBD5E1) else Color(0xFF334155),
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
@@ -282,9 +282,9 @@ fun NowBriefHeaderDemoContent(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Subtitle 2: "Trời có mây, 31°C tại TP. Hồ Chí Minh. Thời tiết thích hợp cho các hoạt động ngoài trời."
+        // Subtitle 2: "Partly cloudy, 31°C in Ho Chi Minh City. Great weather for outdoor activities."
         Text(
-            text = "Trời có mây, 31°C tại TP. Hồ Chí Minh. Thời tiết thích hợp cho các hoạt động ngoài trời.",
+            text = "Partly cloudy, 31°C in Ho Chi Minh City. Great weather for outdoor activities.",
             color = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B),
             fontSize = 13.sp,
             fontWeight = FontWeight.Normal,

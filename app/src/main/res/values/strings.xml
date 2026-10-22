@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">NovaPulse</string>
     <string name="widget_description">NovaPulse Context Widget displaying dynamic AI greetings and upcoming tasks.</string>
-    <string name="accessibility_service_description">Hiển thị thanh Dynamic Island NowBrief trên màn hình khóa và thanh trạng thái để cập nhật thông tin ngữ cảnh thông minh.</string>
+    <string name="accessibility_service_description">Displays the NowBrief Dynamic Island bar on the lock screen and status bar for smart contextual updates.</string>
 </resources>

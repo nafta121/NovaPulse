@@ -21,8 +21,8 @@ data class StepCounterData(
 )
 
 /**
- * Quản lý đếm bước chân thực tế phần cứng bằng cả 2 cảm biến (TYPE_STEP_COUNTER & TYPE_STEP_DETECTOR)
- * Đảm bảo tương thích 100% với mọi thiết bị Android (Samsung Galaxy, Pixel, Xiaomi...)
+ * Manages hardware step counting using both sensors (TYPE_STEP_COUNTER & TYPE_STEP_DETECTOR).
+ * Ensures 100% compatibility across Android devices (Samsung Galaxy, Pixel, Xiaomi, etc.).
  */
 class StepCounterManager(private val context: Context) : SensorEventListener {
 
@@ -54,7 +54,7 @@ class StepCounterManager(private val context: Context) : SensorEventListener {
         val lastSavedDate = prefs.getString(KEY_LAST_DATE, "")
 
         if (lastSavedDate != todayStr) {
-            // Sang ngày mới -> Reset mốc
+            // New day -> Reset baseline
             prefs.edit()
                 .putString(KEY_LAST_DATE, todayStr)
                 .putInt(KEY_MIDNIGHT_STEPS, -1)

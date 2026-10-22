@@ -53,12 +53,12 @@ import com.example.core.ml.UserPersonaProfile
 import com.example.core.ml.UserPersonaType
 
 /**
- * Thẻ Hồ Sơ Sinh Học & Phong Cách Sống AI (User Persona Profile Card)
- * Thiết kế chuẩn Samsung One UI 9 Glassmorphism:
- * - Icon Squircle sang trọng
- * - Huy hiệu % Tương đồng
- * - 3 Điểm nhấn thói quen chính
- * - Khung giờ vàng & Lời khuyên tối ưu nhịp sinh học On-Device
+ * AI Bio-Rhythm & Lifestyle Profile Card (User Persona Profile Card)
+ * Designed with Samsung One UI 9 Glassmorphism:
+ * - Sleek Squircle Icon
+ * - % Match Badge
+ * - 3 Key Habit Highlights
+ * - Peak Focus Window & On-Device Circadian Coaching Advice
  */
 @Composable
 fun UserPersonaBadgeCard(
@@ -117,7 +117,7 @@ fun UserPersonaBadgeCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // -------------------------------------------------------------
-            // [1. HEADER ROW]: Squircle Icon + Tiêu đề Phân loại + Similarity Badge
+            // [1. HEADER ROW]: Squircle Icon + Category Title + Similarity Badge
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -128,7 +128,7 @@ fun UserPersonaBadgeCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Squircle Container với dải Gradient rực rỡ (38x38dp, góc bo 12dp)
+                    // Squircle Container with vibrant gradient (38x38dp, 12dp corner radius)
                     Box(
                         modifier = Modifier
                             .size(38.dp)
@@ -150,7 +150,7 @@ fun UserPersonaBadgeCard(
 
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "Hồ sơ phong cách sống",
+                            text = "Lifestyle profile",
                             color = subtitleColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal
@@ -182,7 +182,7 @@ fun UserPersonaBadgeCard(
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = "${profile.similarityPercent}% Phù hợp",
+                            text = "${profile.similarityPercent}% Match",
                             color = accentColor,
                             fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold
@@ -192,7 +192,7 @@ fun UserPersonaBadgeCard(
             }
 
             // -------------------------------------------------------------
-            // [2. KEY TRAITS SECTION]: 3 Đặc điểm nhận diện chính
+            // [2. KEY TRAITS SECTION]: 3 Key Identifying Traits
             // -------------------------------------------------------------
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 profile.keyTraits.take(3).forEach { trait ->
@@ -226,13 +226,13 @@ fun UserPersonaBadgeCard(
             }
 
             // -------------------------------------------------------------
-            // [3. OPTIMAL WINDOWS ROW]: Khung giờ vàng & Giờ ngủ khuyến nghị
+            // [3. OPTIMAL WINDOWS ROW]: Peak Focus Window & Recommended Sleep Window
             // -------------------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Pill 1: Giờ vàng tập trung
+                // Pill 1: Peak focus window
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -242,7 +242,7 @@ fun UserPersonaBadgeCard(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "Giờ vàng tập trung",
+                            text = "Peak focus window",
                             color = subtitleColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal
@@ -256,7 +256,7 @@ fun UserPersonaBadgeCard(
                     }
                 }
 
-                // Pill 2: Giờ ngủ khuyến nghị
+                // Pill 2: Recommended sleep window
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -266,7 +266,7 @@ fun UserPersonaBadgeCard(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "Giờ ngủ đề xuất",
+                            text = "Suggested sleep",
                             color = subtitleColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal
@@ -282,7 +282,7 @@ fun UserPersonaBadgeCard(
             }
 
             // -------------------------------------------------------------
-            // [4. COACHING ADVICE BANNER]: Lời khuyên cá nhân hóa On-Device
+            // [4. COACHING ADVICE BANNER]: On-Device Personalized Advice
             // -------------------------------------------------------------
             if (profile.tailoredAdvice.isNotBlank()) {
                 Row(

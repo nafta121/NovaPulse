@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.core.repository.RealHealthData
 
 /**
- * Card Trạng thái Giấc ngủ & Phục hồi chuẩn One UI 7 tối giản & tinh tế
+ * Minimalist and refined Sleep & Recovery Status Card following One UI 7 design
  */
 @Composable
 fun SleepRestStatusCard(
@@ -50,7 +50,7 @@ fun SleepRestStatusCard(
     val sleepSummary = if (healthData != null && healthData.sleepStageSummary.isNotBlank()) {
         healthData.sleepStageSummary
     } else {
-        "Giấc ngủ đêm qua sâu & phục hồi tốt"
+        "Deep & restorative sleep last night"
     }
 
     val sleepMins = if (healthData != null && healthData.sleepDurationMinutes > 0) healthData.sleepDurationMinutes else 465L
@@ -73,7 +73,7 @@ fun SleepRestStatusCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon Mặt trăng tím mềm mại (38x38dp)
+                // Soft purple Moon Icon (38x38dp)
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -93,14 +93,14 @@ fun SleepRestStatusCard(
                     )
                 }
 
-                // Text Column rộng rãi
+                // Spacious text column
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 12.dp)
                 ) {
                     Text(
-                        text = "Trạng thái giấc ngủ & Phục hồi",
+                        text = "Sleep & Recovery Status",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color.White else Color(0xFF0F172A),
@@ -126,13 +126,13 @@ fun SleepRestStatusCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Thời gian ngủ: $sleepDurationFormatted",
+                        text = "Sleep duration: $sleepDurationFormatted",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isDark) Color.White else Color(0xFF1E293B)
                     )
                     Text(
-                        text = "Mục tiêu 8h ($progressPercent%)",
+                        text = "8h goal ($progressPercent%)",
                         fontSize = 12.sp,
                         color = (if (isDark) Color.White else Color(0xFF0F172A)).copy(alpha = 0.70f)
                     )

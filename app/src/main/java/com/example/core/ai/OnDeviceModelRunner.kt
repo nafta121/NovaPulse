@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.feature.widget.BriefingSession
 
 enum class AiModelMode(val displayName: String, val sizeMb: Int) {
-    BASIC_0MB("Mô hình Tự học hỏi (Native On-Device ML)", 0),
+    BASIC_0MB("Self-Learning Model (Native On-Device ML)", 0),
     LIGHT_120MB("Gemma 2B Light (Offline)", 120),
     STANDARD_350MB("Qwen 1.5B (Offline)", 350),
     ADVANCED_500MB("DeepSeek R1 Distill (Offline)", 500)
@@ -38,7 +38,7 @@ class OnDeviceModelRunner(private val context: Context) {
             OnDeviceUserContext(
                 session = BriefingSession.getCurrentSession(),
                 tempC = 28.0,
-                weatherCondition = "Trời mát mẻ",
+                weatherCondition = "Cool and pleasant",
                 stepsCount = 0
             )
         )

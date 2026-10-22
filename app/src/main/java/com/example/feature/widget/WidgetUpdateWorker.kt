@@ -96,7 +96,7 @@ class WidgetUpdateWorker(
             val calendarRepository = CalendarRepository(context)
             val briefingGenerator = com.example.core.ai.BriefingAiGenerator(context, llmManager)
 
-            // AdaptiveBackgroundSync: Tự động bỏ qua network fetch ban đêm trong khung giờ ngủ đã học để tiết kiệm pin
+            // AdaptiveBackgroundSync: Automatically skip nighttime network fetches during learned sleep hours to save battery
             val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
             val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
             val routineInsight = mlEngine.getRoutineInsight()

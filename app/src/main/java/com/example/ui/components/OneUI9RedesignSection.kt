@@ -12,8 +12,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 /**
- * Section tổng hợp các Card chuẩn Samsung One UI 9.
- * Đạt chuẩn ergonomic guidelines với spacing 16dp và padding 16-20dp.
+ * Composite section of cards following Samsung One UI 9 design standards.
+ * Meets ergonomic guidelines with 16dp spacing and 16-20dp padding.
  */
 @Composable
 fun OneUI9RedesignSection(
@@ -28,7 +28,7 @@ fun OneUI9RedesignSection(
     ) {
         // 1. Top Event Card (Google Calendar)
         OneUICalendarCard(
-            eventTitle = "Họp chiến lược sản phẩm Q3",
+            eventTitle = "Q3 Product Strategy Meeting",
             timeSubtitle = "08:30 - 11:30 AM",
             calendarSource = "Google Calendar",
             isDark = isDark

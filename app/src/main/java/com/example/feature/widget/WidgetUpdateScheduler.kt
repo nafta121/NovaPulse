@@ -9,7 +9,7 @@ import android.util.Log
 import java.util.Calendar
 
 /**
- * Receiver nhận tín hiệu báo thức AlarmManager để cập nhật Widget mượt mà
+ * Receiver handling AlarmManager broadcasts to smoothly update the Widget
  */
 class WidgetUpdateSchedulerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -20,8 +20,8 @@ class WidgetUpdateSchedulerReceiver : BroadcastReceiver() {
 }
 
 /**
- * Quản lý lên lịch AlarmManager tự động cập nhật Glance Widget chính xác
- * vào 7 mốc thời gian chuyển giao: 05:00, 08:30, 11:30, 14:00, 17:00, 19:30, 22:30
+ * Manages AlarmManager scheduling to automatically update the Glance Widget accurately
+ * at 7 session transition times: 05:00, 08:30, 11:30, 14:00, 17:00, 19:30, 22:30
  */
 object WidgetUpdateScheduler {
 
@@ -29,7 +29,7 @@ object WidgetUpdateScheduler {
     const val ACTION_SESSION_UPDATE = "com.example.feature.widget.ACTION_SESSION_UPDATE"
     private const val REQUEST_CODE = 9988
 
-    // 7 mốc thời gian chuyển giao trong ngày (Giờ, Phút)
+    // 7 daily session transition times (Hour, Minute)
     private val SESSION_TRANSITIONS = listOf(
         Pair(5, 0),    // EARLY_MORNING (05:00)
         Pair(8, 30),   // MID_MORNING (08:30)
@@ -46,7 +46,7 @@ object WidgetUpdateScheduler {
 
         var nextTriggerTime: Calendar? = null
 
-        // Tìm mốc chuyển giao tiếp theo trong ngày hôm nay
+        // Find the next transition time today
         for ((hour, min) in SESSION_TRANSITIONS) {
             val candidate = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, hour)
@@ -60,7 +60,7 @@ object WidgetUpdateScheduler {
             }
         }
 
-        // Nếu hôm nay không còn mốc nào -> Lấy mốc 05:00 ngày mai
+        // If no transition remains today -> schedule for 05:00 tomorrow
         if (nextTriggerTime == null) {
             nextTriggerTime = Calendar.getInstance().apply {
                 add(Calendar.DAY_OF_YEAR, 1)

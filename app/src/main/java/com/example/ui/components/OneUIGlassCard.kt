@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Container Liquid Glassmorphism chuẩn One UI 9 với hiệu ứng kính mờ xuyên thấu,
- * viền phản quang Gradient Specular Highlight và độ đổ bóng mềm mại (Soft Ambient Shadow).
+ * One UI 9 Liquid Glassmorphism container with translucent frosted glass effect,
+ * gradient specular highlight border, and soft ambient shadow.
  */
 @Composable
 fun OneUIGlassCard(

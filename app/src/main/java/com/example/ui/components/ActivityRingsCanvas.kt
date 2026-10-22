@@ -21,12 +21,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * 3 Concentric Activity Rings Component (3 Vòng Tròn Đồng Tâm Samsung Health / Apple Fitness Style)
- * - Vòng 1 (Ngoài cùng - Xanh lá #A3E635): Số bước chân
- * - Vòng 2 (Ở giữa - Xanh ngọc #22D3EE): Thời gian hoạt động (phút)
- * - Vòng 3 (Trong cùng - Tím #C084FC): Calo tiêu hao (kcal)
+ * 3 Concentric Activity Rings Component (Samsung Health / Apple Fitness Style)
+ * - Ring 1 (Outermost - Green #A3E635): Step count
+ * - Ring 2 (Middle - Cyan #22D3EE): Active time (minutes)
+ * - Ring 3 (Innermost - Purple #C084FC): Calories burned (kcal)
  *
- * Hỗ trợ hiệu ứng Breathing Aura / Phát sáng nhẹ khi hoàn thành 100% cả 3 vòng (Goal Achieved).
+ * Supports a Breathing Aura / soft glow effect when 100% of all 3 rings are completed (Goal Achieved).
  */
 @Composable
 fun ActivityRingsCanvas(
@@ -54,7 +54,7 @@ fun ActivityRingsCanvas(
         label = "cal_ring_anim"
     )
 
-    // Hiệu ứng phát sáng nhịp thở nhẹ nhàng khi hoàn thành 100% mục tiêu
+    // Gentle breathing glow effect when 100% of goals are completed
     val infiniteTransition = rememberInfiniteTransition(label = "ring_glow_transition")
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = if (isAllCompleted) 0.15f else 0f,
@@ -79,7 +79,7 @@ fun ActivityRingsCanvas(
         val middleRadius = outerRadius - spacing
         val innerRadius = middleRadius - spacing
 
-        // 0. Khi hoàn thành cả 3 mục tiêu: Vẽ vầng hào quang phát sáng nhẹ nhàng
+        // 0. When all 3 goals are completed: Draw a soft glowing aura
         if (isAllCompleted && glowAlpha > 0f) {
             drawCircle(
                 color = Color(0xFF10B981).copy(alpha = glowAlpha * 0.35f),
@@ -123,7 +123,7 @@ fun ActivityRingsCanvas(
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
 
-                // Nếu đạt 100% vòng này: Thêm viền sáng bóng nhẹ ở đầu nút
+                // If this ring reaches 100%: Add a subtle glossy highlight border
                 if (progress >= 1f && isAllCompleted) {
                     drawArc(
                         color = Color.White.copy(alpha = 0.35f),

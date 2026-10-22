@@ -122,7 +122,7 @@ fun SettingsScreen(
 
     val tabTitles = remember(isDeveloper) {
         if (isDeveloper) {
-            listOf("Widget", "Dynamic Island", "🧠 Máy học (Dev)")
+            listOf("Widget", "Dynamic Island", "🧠 Machine Learning (Dev)")
         } else {
             listOf("Widget", "Dynamic Island")
         }
@@ -163,7 +163,7 @@ fun SettingsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Quay lại",
+                        contentDescription = "Back",
                         tint = Color(0xFF0F172A)
                     )
                 }
@@ -171,7 +171,7 @@ fun SettingsScreen(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isDeveloper) "Cài đặt & Máy học (Dev)" else "Cài đặt & Tùy biến",
+                    text = if (isDeveloper) "Settings & Machine Learning (Dev)" else "Settings & Customization",
                     color = Color(0xFF0F172A),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
@@ -179,7 +179,7 @@ fun SettingsScreen(
                     )
                 )
                 Text(
-                    text = if (isDeveloper) "Chế độ Nhà phát triển • ML On-Device Active" else "Tùy biến Widget & Dynamic Island",
+                    text = if (isDeveloper) "Developer Mode • ML On-Device Active" else "Customize Widget & Dynamic Island",
                     color = if (isDeveloper) Color(0xFF2563EB) else Color(0xFF64748B),
                     fontSize = 12.sp,
                     fontWeight = if (isDeveloper) FontWeight.SemiBold else FontWeight.Normal
@@ -222,7 +222,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // One UI Card: Nội dung muốn đưa vào (Content Visibility)
+            // One UI Card: Content to include (Content Visibility)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -260,13 +260,13 @@ fun SettingsScreen(
                         }
                         Column {
                             Text(
-                                text = "Nội dung muốn đưa vào",
+                                text = "Content to include",
                                 fontSize = 15.5.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF0F172A)
                             )
                             Text(
-                                text = "Tùy chỉnh bật / tắt các thẻ trên NowBrief",
+                                text = "Customize which cards appear in NowBrief",
                                 fontSize = 12.5.sp,
                                 color = Color(0xFF64748B)
                             )
@@ -283,7 +283,7 @@ fun SettingsScreen(
 
             when (activeTab) {
                 // TAB: NATIVE ON-DEVICE ML ENGINE (DEVELOPER ONLY)
-                "🧠 Máy học (Dev)" -> {
+                "🧠 Machine Learning (Dev)" -> {
                     // Header Banner Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -316,14 +316,14 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "Mô hình Máy học Nội tại (On-Device ML)",
+                                        text = "Internal Machine Learning Model (On-Device ML)",
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF0F172A)
                                         )
                                     )
                                     Text(
-                                        text = "100% Cục bộ • Không tốn RAM • Không cần mạng",
+                                        text = "100% On-Device • Zero RAM Overhead • Offline",
                                         fontSize = 11.sp,
                                         color = Color(0xFF2563EB),
                                         fontWeight = FontWeight.SemiBold
@@ -332,7 +332,7 @@ fun SettingsScreen(
                             }
 
                             Text(
-                                text = "Mô hình tự động phân tích tín hiệu hệ thống (khóa/mở màn hình, cắm sạc) và tương tác card để tự động cá nhân hóa trải nghiệm của bạn.",
+                                text = "The model automatically analyzes system signals (screen lock/unlock, charging) and card interactions to personalize your experience.",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B),
                                 lineHeight = 17.sp
@@ -361,14 +361,14 @@ fun SettingsScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Dự đoán Thói quen Sinh hoạt",
+                                        text = "Daily Routine Prediction",
                                         style = MaterialTheme.typography.titleSmall.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF0F172A)
                                         )
                                     )
                                     Text(
-                                        text = if (routineInsight.isTodayWeekend) "Hôm nay: Cuối tuần" else "Hôm nay: Ngày làm việc",
+                                        text = if (routineInsight.isTodayWeekend) "Today: Weekend" else "Today: Weekday",
                                         fontSize = 11.sp,
                                         color = Color(0xFF2563EB),
                                         fontWeight = FontWeight.SemiBold
@@ -391,7 +391,7 @@ fun SettingsScreen(
 
                             // Weekdays Row
                             Text(
-                                text = "Ngày làm việc (T2 - T6)",
+                                text = "Weekdays (Mon - Fri)",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF334155)
@@ -416,7 +416,7 @@ fun SettingsScreen(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Column {
-                                            Text("Thức dậy", fontSize = 10.sp, color = Color(0xFF92400E))
+                                            Text("Wake up", fontSize = 10.sp, color = Color(0xFF92400E))
                                             Text(
                                                 routineInsight.weekday.wakeTimeFormatted,
                                                 fontSize = 16.sp,
@@ -443,7 +443,7 @@ fun SettingsScreen(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Column {
-                                            Text("Đi ngủ", fontSize = 10.sp, color = Color(0xFF5B21B6))
+                                            Text("Bedtime", fontSize = 10.sp, color = Color(0xFF5B21B6))
                                             Text(
                                                 routineInsight.weekday.bedtimeFormatted,
                                                 fontSize = 16.sp,
@@ -457,7 +457,7 @@ fun SettingsScreen(
 
                             // Weekend Row
                             Text(
-                                text = "Cuối tuần (T7 - CN)",
+                                text = "Weekend (Sat - Sun)",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF334155)
@@ -482,7 +482,7 @@ fun SettingsScreen(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Column {
-                                            Text("Thức dậy", fontSize = 10.sp, color = Color(0xFF065F46))
+                                            Text("Wake up", fontSize = 10.sp, color = Color(0xFF065F46))
                                             Text(
                                                 routineInsight.weekend.wakeTimeFormatted,
                                                 fontSize = 16.sp,
@@ -509,7 +509,7 @@ fun SettingsScreen(
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Column {
-                                            Text("Đi ngủ", fontSize = 10.sp, color = Color(0xFF991B1B))
+                                            Text("Bedtime", fontSize = 10.sp, color = Color(0xFF991B1B))
                                             Text(
                                                 routineInsight.weekend.bedtimeFormatted,
                                                 fontSize = 16.sp,
@@ -546,7 +546,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Thuật toán Xếp hạng Nội dung (Bandit UCB1)",
+                                    text = "Content Ranking Algorithm (Bandit UCB1)",
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF0F172A)
@@ -554,7 +554,7 @@ fun SettingsScreen(
                                 )
                             }
                             Text(
-                                text = "Hệ thống tự học card nội dung bạn quan tâm nhất (qua các lượt tap & xem) để tự điều chỉnh thứ tự hiển thị ưu tiên.",
+                                text = "The system learns which content cards you engage with most (via taps & views) to automatically adjust display priority.",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B),
                                 lineHeight = 17.sp
@@ -590,7 +590,7 @@ fun SettingsScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Sở thích Nội dung & Khung giờ Vàng",
+                                        text = "Content Preferences & Peak Hours",
                                         style = MaterialTheme.typography.titleSmall.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF0F172A)
@@ -605,7 +605,7 @@ fun SettingsScreen(
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = "Học máy AI",
+                                        text = "AI Learning",
                                         fontSize = 10.5.sp,
                                         color = Color(0xFFDC2626),
                                         fontWeight = FontWeight.Bold
@@ -625,7 +625,7 @@ fun SettingsScreen(
                                         .padding(12.dp)
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        Text("Chủ đề hay xem", fontSize = 11.sp, color = Color(0xFF64748B))
+                                        Text("Top Category", fontSize = 11.sp, color = Color(0xFF64748B))
                                         Text(
                                             mediaStats.topCategory,
                                             fontSize = 14.5.sp,
@@ -634,7 +634,7 @@ fun SettingsScreen(
                                             maxLines = 1
                                         )
                                         Text(
-                                            "${mediaStats.topCategoryPercentage}% mức độ yêu thích",
+                                            "${mediaStats.topCategoryPercentage}% affinity score",
                                             fontSize = 10.5.sp,
                                             color = Color(0xFF2563EB),
                                             fontWeight = FontWeight.SemiBold
@@ -650,7 +650,7 @@ fun SettingsScreen(
                                         .padding(12.dp)
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        Text("Khung giờ tập trung", fontSize = 11.sp, color = Color(0xFF1D4ED8))
+                                        Text("Focus Window", fontSize = 11.sp, color = Color(0xFF1D4ED8))
                                         Text(
                                             "09:15 - 11:30",
                                             fontSize = 14.5.sp,
@@ -658,7 +658,7 @@ fun SettingsScreen(
                                             color = Color(0xFF1E40AF)
                                         )
                                         Text(
-                                            "Giờ vàng hiệu suất",
+                                            "Peak productivity hours",
                                             fontSize = 10.5.sp,
                                             color = Color(0xFF059669),
                                             fontWeight = FontWeight.SemiBold
@@ -680,7 +680,7 @@ fun SettingsScreen(
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Xóa bộ nhớ học & Reset Logs")
+                        Text("Clear Learned Data & Reset Logs")
                     }
 
                     // Privacy Guarantee Banner
@@ -699,7 +699,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Bảo mật 100% On-Device: Toàn bộ quá trình phân tích thói quen và xếp hạng nội dung diễn ra cục bộ trong thiết bị.",
+                                text = "100% On-Device Privacy: All routine analysis and content ranking happen locally on your device.",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = Color(0xFF1E40AF),
                                     fontSize = 11.sp,
@@ -773,7 +773,7 @@ fun SettingsScreen(
                                         )
                                     )
                                     Text(
-                                        text = "Màn hình khóa • Vùng nốt ruồi Camera • Quyền Trợ năng",
+                                        text = "Lock Screen • Camera Cutout • Accessibility Service",
                                         fontSize = 11.sp,
                                         color = Color(0xFF16A34A),
                                         fontWeight = FontWeight.SemiBold
@@ -782,7 +782,7 @@ fun SettingsScreen(
                             }
 
                             Text(
-                                text = "Hiển thị viên thuốc thông minh (Dynamic Island) quanh camera đục lỗ trên cả Màn hình khóa và mọi ứng dụng mà không cần xin quyền vẽ đè (SYSTEM_ALERT_WINDOW).",
+                                text = "Displays a smart pill (Dynamic Island) around the camera cutout on both the Lock Screen and across apps without requiring overlay permissions (SYSTEM_ALERT_WINDOW).",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B),
                                 lineHeight = 17.sp
@@ -824,7 +824,7 @@ fun SettingsScreen(
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Text(
-                                        text = if (isAccessibilityGranted) "Quyền Trợ năng đã bật" else "Cần cấp Quyền Trợ năng",
+                                        text = if (isAccessibilityGranted) "Accessibility Service Enabled" else "Accessibility Permission Required",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
                                         color = if (isAccessibilityGranted) Color(0xFF15803D) else Color(0xFFB45309)
@@ -834,9 +834,9 @@ fun SettingsScreen(
 
                             Text(
                                 text = if (isAccessibilityGranted)
-                                    "Hệ thống đã sẵn sàng vẽ Dynamic Island trên màn hình khóa."
+                                    "The system is ready to render Dynamic Island on the lock screen."
                                 else
-                                    "Nhấn nút bên dưới để mở Cài đặt Trợ năng, tìm 'NowBrief Dynamic Island' và bật công tắc.",
+                                    "Tap the button below to open Accessibility Settings, find 'NowBrief Dynamic Island', and turn it on.",
                                 fontSize = 12.sp,
                                 color = if (isAccessibilityGranted) Color(0xFF166534) else Color(0xFF92400E),
                                 lineHeight = 16.sp
@@ -853,7 +853,7 @@ fun SettingsScreen(
                                 ) {
                                     Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Bật Quyền Trợ Năng", fontWeight = FontWeight.Bold)
+                                    Text("Enable Accessibility Service", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -874,7 +874,7 @@ fun SettingsScreen(
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Text(
-                                text = "Tùy chọn hiển thị",
+                                text = "Display Options",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = Color(0xFF0F172A)
@@ -888,13 +888,13 @@ fun SettingsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Bật Dynamic Island",
+                                        text = "Enable Dynamic Island",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
                                     )
                                     Text(
-                                        text = "Hiển thị viên thuốc thông minh nổi trên màn hình",
+                                        text = "Show the floating smart pill on screen",
                                         fontSize = 11.sp,
                                         color = Color(0xFF64748B)
                                     )
@@ -914,13 +914,13 @@ fun SettingsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Hiển thị ngoài Màn hình khóa",
+                                        text = "Show on Lock Screen",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
                                     )
                                     Text(
-                                        text = "Xem nhanh năng lượng và thời tiết trên màn hình khóa",
+                                        text = "Glance at your energy score and weather on the lock screen",
                                         fontSize = 11.sp,
                                         color = Color(0xFF64748B)
                                     )
@@ -940,13 +940,13 @@ fun SettingsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Chỉ hiện ở Màn hình khóa",
+                                        text = "Lock Screen Only",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
                                     )
                                     Text(
-                                        text = "Tự động ẩn Dynamic Island khi mở khóa máy để tránh che màn hình",
+                                        text = "Automatically hide Dynamic Island when unlocked to avoid obstructing the screen",
                                         fontSize = 11.sp,
                                         color = Color(0xFF64748B)
                                     )
@@ -961,7 +961,7 @@ fun SettingsScreen(
                             // Selection: Screen Position (TOP vs BOTTOM)
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
-                                    text = "Vị trí hiển thị trên màn hình",
+                                    text = "Screen Position",
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 13.sp,
                                     color = Color(0xFF1E293B)
@@ -981,7 +981,7 @@ fun SettingsScreen(
                                             contentColor = if (isTop) Color.White else Color(0xFF475569)
                                         )
                                     ) {
-                                        Text(text = "⬆️ Đỉnh màn hình", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text(text = "⬆️ Top of Screen", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     }
 
                                     // Bottom Button
@@ -994,7 +994,7 @@ fun SettingsScreen(
                                             contentColor = if (!isTop) Color.White else Color(0xFF475569)
                                         )
                                     ) {
-                                        Text(text = "⬇️ Đáy màn hình", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text(text = "⬇️ Bottom of Screen", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -1012,7 +1012,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (dynamicIslandPosition.equals("BOTTOM", ignoreCase = true)) "Khoảng cách Y (Cách đáy)" else "Khoảng cách Y (Notch Camera)",
+                                        text = if (dynamicIslandPosition.equals("BOTTOM", ignoreCase = true)) "Y-Offset (From Bottom)" else "Y-Offset (Camera Notch)",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
@@ -1046,7 +1046,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Chiều rộng viên thuốc (Width)",
+                                        text = "Pill Width",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
@@ -1080,7 +1080,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Chiều cao viên thuốc (Height)",
+                                        text = "Pill Height",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
@@ -1114,7 +1114,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Độ trong suốt kính (Opacity)",
+                                        text = "Glass Opacity",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
@@ -1143,15 +1143,15 @@ fun SettingsScreen(
                             // Color Presets Selector (Matching NowBriefWidget.kt)
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
-                                    text = "Bảng màu kính & Phong cách",
+                                    text = "Glass Palette & Style",
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 13.sp,
                                     color = Color(0xFF1E293B)
                                 )
                                 val presets = listOf(
-                                    Triple("DYNAMIC", "🌅 Tự động", "Theo 7 khung giờ"),
-                                    Triple("DARK_GLASS", "🌌 Kính tối", "Dark Glass"),
-                                    Triple("LIGHT_GLASS", "☁️ Kính sáng", "Light Glass"),
+                                    Triple("DYNAMIC", "🌅 Auto", "By 7 time phases"),
+                                    Triple("DARK_GLASS", "🌌 Dark Glass", "Dark Glass"),
+                                    Triple("LIGHT_GLASS", "☁️ Light Glass", "Light Glass"),
                                     Triple("MATERIAL_YOU", "🎨 Material", "Ocean Blue")
                                 )
                                 Row(
@@ -1189,13 +1189,13 @@ fun SettingsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Hiệu ứng Kính mờ (Frosted Glass)",
+                                        text = "Frosted Glass Effect",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 13.sp,
                                         color = Color(0xFF1E293B)
                                     )
                                     Text(
-                                        text = "Tạo viền phản quang nhẹ và hiệu ứng phủ sương One UI",
+                                        text = "Adds a subtle specular border and One UI frosted blur",
                                         fontSize = 11.sp,
                                         color = Color(0xFF64748B)
                                     )
@@ -1229,13 +1229,13 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Xem trước Dynamic Island",
+                                    text = "Dynamic Island Preview",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     color = Color(0xFFF8FAFC)
                                 )
                                 Text(
-                                    text = "(Chạm để mở rộng/thu gọn)",
+                                    text = "(Tap to expand/collapse)",
                                     fontSize = 11.sp,
                                     color = Color(0xFF94A3B8)
                                 )
@@ -1251,7 +1251,7 @@ fun SettingsScreen(
                                 DynamicIslandView(
                                     energyScore = 92,
                                     weatherTemp = "29°C",
-                                    aiBriefingText = "Khung giờ vàng hiệu suất: Hãy ưu tiên giải quyết các task quan trọng trước 11:30.",
+                                    aiBriefingText = "Peak productivity hours: Prioritize your most important tasks before 11:30.",
                                     customWidthDp = dynamicIslandWidth,
                                     customHeightDp = dynamicIslandHeight,
                                     opacity = dynamicIslandOpacity,
@@ -1275,9 +1275,9 @@ fun SettingsScreen(
                         devTapCount++
                         if (devTapCount >= 7 && !isDevUnlocked) {
                             isDevUnlocked = true
-                            Toast.makeText(context, "🎉 Đã mở khóa Tab Máy học (Developer Mode)!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "🎉 Machine Learning Tab (Developer Mode) unlocked!", Toast.LENGTH_SHORT).show()
                         } else if (devTapCount in 3..6 && !isDevUnlocked) {
-                            Toast.makeText(context, "Chạm thêm ${7 - devTapCount} lần nữa để mở Chế độ Nhà phát triển", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Tap ${7 - devTapCount} more times to unlock Developer Mode", Toast.LENGTH_SHORT).show()
                         }
                     }
                     .padding(vertical = 16.dp),
@@ -1285,14 +1285,14 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "NowBrief • Phiên bản 1.0 (One UI 9 Edition)",
+                    text = "NowBrief • Version 1.0 (One UI 9 Edition)",
                     fontSize = 12.5.sp,
                     color = Color(0xFF94A3B8),
                     fontWeight = FontWeight.Medium
                 )
                 if (isDeveloper) {
                     Text(
-                        text = "🚀 Chế độ Nhà phát triển đang Bật (Hiện Tab Máy học)",
+                        text = "🚀 Developer Mode Enabled (Machine Learning Tab Visible)",
                         fontSize = 11.5.sp,
                         color = Color(0xFF2563EB),
                         fontWeight = FontWeight.Bold
@@ -1308,8 +1308,8 @@ fun SettingsScreen(
     if (showResetConfirm) {
         AlertDialog(
             onDismissRequest = { showResetConfirm = false },
-            title = { Text("Xác nhận xóa bộ nhớ học?") },
-            text = { Text("Toàn bộ lịch sử thói quen và xếp hạng card đã học sẽ bị xóa về trạng thái ban đầu.") },
+            title = { Text("Clear learned data?") },
+            text = { Text("All learned routine history and card rankings will be reset to their initial state.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -1317,12 +1317,12 @@ fun SettingsScreen(
                         showResetConfirm = false
                     }
                 ) {
-                    Text("Xóa dữ liệu", color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
+                    Text("Clear Data", color = Color(0xFFEF4444), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showResetConfirm = false }) {
-                    Text("Hủy")
+                    Text("Cancel")
                 }
             }
         )

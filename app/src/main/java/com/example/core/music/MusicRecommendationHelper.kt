@@ -19,66 +19,66 @@ object MusicRecommendationHelper {
     private const val TAG = "MusicHelper"
 
     val POPULAR_SPOTIFY_CHIPS = listOf(
-        "V-Pop Thịnh Hành",
-        "Sơn Tùng M-TP",
-        "Đen Vâu",
-        "Vũ.",
+        "Trending V-Pop",
+        "Son Tung M-TP",
+        "Den Vau",
+        "Vu.",
         "HIEUTHUHAI",
-        "Indie Việt Tuyển Chọn",
+        "Indie Vietnam Picks",
         "Top Hits Vietnam",
         "Acoustic Chill",
-        "Rap Việt"
+        "Rap Viet"
     )
 
     fun getRecommendationForSession(hour: Int, minute: Int = 0): MusicRecommendation {
         val session = BriefingSession.fromHourAndMinute(hour, minute)
         return when (session) {
             BriefingSession.EARLY_MORNING -> MusicRecommendation(
-                title = "V-Pop & Acoustic Buổi Sáng",
-                subtitle = "Giai điệu tươi vui, nhẹ nhàng đón ngày mới",
-                genreTag = "Spotify • Khởi đầu ngày mới",
+                title = "Morning V-Pop & Acoustic",
+                subtitle = "Bright, gentle melodies to welcome the new day",
+                genreTag = "Spotify • Morning Start",
                 query = "V-Pop Morning Acoustic",
                 spotifyUri = "spotify:search:V-Pop%20Acoustic"
             )
             BriefingSession.MID_MORNING -> MusicRecommendation(
-                title = "Deep Focus - Nhạc Tập Trung Cao Độ",
-                subtitle = "Nhạc không lời & Piano giúp bạn đạt trạng thái Flow",
-                genreTag = "Spotify • Khung giờ tập trung",
+                title = "Deep Focus - High Concentration",
+                subtitle = "Instrumental & piano music to help you reach a flow state",
+                genreTag = "Spotify • Focus Hours",
                 query = "Deep Focus Piano Work",
                 spotifyUri = "spotify:search:Deep%20Focus%20Work"
             )
             BriefingSession.NOON -> MusicRecommendation(
-                title = "Cafe Trưa Thư Thái & Acoustic",
-                subtitle = "Âm nhạc nhẹ nhàng hỗ trợ tiêu hóa và thư giãn giữa giờ",
-                genreTag = "Spotify • Nghỉ trưa & Thưởng thức",
+                title = "Relaxing Noon Cafe & Acoustic",
+                subtitle = "Soft music for midday relaxation and a peaceful lunch break",
+                genreTag = "Spotify • Lunch Break & Chill",
                 query = "Acoustic Cafe Lunch Chill",
                 spotifyUri = "spotify:search:Acoustic%20Cafe"
             )
             BriefingSession.AFTERNOON -> MusicRecommendation(
-                title = "V-Pop Hits & Năng Lượng Chiều",
-                subtitle = "Duy trì năng lượng với các bản hit thịnh hành",
-                genreTag = "Spotify • Buổi chiều năng lượng",
+                title = "V-Pop Hits & Afternoon Energy",
+                subtitle = "Keep your energy up with trending hits",
+                genreTag = "Spotify • Afternoon Boost",
                 query = "V-Pop Hits Afternoon",
                 spotifyUri = "spotify:search:V-Pop%20Hits"
             )
             BriefingSession.EVENING -> MusicRecommendation(
-                title = "Hoàng Hôn Indie & Chillout",
-                subtitle = "Tận hưởng những phút giây tan làm và chuyển giao ngày",
-                genreTag = "Spotify • Hoàng hôn thư giãn",
+                title = "Sunset Indie & Chillout",
+                subtitle = "Enjoy unwinding after work as the day transitions",
+                genreTag = "Spotify • Sunset Relaxation",
                 query = "Indie Viet Sunset Chill",
                 spotifyUri = "spotify:search:Indie%20Viet"
             )
             BriefingSession.NIGHT -> MusicRecommendation(
-                title = "Night Unwind - Thư Giãn Tối",
-                subtitle = "Ballad & Lofi thả lỏng tâm trí sau ngày làm việc",
-                genreTag = "Spotify • Thư giãn buổi tối",
+                title = "Night Unwind - Evening Relaxation",
+                subtitle = "Ballads & lofi to relax your mind after work",
+                genreTag = "Spotify • Evening Unwind",
                 query = "Night Ballad Chillout",
                 spotifyUri = "spotify:search:Night%20Ballad"
             )
             BriefingSession.LATE_NIGHT -> MusicRecommendation(
-                title = "Late Night - Piano Giấc Ngủ Sâu",
-                subtitle = "Giai điệu ru êm dịu dẫn lối vào giấc ngủ phục hồi",
-                genreTag = "Spotify • Ngủ ngon & Phục hồi",
+                title = "Late Night - Deep Sleep Piano",
+                subtitle = "Soothing melodies to guide you into restorative sleep",
+                genreTag = "Spotify • Deep Sleep & Recovery",
                 query = "Night Relaxing Piano Sleep Music",
                 spotifyUri = "spotify:search:Night%20Relaxing%20Piano"
             )
@@ -86,7 +86,7 @@ object MusicRecommendationHelper {
     }
 
     /**
-     * Mở trực tiếp ứng dụng Spotify
+     * Open the Spotify app directly
      */
     fun openSpotifyApp(context: Context) {
         try {
@@ -114,11 +114,11 @@ object MusicRecommendationHelper {
     }
 
     /**
-     * Mở ứng dụng nghe nhạc với Deep Link Intent (Spotify -> YouTube App -> Web YouTube)
+     * Open music app via Deep Link Intent (Spotify -> YouTube App -> Web YouTube)
      */
     fun openMusicApp(context: Context, query: String, spotifyUri: String? = null) {
         try {
-            // Ưu tiên 1: Mở ứng dụng Spotify
+            // Priority 1: Open Spotify app
             val spotifyIntent = Intent(Intent.ACTION_VIEW, Uri.parse(spotifyUri ?: "spotify:search:$query")).apply {
                 setPackage("com.spotify.music")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -127,7 +127,7 @@ object MusicRecommendationHelper {
             Log.d(TAG, "Launched Spotify via Deep Link")
         } catch (e: Exception) {
             try {
-                // Ưu tiên 2: Mở ứng dụng YouTube
+                // Priority 2: Open YouTube app
                 val youtubeIntent = Intent(Intent.ACTION_SEARCH).apply {
                     setPackage("com.google.android.youtube")
                     putExtra("query", query)
@@ -137,7 +137,7 @@ object MusicRecommendationHelper {
                 Log.d(TAG, "Launched YouTube App via Intent")
             } catch (e2: Exception) {
                 try {
-                    // Fallback 3: Mở trình duyệt Web tìm kiếm YouTube
+                    // Fallback 3: Open web browser for YouTube search
                     val webUrl = "https://www.youtube.com/results?search_query=" + Uri.encode(query)
                     val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
