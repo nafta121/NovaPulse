@@ -806,29 +806,52 @@ fun SettingsScreen(
                             }
 
                             Text(
-                                text = "Injects NowBrief directly into Samsung One UI's native Now Bar pill and Lock Screen Live Notification (using ongoingActivityNoti extras + semFlags) with real device weather, steps, calendar, and AI summary.",
+                                text = "Injects NowBrief into Samsung One UI 7/8's native Now Bar, Status Bar Chip, and Gradient Live Notification Drawer (with segmented progress bar, dynamic chip icons, and interactive action buttons). On One UI 8 (Android 16), also supports Developer Options → Live notifications for all apps.",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B),
                                 lineHeight = 17.sp
                             )
 
-                            Button(
-                                onClick = {
-                                    viewModel.setNowBarLiveEnabled(true)
-                                    com.example.feature.island.NowBarLiveService.startOrRefresh(context)
-                                    isNowBarServiceRunning = true
-                                    Toast.makeText(context, "Now Bar Live Notification diperbarui", Toast.LENGTH_SHORT).show()
-                                },
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
-                                shape = RoundedCornerShape(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (isNowBarServiceRunning) "Refresh Now Bar Pill" else "Start Now Bar Pill",
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Button(
+                                    onClick = {
+                                        viewModel.setNowBarLiveEnabled(true)
+                                        com.example.feature.island.NowBarLiveService.startOrRefresh(context)
+                                        isNowBarServiceRunning = true
+                                        Toast.makeText(context, "Now Bar Live Notification diperbarui", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (isNowBarServiceRunning) "Refresh Pill" else "Start Pill",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        com.example.feature.island.NowBarLiveService.nextCard(context)
+                                        isNowBarServiceRunning = true
+                                        Toast.makeText(context, "Menampilkan info berikutnya di Now Bar", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Next Info Card ⏭",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF2563EB)
+                                    )
+                                }
                             }
                         }
                     }

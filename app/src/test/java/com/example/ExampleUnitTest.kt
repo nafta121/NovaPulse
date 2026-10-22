@@ -109,5 +109,25 @@ class ExampleUnitTest {
             "com.example.feature.island.ACTION_REFRESH_NOWBAR",
             com.example.feature.island.NowBarLiveService.ACTION_REFRESH
         )
+        assertEquals(
+            "com.example.feature.island.ACTION_NEXT_NOWBAR_CARD",
+            com.example.feature.island.NowBarLiveService.ACTION_NEXT_CARD
+        )
+        assertEquals(
+            "android.ongoingActivityNoti.style",
+            com.example.feature.island.NowBarLiveService.EXTRA_STYLE
+        )
+        assertEquals(
+            "android.ongoingActivityNoti.actionType",
+            com.example.feature.island.NowBarLiveService.EXTRA_ACTION_TYPE
+        )
+        assertEquals(
+            "android.ongoingActivityNoti.progressSegments",
+            com.example.feature.island.NowBarLiveService.EXTRA_PROGRESS_SEGMENTS
+        )
+        assertEquals(
+            "android.ongoingActivityNoti.nowbarPrimaryInfo",
+            com.example.feature.island.NowBarLiveService.EXTRA_NOWBAR_PRIMARY_INFO
+        )
     }
 }
