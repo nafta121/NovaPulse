@@ -12,10 +12,17 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Preserve line number information for debugging stack traces.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep Room entities, Retrofit/Moshi models, and AI structured output models
+-keep class com.example.core.database.** { *; }
+-keep class com.example.core.network.** { *; }
+-keep class com.example.core.repository.** { *; }
+-keep class com.example.core.ai.** { *; }
+-keep class com.example.core.ml.** { *; }
+
+# ML Kit GenAI Prompt API & AICore
+-dontwarn com.google.mlkit.genai.**
+-keep class com.google.mlkit.genai.** { *; }

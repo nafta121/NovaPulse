@@ -15,7 +15,6 @@ class WidgetUpdateSchedulerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("WidgetScheduler", "Triggered Glance Widget 7-session refresh")
         NowBriefWidgetReceiver.triggerUpdate(context)
-        WidgetUpdateScheduler.scheduleNextSessionUpdate(context)
     }
 }
 

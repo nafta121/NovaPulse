@@ -37,6 +37,7 @@ class NowBriefWidgetReceiver : GlanceAppWidgetReceiver() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     NowBriefWidget().updateAll(context)
+                    GlanceContextWidget().updateAll(context)
                 } catch (e: Exception) {
                     // Widget might not be placed on home screen yet
                 }

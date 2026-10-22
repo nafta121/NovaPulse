@@ -37,14 +37,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Automatically refresh App & Glance Widget data whenever the user reopens the app
-        WidgetUpdateWorker.enqueueImmediateUpdate(applicationContext)
-        viewModel.fetchRealWeather()
-        viewModel.fetchLifestyleTips()
-    }
-
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

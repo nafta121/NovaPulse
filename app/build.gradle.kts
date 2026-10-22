@@ -19,8 +19,8 @@ android {
     applicationId = "com.aistudio.novapulse.kxgpaq"
     minSdk = 26
     targetSdk = 36
-    versionCode = 3
-    versionName = "1.4.0"
+    versionCode = 4
+    versionName = "1.5.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -46,7 +46,8 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
@@ -95,7 +96,6 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
-  implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.health.connect)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
@@ -103,7 +103,7 @@ dependencies {
   implementation(libs.androidx.glance.material3)
   implementation(libs.androidx.work.runtime.ktx)
   implementation(libs.firebase.ai)
-  implementation(libs.firebase.appcheck.recaptcha)
+  implementation(libs.mlkit.genai.prompt)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.okhttp)

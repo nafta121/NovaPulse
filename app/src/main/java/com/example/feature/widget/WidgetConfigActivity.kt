@@ -74,7 +74,6 @@ class WidgetConfigActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                            .statusBarsPadding()
                     ) {
                         // Header
                         Row(
@@ -140,6 +139,27 @@ class WidgetConfigActivity : ComponentActivity() {
                                             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                                         }
                                         setResult(Activity.RESULT_OK, resultValue)
+                                    }
+                                },
+                                onApplyAndClose = { newTrans, newPreset, newShape, newShowSub ->
+                                    lifecycleScope.launch {
+                                        preferencesManager.setWidgetConfig(
+                                            transparency = newTrans,
+                                            colorPreset = newPreset,
+                                            shape = newShape,
+                                            showSubtext = newShowSub
+                                        )
+                                        try {
+                                            NowBriefWidget().updateAll(applicationContext)
+                                            GlanceContextWidget().updateAll(applicationContext)
+                                        } catch (e: Exception) {}
+                                        NowBriefWidgetReceiver.triggerUpdate(applicationContext)
+
+                                        val resultValue = Intent().apply {
+                                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                                        }
+                                        setResult(Activity.RESULT_OK, resultValue)
+                                        finish()
                                     }
                                 }
                             )

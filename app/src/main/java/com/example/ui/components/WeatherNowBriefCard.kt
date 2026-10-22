@@ -196,7 +196,11 @@ fun WeatherNowBriefCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(horizontal = 2.dp)
                 ) {
-                    items(weatherData.hourlyForecast) { item ->
+                    items(
+                        items = weatherData.hourlyForecast,
+                        key = { it.timeLabel },
+                        contentType = { "hourly_forecast" }
+                    ) { item ->
                         val hourNum = try {
                             if (item.timeLabel.contains(":")) {
                                 item.timeLabel.split(":")[0].trim().toInt()

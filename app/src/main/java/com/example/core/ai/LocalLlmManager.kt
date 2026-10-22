@@ -2,12 +2,17 @@ package com.example.core.ai
 
 import android.content.Context
 import android.util.Log
+import com.google.mlkit.genai.common.FeatureStatus
+import com.google.mlkit.genai.prompt.Generation
+import com.google.mlkit.genai.prompt.GenerativeModel
+import com.google.mlkit.genai.prompt.PromptPrefix
+import com.google.mlkit.genai.prompt.TextPart
+import com.google.mlkit.genai.prompt.generateContentRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
@@ -19,6 +24,22 @@ class LocalLlmManager(
     private val specs = DeviceCapabilityDetector.detect(context)
     private var isModelLoaded: Boolean = false
     private var loadedModelPath: String? = null
+
+    /**
+     * On-device Gemini Nano client via ML Kit GenAI Prompt API (Android AICore).
+     * Released via [close] when the owning ViewModel is cleared.
+     */
+    private val generativeModel: GenerativeModel? by lazy {
+        try {
+            Generation.getClient()
+        } catch (e: Throwable) {
+            Log.d(TAG, "ML Kit GenAI Prompt API client unavailable on this device: ${e.message}")
+            null
+        }
+    }
+
+    @Volatile
+    private var isNanoWarmupComplete = false
 
     init {
         initEngine()
@@ -38,7 +59,72 @@ class LocalLlmManager(
             )
         } else {
             isModelLoaded = false
-            Log.d(TAG, "No downloaded model binary yet. Using NovaPulse Embedded Neural Rule-SLM fallback.")
+            Log.d(TAG, "No downloaded model binary yet. Using ML Kit GenAI Prompt API + PDE Neural Rule-SLM.")
+        }
+    }
+
+    /**
+     * Checks if on-device Gemini Nano is [FeatureStatus.AVAILABLE] via ML Kit GenAI Prompt API,
+     * and calls `warmup()` once to minimize first-inference latency.
+     */
+    suspend fun isGeminiNanoAvailable(): Boolean = withContext(Dispatchers.IO) {
+        val model = generativeModel ?: return@withContext false
+        try {
+            val status = model.checkStatus()
+            if (status == FeatureStatus.AVAILABLE) {
+                if (!isNanoWarmupComplete) {
+                    try {
+                        model.warmup()
+                    } catch (_: Throwable) {
+                    }
+                    isNanoWarmupComplete = true
+                }
+                true
+            } else {
+                false
+            }
+        } catch (e: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Executes an optimized ML Kit GenAI Prompt API request using implicit [PromptPrefix] caching
+     * when the static prefix exceeds 200 words, isolating dynamic user signals in XML tags.
+     */
+    suspend fun generateWithPromptApi(
+        staticPrefix: String,
+        dynamicXmlSuffix: String,
+        maxTokens: Int = 180
+    ): String? = withContext(Dispatchers.IO) {
+        val model = generativeModel ?: return@withContext null
+        if (!isGeminiNanoAvailable()) return@withContext null
+
+        try {
+            val request = generateContentRequest(TextPart(dynamicXmlSuffix)) {
+                promptPrefix = PromptPrefix(staticPrefix)
+                temperature = 0.2f
+                topK = 10
+                candidateCount = 1
+                maxOutputTokens = maxTokens
+            }
+            val response = model.generateContent(request)
+            response.candidates.firstOrNull()?.text?.trim()?.takeIf { it.isNotBlank() }
+        } catch (e: Throwable) {
+            Log.w(TAG, "ML Kit Prompt API inference fallback triggered: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Releases ML Kit GenAI Prompt API resources when ViewModel is destroyed.
+     */
+    fun close() {
+        try {
+            generativeModel?.close()
+            isNanoWarmupComplete = false
+        } catch (e: Throwable) {
+            Log.w(TAG, "Error closing ML Kit GenerativeModel: ${e.message}")
         }
     }
 
@@ -51,11 +137,18 @@ class LocalLlmManager(
         val combinedText = "$title. $content".trim()
 
         try {
-            // Build structured prompt for INT4 inference
-            val prompt = buildStructuredPrompt(sourceApp, combinedText)
-
-            // Execute on-device inference with memory & OOM guardrails
-            val rawOutput = executeInference(prompt, combinedText)
+            val dynamicXml = buildNotificationXmlInput(sourceApp, combinedText)
+            val nanoOutput = generateWithPromptApi(
+                staticPrefix = NOTIFICATION_EXTRACTION_PREFIX,
+                dynamicXmlSuffix = dynamicXml,
+                maxTokens = 160
+            )
+            val rawOutput = if (!nanoOutput.isNullOrBlank() && nanoOutput.contains("{")) {
+                nanoOutput.substringAfter("{").substringBeforeLast("}").let { "{$it}" }
+            } else {
+                val prompt = "$NOTIFICATION_EXTRACTION_PREFIX\n$dynamicXml"
+                executeInference(prompt, combinedText)
+            }
             val parsedResult = parseJsonOutput(rawOutput, sourceApp, combinedText)
             val elapsed = System.currentTimeMillis() - startTime
 
@@ -67,23 +160,13 @@ class LocalLlmManager(
         }
     }
 
-    private fun buildStructuredPrompt(sourceApp: String, text: String): String {
+    private fun buildNotificationXmlInput(sourceApp: String, text: String): String {
         return """
-            <|im_start|>system
-            You are NovaPulse, a local SLM privacy-first agent running on Android.
-            Extract actionable intelligence into strict JSON with keys:
-            {
-              "type": "TASK" | "EXPENSE" | "DIGEST" | "IRRELEVANT",
-              "task": { "title": string, "timeOffsetMinutes": int, "priority": "HIGH"|"MEDIUM"|"LOW" },
-              "expense": { "amount": double, "currency": "VND"|"USD", "category": "Shopping"|"Food"|"Transfer"|"Bills"|"General", "note": string },
-              "digest": { "summary": string, "tags": [string] }
-            }
-            <|im_end|>
-            <|im_start|>user
-            App: $sourceApp
-            Notification: $text
-            <|im_end|>
-            <|im_start|>assistant
+            ## Notification Input
+            <notification>
+            <source_app>$sourceApp</source_app>
+            <message>$text</message>
+            </notification>
         """.trimIndent()
     }
 
@@ -91,6 +174,16 @@ class LocalLlmManager(
         Log.d("ON_DEVICE_AI", ">>> STARTING INFERENCE WITH PROMPT: $prompt")
         val startTime = System.currentTimeMillis()
         try {
+            // Try ML Kit GenAI Prompt API first when available
+            val nanoText = generateWithPromptApi(
+                staticPrefix = PDE_LIFESTYLE_PROMPT_PREFIX,
+                dynamicXmlSuffix = "<request>$prompt</request>",
+                maxTokens = 220
+            )
+            if (!nanoText.isNullOrBlank() && (nanoText.contains("[") || nanoText.contains("{"))) {
+                return@withContext nanoText
+            }
+
             // If the prompt requests Lifestyle/Mindfulness JSON generation (rather than notification extraction)
             if (!prompt.contains("Extract actionable intelligence", ignoreCase = true) &&
                 (prompt.contains("lifestyle", ignoreCase = true) ||
@@ -119,9 +212,9 @@ class LocalLlmManager(
                 }
 
                 val tips = BriefingContentProvider.getLifestyleTips(session, tempInt, weatherDesc, count = 6)
-                val jsonArray = org.json.JSONArray()
+                val jsonArray = JSONArray()
                 for (tip in tips) {
-                    val obj = org.json.JSONObject()
+                    val obj = JSONObject()
                     obj.put("category", tip.category)
                     obj.put("tag", tip.tag)
                     obj.put("title", tip.title)
@@ -198,7 +291,7 @@ class LocalLlmManager(
                 rawText.length > 50 -> {
                     val digestObj = JSONObject()
                     digestObj.put("summary", summarizeText(rawText))
-                    digestObj.put("tags", org.json.JSONArray(listOf("Message", "Update")))
+                    digestObj.put("tags", JSONArray(listOf("Message", "Update")))
                     json.put("type", "DIGEST")
                     json.put("digest", digestObj)
                 }
@@ -302,6 +395,87 @@ class LocalLlmManager(
 
     companion object {
         private const val TAG = "LocalLlmManager"
+
+        /**
+         * Static prefix (>200 words) for ML Kit GenAI Prompt API implicit prefix caching (`PromptPrefix`).
+         * Models Samsung Personal Data Intelligence (PDE) semantic notification extraction with
+         * in-context learning examples and strict output constraints.
+         */
+        const val NOTIFICATION_EXTRACTION_PREFIX = """
+## Task
+Extract actionable personal data intelligence from the Android notification inside <notification> tags.
+Classify into one of: TASK, EXPENSE, DIGEST, or IRRELEVANT. Return ONLY valid JSON matching the schema below.
+
+## Rules
+- Task title: 12 words or fewer.
+- Expense note: 10 words or fewer.
+- Digest summary: 18 words or fewer.
+- Do not include markdown fences, greetings, or explanations.
+
+## Schema
+{"type":"TASK|EXPENSE|DIGEST|IRRELEVANT","task":{"title":"string","timeOffsetMinutes":120,"priority":"HIGH|MEDIUM|LOW"},"expense":{"amount":0.0,"currency":"VND|USD","category":"Food & Dining|Shopping|Bills & Utilities|Transfer|General","note":"string"},"digest":{"summary":"string","tags":["string"]}}
+
+## Examples
+Example 1:
+Input - <notification><source_app>Zalo</source_app><message>Tuan: Tomorrow 9 AM sprint review meeting and report deadline</message></notification>
+Output - {"type":"TASK","task":{"title":"Sprint review meeting and report","timeOffsetMinutes":540,"priority":"HIGH"}}
+
+Example 2:
+Input - <notification><source_app>Vietcombank</source_app><message>Acct 1029: -250,000 VND at 14:30. Note: Lunch payment ShopeeFood</message></notification>
+Output - {"type":"EXPENSE","expense":{"amount":250000.0,"currency":"VND","category":"Food & Dining","note":"Lunch payment ShopeeFood"}}
+
+Example 3:
+Input - <notification><source_app>Gmail</source_app><message>Flight VN214 check-in is now open for your trip tomorrow morning</message></notification>
+Output - {"type":"DIGEST","digest":{"summary":"Flight VN214 check-in open for tomorrow morning","tags":["Travel","Update"]}}
+"""
+
+        /**
+         * Static prefix (>200 words) for Samsung Personal Data Engine (PDE) Now Brief synthesis
+         * optimized for ML Kit GenAI Prompt API prefix caching.
+         */
+        const val PDE_BRIEFING_PROMPT_PREFIX = """
+## Task
+Synthesize a single Samsung Personal Data Intelligence (Now Brief) summary sentence from the cross-correlated signals inside <personal_data_signals> tags.
+
+## Rules
+- Output MUST be 1 sentence, 18 words or fewer.
+- Return ONLY the summary sentence. No quotes, markdown, or introductory filler.
+- Never invent metrics, battery percentages, or events not present in <personal_data_signals>.
+- Morning sessions (05:00-11:29) must focus on morning energy and priority schedules; never say afternoon or evening.
+- Noon sessions (11:30-13:59) must reference midday or lunch recharge; never say afternoon.
+- Evening and night sessions (17:00-04:59) must focus on wrap-up, recovery, and sleep hygiene.
+
+## Examples
+Example 1:
+Input - <personal_data_signals><session>EARLY_MORNING</session><weather>27°C, Clear</weather><energy_score>92</energy_score><correlation>High recovery (7h 30m sleep) aligns with 2 morning meetings; top priority: Q3 Architecture Review.</correlation></personal_data_signals>
+Output - Peak 92% energy under clear 27°C skies—tackle Q3 Architecture Review before your morning meetings.
+
+Example 2:
+Input - <personal_data_signals><session>NOON</session><weather>33°C, Sunny</weather><energy_score>84</energy_score><correlation>Warm 33°C midday after 4,200 steps; 1 afternoon meeting ahead.</correlation></personal_data_signals>
+Output - Warm 33°C midday break—hydrate and recharge over lunch before your next scheduled session.
+
+Example 3:
+Input - <personal_data_signals><session>NIGHT</session><weather>25°C, Light Rain</weather><energy_score>64</energy_score><correlation>Screen time reached 4h 20m today; early 08:30 event tomorrow requires wind-down.</correlation></personal_data_signals>
+Output - Cool 25°C rainy night—unplug from screens early to rest up for tomorrow's 08:30 schedule.
+"""
+
+        /**
+         * Static prefix (>200 words) for contextual lifestyle recommendations using ML Kit Prompt API prefix caching.
+         */
+        const val PDE_LIFESTYLE_PROMPT_PREFIX = """
+## Task
+Generate a JSON array of 2 personalized lifestyle recommendations based on the user context inside <request> tags.
+
+## Rules
+- Return ONLY a valid JSON array with 2 objects.
+- Keep "title" under 6 words and "desc" under 16 words.
+- Match recommendations to temperature, weather condition, and time session.
+
+## Examples
+Example 1:
+Input - <request>temperature 26°C, weather cool rainy weather, session EVENING</request>
+Output - [{"category":"Food & Dining","tag":"Rainy 26°C","subTag":"Warm Meal","title":"Steaming Hotpot & Ginger Tea","desc":"Warm up on a rainy 26°C evening with broth and soothing ginger tea.","emoji":"🍲"},{"category":"Activity","tag":"Recovery","subTag":"Wind-down","title":"15-Minute Evening Mobility Stretch","desc":"Release desk tension with gentle spinal twists before bedtime.","emoji":"🧘"}]
+"""
 
         fun parseCurrencyAmount(text: String): Double {
             val textHasUsd = text.contains("$") || Regex("""\bUSD\b""", RegexOption.IGNORE_CASE).containsMatchIn(text)

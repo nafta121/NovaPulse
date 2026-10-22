@@ -158,12 +158,13 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
         Log.d(TAG, "DynamicIslandAccessibilityService connected.")
 
         val info = serviceInfo ?: AccessibilityServiceInfo()
-        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
         info.flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
                 AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS or
                 AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-        info.notificationTimeout = 0
+        info.notificationTimeout = 150L
         serviceInfo = info
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -175,7 +176,12 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
         }
-        registerReceiver(lockscreenReceiver, filter)
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            lockscreenReceiver,
+            filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         startObservingPreferences()
     }
@@ -327,8 +333,13 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                         com.example.core.database.AppDatabase.getInstance(this@DynamicIslandAccessibilityService)
                     val upcomingTasks by database.taskDao().getUpcomingTasks(3).collectAsState(initial = emptyList())
 
-                    val cachedWeather = remember(lastUpdated) {
-                        com.example.core.repository.WeatherCacheManager.load(this@DynamicIslandAccessibilityService)
+                    val cachedWeather by androidx.compose.runtime.produceState<com.example.core.repository.RealWeatherData?>(
+                        initialValue = null,
+                        key1 = lastUpdated
+                    ) {
+                        value = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                            com.example.core.repository.WeatherCacheManager.load(this@DynamicIslandAccessibilityService)
+                        }
                     }
                     val tempInt = if (cachedWeather != null) Math.round(cachedWeather.currentTempC).toInt() else 29
                     val weatherCode = cachedWeather?.weatherCode ?: 0

@@ -34,7 +34,12 @@ class UserRoutineDetector : BroadcastReceiver() {
                     addAction(Intent.ACTION_POWER_CONNECTED)
                     addAction(Intent.ACTION_POWER_DISCONNECTED)
                 }
-                context.applicationContext.registerReceiver(UserRoutineDetector(), filter)
+                androidx.core.content.ContextCompat.registerReceiver(
+                    context.applicationContext,
+                    UserRoutineDetector(),
+                    filter,
+                    androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+                )
                 Log.d(TAG, "UserRoutineDetector dynamically registered for system signals")
             } catch (e: Exception) {
                 isRegistered.set(false)

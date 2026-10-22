@@ -57,30 +57,29 @@ jobs:
 
       - name: Prepare Release APK
         run: |
-          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.4.0-release.apk
+          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.5.0-release.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NowBrief-v1.4.0-release
-          path: NowBrief-v1.4.0-release.apk
+          name: NowBrief-v1.5.0-release
+          path: NowBrief-v1.5.0-release.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: NowBrief-v1.4.0-release
-          name: NowBrief v1.4.0 (Audit Fixes & Optimization Release)
+          tag_name: NowBrief-v1.5.0-release
+          name: NowBrief v1.5.0 (ML Kit GenAI & Samsung PDE Audit Release)
           body: |
-            ## 🌟 NowBrief (NovaPulse) v1.4.0 - Audit Fixes & Optimization Release
+            ## 🌟 NowBrief (NovaPulse) v1.5.0 - ML Kit GenAI & Samsung PDE Audit Release
             
-            - Bumped application version to `v1.4.0` (`versionCode = 3`).
-            - **Real HTTP Model Streaming & Resume**: Replaced dummy byte loop with resumable OkHttp streaming and instant pause/cancel (`ModelDownloadManager`).
-            - **Smart Per-Notification Debounce**: Pre-filters notifications before deduplicating per content hash so random alerts never block bank or task notifications (`SmartNotificationListenerService`).
-            - **7-Day Screen Time History**: Aggregated full Monday–Sunday foreground usage in `ScreenTimeRepository`.
-            - **Accurate USD & VND Expense Parsing**: Preserved decimal cents on USD expenses and ignored leading dates/card digits (`LocalLlmManager`, `TasksExpensesScreen`).
-            - **Tasks & Expenses Navigation & Battery Saver**: Connected `TasksExpensesScreen` navigation and paused Dynamic Island overlay animations when the screen turns off.
-            - **Lean Codebase**: Shared singleton `OkHttpClient`, removed 4 dead files & 5 unused Gradle dependencies, split `DashboardScreen.kt` (-3,600 lines), and added unit tests.
-          files: NowBrief-v1.4.0-release.apk
+            - Bumped application version to `v1.5.0` (`versionCode = 4`).
+            - **ML Kit GenAI Prompt API (Gemini Nano / AICore)**: Integrated `com.google.mlkit:genai-prompt:1.0.0-beta2` (`Generation.getClient()`) with `PromptPrefix` prefix caching, background engine `warmup()`, `close()` lifecycle cleanup, and XML-delimited `<personal_data_signals>` / `<notification>` inputs (`LocalLlmManager`, `BriefingAiGenerator`, `OnDeviceModelRunner`).
+            - **Samsung Personal Data Engine (PDE) Cross-Signal Correlation**: Added pre-LLM cross-signal correlation combining Weather + Calendar + Routine + Sleep + Steps + Screen Time + Tasks + Expenses into structured insights before Gemini Nano / Gemini Cloud summarization (`BriefingAiGenerator`, `GeminiAiRepository`).
+            - **ANR & Main-Thread I/O Fixes**: Moved `CalendarRepository`, `ScreenTimeRepository`, and `WeatherCacheManager` I/O off the main thread to `Dispatchers.IO`, debounced duplicate startup refreshes (`MainViewModel`, `DashboardScreen`, `MainActivity`, `DynamicIslandAccessibilityService`).
+            - **Android 14+ Security & Play Policy Hardening**: Added `ContextCompat.RECEIVER_NOT_EXPORTED` on runtime broadcast receivers, narrowed `accessibility_service_config.xml` event types, and removed unused high-risk manifest permissions (`SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE_SPECIAL_USE`, static `TIME_TICK`).
+            - **R8 & Compose Performance Optimization**: Enabled R8 minification & resource shrinking (`isMinifyEnabled = true`, `isShrinkResources = true`), wired `GlanceContextWidget().updateAll(context)` & `WidgetConfigActivity` `RESULT_OK`, fixed double status bar insets, and deleted 840+ lines of dead code.
+          files: NowBrief-v1.5.0-release.apk
           draft: false
           prerelease: false
         env:

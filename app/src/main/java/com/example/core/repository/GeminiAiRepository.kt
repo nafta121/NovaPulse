@@ -2,7 +2,9 @@ package com.example.core.repository
 
 import android.content.Context
 import android.util.Log
+import com.example.NovaPulseApp
 import com.example.core.ai.BriefingContentProvider
+import com.example.core.ai.LocalLlmManager
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
@@ -33,9 +35,10 @@ class GeminiAiRepository(private val context: Context) {
         forceRefresh: Boolean = false
     ): String = withContext(Dispatchers.IO) {
         val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
-        val cacheKey = "recap_${today}_$sessionName"
+        val stepBucket = (steps / 500) * 500
+        val cacheKey = "recap_${today}_${sessionName}_${temp}_$stepBucket"
 
-        // 1. Read cache first unless manually refreshed (to save quota)
+        // 1. Read quantized signal cache first unless manually refreshed (saves AICore & cloud quota)
         if (!forceRefresh) {
             val cachedText = sharedPrefs.getString(cacheKey, null)
             if (!cachedText.isNullOrBlank()) {
@@ -43,17 +46,34 @@ class GeminiAiRepository(private val context: Context) {
             }
         }
 
-        // 2. Concise prompt for One UI 9 Briefing
-        val prompt = """
-            You are the One UI 9 Briefing virtual assistant. Create a very concise, warm, and inspiring daily recap sentence (maximum 20 words).
-            Current context:
-            - Session: $sessionName
-            - Weather: $temp°C, $weatherDesc
-            - Activity: Walked $steps steps.
-            Return only a single summary sentence, without greetings, quotation marks, or markdown formatting.
+        val dynamicXml = """
+            <personal_data_signals>
+            <session>$sessionName</session>
+            <weather>${temp}°C, $weatherDesc</weather>
+            <steps>$steps</steps>
+            <correlation>Session $sessionName at ${temp}°C ($weatherDesc) with $steps steps walked today.</correlation>
+            </personal_data_signals>
         """.trimIndent()
 
-        // 3. Call Gemini API via Firebase AI and cache the result
+        // 2. Tier 1: On-Device Gemini Nano via ML Kit GenAI Prompt API (with Prefix Caching)
+        try {
+            val llmManager = (context.applicationContext as? NovaPulseApp)?.llmManager
+            val onDeviceResult = llmManager?.generateWithPromptApi(
+                staticPrefix = LocalLlmManager.PDE_BRIEFING_PROMPT_PREFIX,
+                dynamicXmlSuffix = dynamicXml,
+                maxTokens = 80
+            )?.replace("\"", "")?.replace("*", "")?.lineSequence()?.firstOrNull()?.trim()
+
+            if (!onDeviceResult.isNullOrBlank()) {
+                sharedPrefs.edit().putString(cacheKey, onDeviceResult).apply()
+                return@withContext onDeviceResult
+            }
+        } catch (e: Exception) {
+            Log.d("LOCAL_AI", "ML Kit Prompt API unavailable, trying cloud/fallback: ${e.message}")
+        }
+
+        // 3. Tier 2: Concise XML-delimited prompt for Firebase AI Gemini Flash
+        val prompt = "${LocalLlmManager.PDE_BRIEFING_PROMPT_PREFIX}\n$dynamicXml"
         try {
             val model = generativeModel
             if (model != null) {
@@ -68,7 +88,7 @@ class GeminiAiRepository(private val context: Context) {
             Log.e("LOCAL_AI", "Text generation error: ${e.message}")
         }
 
-        // 4. Smooth fallback when offline, on network error, or out of quota
+        // 4. Tier 3: Deterministic Samsung PDE fallback when offline or out of quota
         return@withContext BriefingContentProvider.getFallbackRecap(sessionName, temp, weatherDesc)
     }
 }

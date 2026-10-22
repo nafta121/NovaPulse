@@ -1,6 +1,7 @@
 package com.example.core.ai
 
 import android.content.Context
+import com.example.NovaPulseApp
 import com.example.feature.widget.BriefingSession
 
 enum class AiModelMode(val displayName: String, val sizeMb: Int) {
@@ -21,6 +22,8 @@ data class OnDeviceUserContext(
 class OnDeviceModelRunner(private val context: Context) {
 
     private val mlEngine = com.example.core.ml.InternalMlEngine.getInstance(context)
+    private val llmManager: LocalLlmManager?
+        get() = (context.applicationContext as? NovaPulseApp)?.llmManager
 
     suspend fun runInference(ctx: OnDeviceUserContext): String {
         val routineInsight = mlEngine.getRoutineInsight()
@@ -34,6 +37,14 @@ class OnDeviceModelRunner(private val context: Context) {
     }
 
     suspend fun generateResponse(prompt: String): String {
+        val manager = llmManager
+        if (manager != null) {
+            return try {
+                manager.executeInference(prompt, prompt)
+            } catch (_: Exception) {
+                ""
+            }
+        }
         return runInference(
             OnDeviceUserContext(
                 session = BriefingSession.getCurrentSession(),

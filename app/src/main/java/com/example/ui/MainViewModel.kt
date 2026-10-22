@@ -354,6 +354,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val stepCounterManager = com.example.core.sensor.StepCounterManager(application)
+    private var lastRefreshTimestampMs: Long = 0L
 
     init {
         stepCounterManager.startListening()
@@ -454,23 +455,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun refreshAllRealData() {
+    fun refreshAllRealData(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastRefreshTimestampMs < 10_000L) {
+            return
+        }
+        lastRefreshTimestampMs = now
+
         checkAndRefreshPermissions()
 
-        // 1. Fetch Calendar Events if permission is granted (Today + Tomorrow)
-        if (calendarRepository.isPermissionGranted()) {
-            val today = calendarRepository.getRemainingTodayEvents()
-            val tomorrow = calendarRepository.getTomorrowEvents()
-            _todayCalendarEvents.value = (today + tomorrow).distinctBy { it.id }
-        } else {
-            _todayCalendarEvents.value = emptyList()
-        }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            // 1. Fetch Calendar Events off the Main thread if permission is granted (Today + Tomorrow)
+            if (calendarRepository.isPermissionGranted()) {
+                val today = calendarRepository.getRemainingTodayEvents()
+                val tomorrow = calendarRepository.getTomorrowEvents()
+                _todayCalendarEvents.value = (today + tomorrow).distinctBy { it.id }
+            } else {
+                _todayCalendarEvents.value = emptyList()
+            }
 
-        // 2. Fetch Screen Time Stats if permission is granted
-        if (screenTimeRepository.isUsageAccessGranted()) {
-            _realScreenTimeData.value = screenTimeRepository.getScreenTimeStats()
-        } else {
-            _realScreenTimeData.value = null
+            // 2. Fetch Screen Time Stats off the Main thread if permission is granted
+            if (screenTimeRepository.isUsageAccessGranted()) {
+                _realScreenTimeData.value = screenTimeRepository.getScreenTimeStats()
+            } else {
+                _realScreenTimeData.value = null
+            }
         }
 
         // 3. Fetch Weather from Open-Meteo API
@@ -479,10 +488,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // 4. Fetch Health Connect Sleep & Heart Rate Records
         fetchRealHealthData()
 
-        // 5. Generate AI Lifestyle Tips with Smart Fallback
-        fetchLifestyleTips()
-
-        // 6. Run Offline On-Device Local AI Inference
+        // 5. Run On-Device Local AI Inference & Lifestyle Recommendations
         runOnDeviceAiInference()
     }
 
@@ -597,14 +603,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun fetchRealWeather(lat: Double? = null, lon: Double? = null) {
         viewModelScope.launch {
-            // Show cached data immediately if available to avoid blank state while waiting for API
-            val cached = com.example.core.repository.WeatherCacheManager.load(getApplication())
+            // Read cached data off the Main thread to avoid disk I/O + JSON parsing jank
+            val (cached, isStale) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val c = com.example.core.repository.WeatherCacheManager.load(getApplication())
+                val stale = com.example.core.repository.WeatherCacheManager.isStale(getApplication())
+                c to stale
+            }
             if (cached != null && _realWeatherData.value == null) {
                 _realWeatherData.value = cached
             }
 
             // Check if cache is still fresh (<30 mins) and not forced to refresh -> skip API call
-            val isStale = com.example.core.repository.WeatherCacheManager.isStale(getApplication())
             if (!isStale && lat == null && lon == null && cached != null) {
                 _isWeatherLoading.value = false
                 return@launch
@@ -774,7 +783,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 energyScore = 85,
                 sleepHoursFormatted = health?.sleepDurationFormatted,
                 remainingCalendarEventsCount = calEvents.size,
-                topTaskTitle = pendingTasks.firstOrNull()?.title
+                topTaskTitle = pendingTasks.firstOrNull()?.title,
+                screenTimeFormatted = _realScreenTimeData.value?.formattedDuration,
+                stepsCount = health?.currentSteps ?: 0
             )
             val aiResult = briefingGenerator.generate(briefingContext)
 
@@ -822,6 +833,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             tts?.shutdown()
         } catch (e: Exception) {
         }
+        llmManager.close()
         calendarRepository.unregisterContentObserver()
     }
 

@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -102,6 +104,8 @@ fun TasksExpensesScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         if (onBack != null) {
             Row(
@@ -246,7 +250,7 @@ private fun TasksListTab(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(tasks, key = { it.id }) { task ->
+            items(tasks, key = { it.id }, contentType = { "task_item" }) { task ->
                 TaskItemCard(task = task, onToggle = { onToggle(task) }, onDelete = { onDelete(task.id) })
             }
         }
@@ -259,7 +263,9 @@ private fun TaskItemCard(
     onToggle: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val formattedTime = SimpleDateFormat("HH:mm, dd/MM", Locale.getDefault()).format(Date(task.datetime))
+    val formattedTime = remember(task.datetime) {
+        SimpleDateFormat("HH:mm, dd/MM", Locale.getDefault()).format(Date(task.datetime))
+    }
     val (priorityColor, priorityBg) = when (task.priority) {
         "HIGH" -> PolishRose to PolishRoseLight
         "MEDIUM" -> PolishAmber to PolishAmberLight
@@ -438,7 +444,7 @@ private fun ExpensesListTab(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(expenses, key = { it.id }) { expense ->
+                items(expenses, key = { it.id }, contentType = { "expense_item" }) { expense ->
                     ExpenseItemCard(expense = expense, onDelete = { onDelete(expense.id) })
                 }
             }
@@ -451,12 +457,16 @@ private fun ExpenseItemCard(
     expense: ExpenseEntity,
     onDelete: () -> Unit
 ) {
-    val formattedAmount = if (expense.currency.equals("USD", ignoreCase = true)) {
-        DecimalFormat("#,##0.##").format(expense.amount)
-    } else {
-        DecimalFormat("#,###").format(expense.amount)
+    val formattedAmount = remember(expense.amount, expense.currency) {
+        if (expense.currency.equals("USD", ignoreCase = true)) {
+            DecimalFormat("#,##0.##").format(expense.amount)
+        } else {
+            DecimalFormat("#,###").format(expense.amount)
+        }
     }
-    val formattedTime = SimpleDateFormat("HH:mm, dd/MM", Locale.getDefault()).format(Date(expense.timestamp))
+    val formattedTime = remember(expense.timestamp) {
+        SimpleDateFormat("HH:mm, dd/MM", Locale.getDefault()).format(Date(expense.timestamp))
+    }
 
     val (categoryIcon, categoryColor, categoryBg) = when (expense.category.lowercase(Locale.ROOT)) {
         "food & dining", "food" -> Triple(Icons.Default.Fastfood, PolishEmerald, PolishEmeraldLight)

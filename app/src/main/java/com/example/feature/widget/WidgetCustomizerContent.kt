@@ -83,6 +83,7 @@ fun WidgetCustomizerContent(
     initialShape: String,
     initialShowSubtext: Boolean,
     onSaveConfig: (Float, String, String, Boolean) -> Unit,
+    onApplyAndClose: ((Float, String, String, Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var transparency by rememberSaveable { mutableFloatStateOf(initialTransparency) }
@@ -731,6 +732,7 @@ fun WidgetCustomizerContent(
             onClick = {
                 onSaveConfig(transparency, colorPreset, shape, showSubtext)
                 isSavedSuccess = true
+                onApplyAndClose?.invoke(transparency, colorPreset, shape, showSubtext)
             },
             modifier = Modifier
                 .fillMaxWidth()

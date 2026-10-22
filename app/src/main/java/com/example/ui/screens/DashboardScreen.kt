@@ -220,7 +220,7 @@ fun DashboardScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         viewModel.checkAndRefreshPermissions()
-        if (granted) viewModel.refreshAllRealData()
+        if (granted) viewModel.refreshAllRealData(force = true)
     }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -247,14 +247,7 @@ fun DashboardScreen(
         viewModel.fetchRealHealthData()
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.refreshAllRealData()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q && !permissionsState.hasActivityRecognitionPermission) {
-            activityRecognitionPermissionLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
-        }
-    }
-
-    // Automatically refresh calendar data & Glance widget immediately on app resume (ON_RESUME)
+    // Automatically refresh calendar data & Glance widget on app resume (ON_RESUME)
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -762,19 +755,9 @@ fun DashboardScreen(
             // ONE UI 9 SCHEDULE CARD (Real Calendar Data & Room DB)
             if ("calendar_schedule" in enabledContentCards) {
                 item {
-                    val calendarRepo = remember { com.example.core.repository.CalendarRepository(context) }
                     val displayEvents = remember(calendarEvents) {
                         val now = System.currentTimeMillis()
-                        val remaining = calendarEvents.filter { it.endTimeMillis > now || it.startTimeMillis >= now }
-                        if (remaining.isNotEmpty()) {
-                            remaining
-                        } else {
-                            try {
-                                calendarRepo.getTomorrowEvents()
-                            } catch (e: Exception) {
-                                emptyList()
-                            }
-                        }
+                        calendarEvents.filter { it.endTimeMillis > now || it.startTimeMillis >= now }
                     }
 
                     val upcomingScheduleEvents = remember(allTasks, displayEvents) {
@@ -889,8 +872,15 @@ fun DashboardScreen(
                             data = weeklyInsightsData,
                             isDark = isDark,
                             onDetailClick = {
-                                val healthRepo = com.example.core.repository.HealthConnectRepository(context)
-                                healthRepo.openHealthConnectSettings(context)
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+                                    !permissionsState.hasActivityRecognitionPermission
+                                ) {
+                                    activityRecognitionPermissionLauncher.launch(
+                                        android.Manifest.permission.ACTIVITY_RECOGNITION
+                                    )
+                                } else {
+                                    viewModel.openHealthConnectSettings(context)
+                                }
                             }
                         )
                     }
