@@ -341,7 +341,7 @@ class DynamicIslandAccessibilityService : AccessibilityService() {
                             com.example.core.repository.WeatherCacheManager.load(this@DynamicIslandAccessibilityService)
                         }
                     }
-                    val tempInt = if (cachedWeather != null) Math.round(cachedWeather.currentTempC).toInt() else 29
+                    val tempInt = cachedWeather?.currentTempC?.let { Math.round(it).toInt() } ?: 29
                     val weatherCode = cachedWeather?.weatherCode ?: 0
                     val weatherTempStr = "${tempInt}°C"
 
