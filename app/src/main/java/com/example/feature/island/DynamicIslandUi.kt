@@ -1569,7 +1569,7 @@ fun DynamicIslandView(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val latestMerchant = latestExpense?.merchant?.takeIf { it.isNotBlank() }
+                                val latestMerchant = latestExpense?.note?.takeIf { it.isNotBlank() }
                                 Text(
                                     text = if (latestMerchant != null) {
                                         "💳 Hari ini: $formattedExpense (Terakhir: $latestMerchant)"

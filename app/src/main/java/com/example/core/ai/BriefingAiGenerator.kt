@@ -30,10 +30,14 @@ data class BriefingContext(
     val weatherCondition: String? = null,
     val energyScore: Int = 85,
     val sleepHoursFormatted: String? = null,
+    val sleepHoursLastNight: Double? = null,
     val remainingCalendarEventsCount: Int = 0,
+    val upcomingEventsSummary: String? = null,
     val topTaskTitle: String? = null,
     val screenTimeFormatted: String? = null,
-    val stepsCount: Int = 0
+    val screenTimeMinutesToday: Int? = null,
+    val stepsCount: Int = 0,
+    val stepsToday: Int? = null
 ) {
     val session: BriefingSession
         get() = BriefingSession.fromHourAndMinute(hourOfDay, 0)
@@ -55,22 +59,27 @@ data class BriefingContext(
     fun toPdeXmlSignals(): String {
         val tempInt = Math.round(weatherTempC ?: 28.0).toInt()
         val cond = weatherCondition ?: "pleasant"
-        val sleepInfo = sleepHoursFormatted?.takeIf { it.isNotBlank() } ?: "7h 15m"
-        val screenInfo = screenTimeFormatted?.takeIf { it.isNotBlank() } ?: "moderate"
+        val effectiveSteps = stepsToday ?: stepsCount
+        val effectiveSleepStr = sleepHoursFormatted?.takeIf { it.isNotBlank() }
+            ?: sleepHoursLastNight?.let { String.format(java.util.Locale.US, "%.1f", it) }
+            ?: "7.2"
+        val effectiveScreenMins = screenTimeMinutesToday ?: 0
+        val screenInfo = screenTimeFormatted?.takeIf { it.isNotBlank() }
+            ?: if (effectiveScreenMins > 0) "${effectiveScreenMins}m" else "moderate"
         val correlation = buildString {
             when (phase) {
                 DiurnalPhaseType.MORNING -> {
-                    append("Recovery energy $energyScore% ($sleepInfo sleep) with $remainingCalendarEventsCount calendar events today")
+                    append("Recovery energy $energyScore% ($effectiveSleepStr sleep) with $remainingCalendarEventsCount calendar events today")
                     if (!topTaskTitle.isNullOrBlank()) append("; priority task: $topTaskTitle")
                 }
                 DiurnalPhaseType.NOON -> {
-                    append("Midday recharge at ${tempInt}°C ($cond) after $stepsCount steps; $remainingCalendarEventsCount events remaining")
+                    append("Midday recharge at ${tempInt}°C ($cond) after $effectiveSteps steps; $remainingCalendarEventsCount events remaining")
                 }
                 DiurnalPhaseType.AFTERNOON -> {
                     append("Afternoon focus window with $remainingCalendarEventsCount events and ${topTaskTitle ?: "steady momentum"}")
                 }
                 DiurnalPhaseType.EVENING, DiurnalPhaseType.NIGHT -> {
-                    append("Evening wind-down after $screenInfo screen time and $stepsCount steps; energy at $energyScore%")
+                    append("Evening wind-down after $screenInfo screen time and $effectiveSteps steps; energy at $energyScore%")
                 }
             }
         }
@@ -79,6 +88,9 @@ data class BriefingContext(
             <session>${session.name}</session>
             <weather>${tempInt}°C, $cond</weather>
             <energy_score>$energyScore</energy_score>
+            <calendar remaining_events="$remainingCalendarEventsCount">${upcomingEventsSummary ?: "None"}</calendar>
+            <top_task>${topTaskTitle ?: "None"}</top_task>
+            <activity steps="$effectiveSteps" screen_time_min="$effectiveScreenMins" sleep_hours="$effectiveSleepStr" />
             <correlation>$correlation</correlation>
             </personal_data_signals>
         """.trimIndent()
