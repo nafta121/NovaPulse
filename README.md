@@ -89,7 +89,7 @@ graph LR
 ## 📥 APK Installation Guide
 
 ### 1. Download and Install:
-1. Download **`NowBrief-v1.1.2-release.apk`** to your Android phone.
+1. Download **`NowBrief-v1.3.0-release.apk`** to your Android phone.
 2. Open the downloaded APK file and tap **Install**.
 3. If a security prompt appears:
    - **"Install unknown apps"**: Select **Allow from this source**.

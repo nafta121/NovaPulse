@@ -57,25 +57,26 @@ jobs:
 
       - name: Prepare Release APK
         run: |
-          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.2.0-en-release.apk
+          cp app/build/outputs/apk/release/app-release.apk NowBrief-v1.3.0-release.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NowBrief-v1.2.0-en-release
-          path: NowBrief-v1.2.0-en-release.apk
+          name: NowBrief-v1.3.0-release
+          path: NowBrief-v1.3.0-release.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: NowBrief-v1.2.0-en-release
-          name: NowBrief v1.2.0 (English Release)
+          tag_name: NowBrief-v1.3.0-release
+          name: NowBrief v1.3.0 (English Release)
           body: |
-            ## 🌟 NowBrief (NovaPulse) v1.2.0 - Full English Release
+            ## 🌟 NowBrief (NovaPulse) v1.3.0 - Full English Release
             
-            - Translated the entire application UI, AI prompts, 7-session briefings, widgets, Dynamic Island (NowPill), notifications, and documentation from Vietnamese into English.
+            - Bumped application version to `v1.3.0` (`versionCode = 2`).
+            - Complete English translation across UI, AI prompts, 7-session briefings, widgets, Dynamic Island (NowPill), notifications, on-device ML/engine modules, and documentation.
             - Built and signed automatically via GitHub Actions.
-          files: NowBrief-v1.2.0-en-release.apk
+          files: NowBrief-v1.3.0-release.apk
           draft: false
           prerelease: false
         env:
