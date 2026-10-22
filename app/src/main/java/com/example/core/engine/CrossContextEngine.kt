@@ -8,9 +8,10 @@ import android.net.Uri
 import android.os.BatteryManager
 import android.provider.AlarmClock
 import android.util.Log
-import com.example.core.data.CalendarRepository
-import com.example.core.data.RealCalendarEvent
-import com.example.core.data.WeatherRepository
+import com.example.core.repository.CalendarRepository
+import com.example.core.repository.RealCalendarEvent
+import com.example.core.repository.WeatherRepository
+import com.example.core.repository.getWeatherForTimestamp
 import com.example.core.database.AppDatabase
 import com.example.core.ml.InternalMlEngine
 import com.example.core.ml.ProcrastinationRisk
